@@ -93,8 +93,10 @@ class Controller_XM_Cart extends Controller_Public {
 			AJAX_Status::is_json();
 			echo json_encode(array(
 				'id' => $order_product->id,
-				'unit_price' => $order_product->unit_price,
+				'cart_product_id' => $product->id,
 				'name' => $product->name,
+				'quantity' => $order_product->quantity,
+				'unit_price' => $order_product->unit_price,
 				'cost_formatted' => $product->cost_formatted(),
 			));
 
@@ -125,7 +127,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 			return;
 		}
-	}
+	} // function action_save_product
 
 	public function action_cart_empty() {
 		$order = $this->retrieve_order();
@@ -149,11 +151,33 @@ class Controller_XM_Cart extends Controller_Public {
 			if ( ! $order->loaded()) {
 				unset($order);
 			}
+
+			// only allow access to new orders and those that have been submitted, but not paidec
+			if (isset($order) && ! in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
+				unset($order);
+			}
+
+			if (isset($order)) {
+				// make sure they own the order
+				// it's possible they weren't logged in, but then did login so the order user_id will 0/unset
+				if (Auth::instance()->logged_in() && ! empty($order->user_id) && Auth::instance()->get_user()->pk() != $order->user_id) {
+					unset($order);
+				// user is logged in and the current order is unassigned, so assign it to them
+				} else if (Auth::instance()->logged_in() && empty($order->user_id)) {
+					$order->set('user_id', Auth::instance()->get_user()->pk())
+						->save();
+				}
+			}
 		}
 
 		// no order found, just create a new one
 		if ( ! isset($order) && $create) {
 			$order = ORM::factory('Cart_Order')
+				->values(array(
+					'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
+					'country_id' => (int) Kohana::$config->load('xm_cart.default_country_id'),
+					'status' => CART_ORDER_STATUS_NEW,
+				))
 				->save();
 		}
 
@@ -164,5 +188,5 @@ class Controller_XM_Cart extends Controller_Public {
 		} else {
 			return NULL;
 		}
-	}
+	} // function retrieve_order
 }
