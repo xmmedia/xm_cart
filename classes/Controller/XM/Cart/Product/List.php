@@ -22,7 +22,6 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 					. Form::input('quantity', 1, array('size' => 3, 'maxlength' => 5, 'class' => 'js_cart_order_product_quantity'))
 					. Form::submit(NULL, 'Add to Cart')
 				. Form::close()
-				// . HTML::anchor(, 'Add to Cart', array('class' => 'js_cart_add_product', 'data-cart_product_id' => $product->id))
 				. '</li>';
 		}
 

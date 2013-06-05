@@ -7,6 +7,8 @@
 		</ul>
 	</div>
 	<div class="col-2-3 js_cart">
+		<h2>Cart</h2>
+		<img src="/images/loading.gif">
 	</div>
 </div>
 

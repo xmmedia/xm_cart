@@ -1,9 +1,37 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 class Controller_XM_Cart extends Controller_Public {
-	public $no_auto_render_actions = array('save_products');
+	public $no_auto_render_actions = array('load_products', 'save_products');
 
-	public function action_save_products() {
+	public function action_load_products() {
+		$order = $this->retrieve_order();
+
+		if ( ! empty($order) && is_object($order)) {
+			$order_products = $order->cart_order_product->find_all();
+
+			$order_product_array = array();
+			foreach ($order_products as $order_product) {
+				if ( ! $order_product->cart_product->loaded()) {
+					continue;
+				}
+
+				$order_product_array[] = array(
+					'id' => $order_product->id,
+					'cart_product_id' => $order_product->cart_product_id,
+					'quantity' => $order_product->quantity,
+					'unit_price' => $order_product->unit_price,
+					'name' => $order_product->cart_product->name,
+				);
+			}
+		} else {
+			$order_product_array = array();
+		}
+
+		AJAX_Status::is_json();
+		echo json_encode($order_product_array);
+	}
+
+	public function action_save_product() {
 		// all data is in the model key in the post and sent as a json object
 		$model = $this->request->post('model');
 		if ( ! empty($model)) {
@@ -21,7 +49,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		// attempt to retrieve or create a new order
-		$order = $this->retrieve_order();
+		$order = $this->retrieve_order(TRUE);
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$existing_data = array(
@@ -54,13 +82,15 @@ class Controller_XM_Cart extends Controller_Public {
 		))->save();
 
 		// return the cart_order_product id and unit_price
+		AJAX_Status::is_json();
 		echo json_encode(array(
 			'id' => $order_product->id,
 			'unit_price' => $order_product->unit_price,
+			'name' => $product->name,
 		));
 	}
 
-	protected function retrieve_order() {
+	protected function retrieve_order($create = FALSE) {
 		$order_id = Session::instance()->path('xm_cart.cart_order_id');
 
 		// if there is an order in the session, attempt to retrieve it
@@ -73,13 +103,17 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		// no order found, just create a new one
-		if ( ! isset($order)) {
+		if ( ! isset($order) && $create) {
 			$order = ORM::factory('Cart_Order')
 				->save();
 		}
 
-		Session::instance()->set_path('xm_cart.cart_order_id', $order->id);
+		if (isset($order) && $order->loaded()) {
+			Session::instance()->set_path('xm_cart.cart_order_id', $order->id);
 
-		return $order;
+			return $order;
+		} else {
+			return NULL;
+		}
 	}
 }
