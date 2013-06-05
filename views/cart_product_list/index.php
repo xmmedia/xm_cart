@@ -6,9 +6,11 @@
 		<?php echo $product_list; ?>
 		</ul>
 	</div>
-	<div class="col-2-3 js_cart">
+	<div class="col-2-3">
 		<h2>Cart</h2>
-		<img src="/images/loading.gif" class="js_loading">
+		<div class="js_cart">
+			<img src="/images/loading.gif" class="js_loading">
+		</div>
 	</div>
 </div>
 

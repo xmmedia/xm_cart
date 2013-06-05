@@ -5,7 +5,8 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 		parent::before();
 
 		if ($this->auto_render) {
-			$this->add_script('cart_base', 'xm_cart/js/base.min.js')
+			$this->add_style('cart_public', 'xm_cart/css/public.css')
+				->add_script('cart_base', 'xm_cart/js/base.min.js')
 				->add_script('cart_public', 'xm_cart/js/public.min.js');
 		}
 	}
