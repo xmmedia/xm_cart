@@ -21,6 +21,7 @@ class Controller_XM_Cart extends Controller_Public {
 					'quantity' => $order_product->quantity,
 					'unit_price' => $order_product->unit_price,
 					'name' => $order_product->cart_product->name,
+					'cost_formatted' => $order_product->cart_product->cost_formatted(),
 				);
 			}
 		} else {
