@@ -5,7 +5,8 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 		parent::before();
 
 		if ($this->auto_render) {
-			$this->add_script('cart_public', 'xm_cart/js/public.min.js');
+			$this->add_script('cart_base', 'xm_cart/js/base.min.js')
+				->add_script('cart_public', 'xm_cart/js/public.min.js');
 		}
 	}
 
@@ -14,8 +15,14 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 			->find_all();
 		$_products = array();
 		foreach ($products as $product) {
-			$_products[] = '<li>' . HTML::chars($product->name) . ' '
-				. HTML::anchor(Route::get('cart_public')->uri(array('action' => 'add_product', 'id' => $product->id)), 'Add to Cart', array('class' => 'js_cart_add_product'))
+			$_products[] = '<li>'
+				. Form::open(Route::get('cart_public')->uri(array('action' => 'add_product', 'id' => $product->id)), array('method' => 'POST', 'class' => 'js_cart_add_product'))
+					. HTML::chars($product->name) . ' $' . $product->cost
+					. Form::hidden('cart_product_id', $product->id, array('class' => 'js_cart_product_id'))
+					. Form::input('quantity', 1, array('size' => 3, 'maxlength' => 5, 'class' => 'js_cart_order_product_quantity'))
+					. Form::submit(NULL, 'Add to Cart')
+				. Form::close()
+				// . HTML::anchor(, 'Add to Cart', array('class' => 'js_cart_add_product', 'data-cart_product_id' => $product->id))
 				. '</li>';
 		}
 
