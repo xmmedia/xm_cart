@@ -284,17 +284,6 @@ class Model_XM_Cart_Order extends ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
-		'email' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 200,
-			),
-		),
 		'shipping_first_name' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -373,6 +362,8 @@ class Model_XM_Cart_Order extends ORM {
 					'source' => 'model',
 					'data' => 'State',
 				),
+				'select_none' => FALSE,
+				'select_one' => TRUE,
 			),
 		),
 		'shipping_state' => array(
@@ -410,6 +401,8 @@ class Model_XM_Cart_Order extends ORM {
 					'source' => 'model',
 					'data' => 'Country',
 				),
+				'select_none' => FALSE,
+				'select_one' => TRUE,
 			),
 		),
 		'shipping_phone' => array(
@@ -419,6 +412,17 @@ class Model_XM_Cart_Order extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+		),
+		'shipping_email' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 200,
+			),
 		),
 		'same_as_shipping_flag' => array(
 			'field_type' => 'Checkbox',
@@ -506,6 +510,8 @@ class Model_XM_Cart_Order extends ORM {
 					'source' => 'model',
 					'data' => 'State',
 				),
+				'select_none' => FALSE,
+				'select_one' => TRUE,
 			),
 		),
 		'billing_state' => array(
@@ -543,6 +549,8 @@ class Model_XM_Cart_Order extends ORM {
 					'source' => 'model',
 					'data' => 'Country',
 				),
+				'select_none' => FALSE,
+				'select_one' => TRUE,
 			),
 		),
 		'billing_phone' => array(
@@ -552,6 +560,17 @@ class Model_XM_Cart_Order extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+		),
+		'billing_email' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 200,
+			),
 		),
 	);
 
@@ -563,6 +582,8 @@ class Model_XM_Cart_Order extends ORM {
 		'column' 	=> 'expiry_date',
 		'default'	=> 0,
 	);
+
+	protected $user_labels = FALSE;
 
 	/**
 	 * Labels for columns.
@@ -582,32 +603,33 @@ class Model_XM_Cart_Order extends ORM {
 			'internal_order_num' => 'Internal Order Num',
 			'status' => 'Status',
 			'po_number' => 'PO Number',
-			'order_note' => 'Order Note',
+			'order_note' => 'Notes',
 			'user_address_loaded_flag' => 'User Address Loaded',
-			'email' => 'Email',
-			'shipping_first_name' => 'Shipping First Name',
-			'shipping_last_name' => 'Shipping Last Name',
-			'shipping_company' => 'Shipping Company',
-			'shipping_address_1' => 'Shipping Address 1',
-			'shipping_address_2' => 'Shipping Address 2',
-			'shipping_city' => 'Shipping City',
-			'shipping_state_id' => 'Shipping State',
-			'shipping_state' => 'Shipping State',
-			'shipping_postal_code' => 'Shipping Postal Code',
-			'shipping_country_id' => 'Shipping Country',
-			'shipping_phone' => 'Shipping Phone',
+			'shipping_first_name' => ( ! $this->user_labels ? 'Shipping ' : '') . 'First Name',
+			'shipping_last_name' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Last Name',
+			'shipping_company' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Company',
+			'shipping_address_1' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Address Line 1',
+			'shipping_address_2' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Address Line 2',
+			'shipping_city' => ( ! $this->user_labels ? 'Shipping ' : '') . 'City',
+			'shipping_state_id' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Province / State',
+			'shipping_state' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Province / State',
+			'shipping_postal_code' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Postal / Zip Code',
+			'shipping_country_id' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Country',
+			'shipping_phone' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Phone',
+			'shipping_email' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Email Address',
 			'same_as_shipping_flag' => 'Same As Shipping',
-			'billing_first_name' => 'Billing First Name',
-			'billing_last_name' => 'Billing Last Name',
-			'billing_company' => 'Billing Company',
-			'billing_address_1' => 'Billing Address 1',
-			'billing_address_2' => 'Billing Address 2',
-			'billing_city' => 'Billing City',
-			'billing_state_id' => 'Billing State',
-			'billing_state' => 'Billing State',
-			'billing_postal_code' => 'Billing Postal Code',
-			'billing_country_id' => 'Billing Country',
-			'billing_phone' => 'Billing Phone',
+			'billing_first_name' => ( ! $this->user_labels ? 'Billing ' : '') . 'First Name',
+			'billing_last_name' => ( ! $this->user_labels ? 'Billing ' : '') . 'Last Name',
+			'billing_company' => ( ! $this->user_labels ? 'Billing ' : '') . 'Company',
+			'billing_address_1' => ( ! $this->user_labels ? 'Billing ' : '') . 'Address Line 1',
+			'billing_address_2' => ( ! $this->user_labels ? 'Billing ' : '') . 'Address Line 2',
+			'billing_city' => ( ! $this->user_labels ? 'Billing ' : '') . 'City',
+			'billing_state_id' => ( ! $this->user_labels ? 'Billing ' : '') . 'Province / State',
+			'billing_state' => ( ! $this->user_labels ? 'Billing ' : '') . 'Province / State',
+			'billing_postal_code' => ( ! $this->user_labels ? 'Billing ' : '') . 'Postal / Zip Code',
+			'billing_country_id' => ( ! $this->user_labels ? 'Billing ' : '') . 'Country',
+			'billing_phone' => ( ! $this->user_labels ? 'Billing ' : '') . 'Phone',
+			'billing_email' => ( ! $this->user_labels ? 'Billing ' : '') . 'Email Address',
 		);
 	}
 
@@ -667,5 +689,11 @@ class Model_XM_Cart_Order extends ORM {
 				array('trim'),
 			),
 		);
+	}
+
+	public function for_user() {
+		$this->user_labels = TRUE;
+
+		return $this;
 	}
 } // class

@@ -3,6 +3,16 @@
 class Controller_XM_Cart extends Controller_Public {
 	public $no_auto_render_actions = array('load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty');
 
+	public function before() {
+		parent::before();
+
+		if ($this->auto_render) {
+			$this->add_style('cart_public', 'xm_cart/css/public.css')
+				->add_script('cart_base', 'xm_cart/js/base.min.js')
+				->add_script('cart_public', 'xm_cart/js/public.min.js');
+		}
+	}
+
 	public function action_load_cart() {
 		$sub_total = $total = 0;
 
@@ -173,6 +183,86 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::success());
+	}
+
+	public function action_checkout() {
+		$continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
+
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->request->redirect($continue_shopping_url);
+		}
+
+		$order->for_user();
+
+		$order_products = $order->cart_order_product->find_all();
+		$total = $sub_total = 0;
+
+		$order_product_array = array();
+		foreach ($order_products as $order_product) {
+			// make sure the product is still avaialble, otherwise remove it from the order
+			if ( ! $order_product->cart_product->loaded()) {
+				$order_product->delete();
+				continue;
+			}
+
+			$order_product_array[] = $order_product;
+			$sub_total += $order_product->unit_price * $order_product->quantity;
+		} // foreach
+
+		if (empty($order_product_array)) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->request->redirect($continue_shopping_url);
+		}
+
+		$total = $sub_total;
+
+		$total_rows = array();
+		$total_rows[] = array(
+			'name' => 'Sub Total',
+			'value' => $sub_total,
+		);
+		$total_rows[] = array(
+			'name' => 'Total',
+			'value' => $total,
+			'class' => 'grand_total',
+		);
+
+		$cart_html = View::factory('cart/cart')
+			->bind('order_product_array', $order_product_array)
+			->bind('total_rows', $total_rows);
+
+		$expiry_date_months = array(
+			'' => 'Month',
+			1 => '01',
+			2 => '02',
+			3 => '03',
+			4 => '04',
+			5 => '05',
+			6 => '06',
+			7 => '07',
+			8 => '08',
+			9 => '09',
+			10 => '10',
+			11 => '11',
+			12 => '12',
+		);
+		$expiry_date_years = array(
+			'' => 'Year',
+		);
+		for ($y = date('Y'); $y <= date('Y') + 10; $y ++) {
+			$expiry_date_years[$y] = $y;
+		}
+
+		$this->template->page_title = 'Checkout' . $this->page_title_append;
+		$this->template->body_html = View::factory('cart/checkout')
+			->bind('order', $order)
+			->bind('cart_html', $cart_html)
+			->bind('expiry_date_months', $expiry_date_months)
+			->bind('expiry_date_years', $expiry_date_years)
+			->set('continue_shopping_url', $continue_shopping_url)
+			->set('cart_prefix', (string) Kohana::$config->load('xm_cart.prefix'));
 	}
 
 	protected function retrieve_order($create = FALSE) {

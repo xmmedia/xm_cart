@@ -159,4 +159,8 @@ class Model_XM_Cart_Order_Product extends ORM {
 			),
 		);
 	}
+
+	public function amount() {
+		return $this->quantity * $this->unit_price;
+	}
 } // class

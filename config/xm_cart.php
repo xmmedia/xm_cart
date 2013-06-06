@@ -5,6 +5,7 @@ return array(
 	// can't be an empty string
 	// default: cart
 	'prefix' => 'cart',
+	'continue_shopping_url' => '/cart/product_list',
 	'routes' => array(
 		'product_list' => TRUE,
 		'public' => TRUE,
