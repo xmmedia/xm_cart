@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 class Controller_XM_Cart extends Controller_Public {
-	public $no_auto_render_actions = array('load_products', 'save_product', 'add_product', 'change_quantity', 'cart_empty');
+	public $no_auto_render_actions = array('load_products', 'add_product', 'remove_product', 'change_quantity', 'cart_empty');
 
 	public function action_load_products() {
 		$order = $this->retrieve_order();
@@ -71,9 +71,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'unit_price' => $product->cost,
 		))->save();
 
-		// return the cart_order_product id and unit_price
-		AJAX_Status::is_json();
-		echo json_encode(array());
+		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_add_product
 
 	public function action_remove_product() {
@@ -97,8 +95,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$order_product->delete();
 		}
 
-		AJAX_Status::is_json();
-		echo json_encode(array());
+		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
 	public function action_change_quantity() {
@@ -145,9 +142,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'unit_price' => $product->cost,
 		))->save();
 
-		// return the cart_order_product id and unit_price
-		AJAX_Status::is_json();
-		echo json_encode(array());
+		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_change_quantity
 
 	public function action_cart_empty() {
@@ -158,8 +153,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 		}
 
-		AJAX_Status::is_json();
-		echo json_encode(array());
+		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
 	protected function retrieve_order($create = FALSE) {
