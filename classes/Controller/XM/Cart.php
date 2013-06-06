@@ -1,9 +1,9 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 class Controller_XM_Cart extends Controller_Public {
-	public $no_auto_render_actions = array('load_products', 'add_product', 'remove_product', 'change_quantity', 'cart_empty');
+	public $no_auto_render_actions = array('load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty');
 
-	public function action_load_products() {
+	public function action_load_cart() {
 		$order = $this->retrieve_order();
 
 		if ( ! empty($order) && is_object($order)) {
@@ -28,6 +28,11 @@ class Controller_XM_Cart extends Controller_Public {
 		} else {
 			$order_product_array = array();
 		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'products' => $order_product_array,
+		)));
+		return;
 
 		AJAX_Status::is_json();
 		echo json_encode($order_product_array);
