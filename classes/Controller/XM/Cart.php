@@ -1,10 +1,19 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 class Controller_XM_Cart extends Controller_Public {
-	public $no_auto_render_actions = array('load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty');
+	public $no_auto_render_actions = array(
+		// other actions
+		'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty',
+		// checkout actions
+		'save_shipping'
+	);
+
+	protected $continue_shopping_url;
 
 	public function before() {
 		parent::before();
+
+		$this->continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
@@ -56,10 +65,6 @@ class Controller_XM_Cart extends Controller_Public {
 				'total_formatted' => Cart::cf($total),
 			)
 		)));
-		return;
-
-		AJAX_Status::is_json();
-		echo json_encode($order_product_array);
 	}
 
 	public function action_add_product() {
@@ -186,12 +191,10 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_checkout() {
-		$continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
-
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			$this->request->redirect($continue_shopping_url);
+			$this->request->redirect($this->continue_shopping_url);
 		}
 
 		$order->for_user();
@@ -213,7 +216,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 		if (empty($order_product_array)) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			$this->request->redirect($continue_shopping_url);
+			$this->request->redirect($this->continue_shopping_url);
 		}
 
 		$total = $sub_total;
@@ -261,8 +264,46 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('cart_html', $cart_html)
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
-			->set('continue_shopping_url', $continue_shopping_url)
+			->set('continue_shopping_url', $this->continue_shopping_url)
 			->set('cart_prefix', (string) Kohana::$config->load('xm_cart.prefix'));
+	} // function action_checkout
+
+	public function action_save_shipping() {
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->request->redirect($this->continue_shopping_url);
+		}
+
+		$ajax_status = AJAX_Status::SUCCESSFUL;
+		$shipping_display = '';
+
+		try {
+			$order->only_allow_shipping()
+				->save_values()
+				->save();
+
+			$shipping_display = View::factory('cart/shipping_display')
+				->set('shipping_address', Cart::address_html($order->shipping_formatted()));
+		} catch (ORM_Validation_Exception $e) {
+			$ajax_status = AJAX_Status::VALIDATION_ERROR;
+
+			// get the errors in the validation object
+			$validation_msgs = $e->errors($order->table_name());
+
+			// if there are still validation messages, display them
+			if ( ! empty($validation_msgs)) {
+				Message::message('cl4admin', 'values_not_valid', array(
+					':validation_errors' => Message::add_validation_errors($e, 'Model_Cart_Order')
+				), Message::$error);
+			}
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'status' => $ajax_status,
+			'messages' => (string) Message::display(),
+			'shipping_display' => (string) $shipping_display,
+		)));
 	}
 
 	protected function retrieve_order($create = FALSE) {

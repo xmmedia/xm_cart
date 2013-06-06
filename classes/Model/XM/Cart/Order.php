@@ -116,19 +116,19 @@ class Model_XM_Cart_Order extends ORM {
 			'model' => 'Country',
 			'foreign_key' => 'country_id',
 		),
-		'shipping_state' => array(
+		'shipping_state_select' => array(
 			'model' => 'State',
 			'foreign_key' => 'shipping_state_id',
 		),
-		'shipping_country' => array(
+		'shipping_country_select' => array(
 			'model' => 'Country',
 			'foreign_key' => 'shipping_country_id',
 		),
-		'billing_state' => array(
+		'billing_state_select' => array(
 			'model' => 'State',
 			'foreign_key' => 'billing_state_id',
 		),
-		'billing_country' => array(
+		'billing_country_select' => array(
 			'model' => 'Country',
 			'foreign_key' => 'billing_country_id',
 		),
@@ -412,6 +412,9 @@ class Model_XM_Cart_Order extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'default_value' => '1----',
+			),
 		),
 		'shipping_email' => array(
 			'field_type' => 'Text',
@@ -585,6 +588,36 @@ class Model_XM_Cart_Order extends ORM {
 
 	protected $user_labels = FALSE;
 
+	protected $shipping_fields = array(
+		'shipping_first_name',
+		'shipping_last_name',
+		'shipping_company',
+		'shipping_address_1',
+		'shipping_address_2',
+		'shipping_city',
+		'shipping_state_id',
+		'shipping_state',
+		'shipping_postal_code',
+		'shipping_country_id',
+		'shipping_phone',
+		'shipping_email',
+	);
+
+	protected $billing_fields = array(
+		'billing_first_name',
+		'billing_last_name',
+		'billing_company',
+		'billing_address_1',
+		'billing_address_2',
+		'billing_city',
+		'billing_state_id',
+		'billing_state',
+		'billing_postal_code',
+		'billing_country_id',
+		'billing_phone',
+		'billing_email',
+	);
+
 	/**
 	 * Labels for columns.
 	 *
@@ -630,6 +663,40 @@ class Model_XM_Cart_Order extends ORM {
 			'billing_country_id' => ( ! $this->user_labels ? 'Billing ' : '') . 'Country',
 			'billing_phone' => ( ! $this->user_labels ? 'Billing ' : '') . 'Phone',
 			'billing_email' => ( ! $this->user_labels ? 'Billing ' : '') . 'Email Address',
+		);
+	}
+
+	/**
+	 * Rule definitions for validation.
+	 *
+	 * @return  array
+	 */
+	public function rules() {
+		return array(
+			'shipping_first_name' => array(
+				array('not_empty'),
+			),
+			'shipping_last_name' => array(
+				array('not_empty'),
+			),
+			'shipping_address_1' => array(
+				array('not_empty'),
+			),
+			'shipping_city' => array(
+				array('not_empty'),
+			),
+			'shipping_state_id' => array(
+				array('selected'),
+			),
+			'shipping_postal_code' => array(
+				array('not_empty'),
+			),
+			'shipping_country_id' => array(
+				array('selected'),
+			),
+			'shipping_phone' => array(
+				array('not_empty'),
+			),
 		);
 	}
 
@@ -695,5 +762,45 @@ class Model_XM_Cart_Order extends ORM {
 		$this->user_labels = TRUE;
 
 		return $this;
+	}
+
+	public function only_allow_shipping() {
+		return $this->set_edit_flag_false($this->shipping_fields);
+	}
+
+	public function only_allow_billing() {
+		return $this->set_edit_flag_false($this->billing_fields);
+	}
+
+	public function set_edit_flag_false($allowed_fields) {
+		foreach ($this->_table_columns as $column_name => $attributes) {
+			if ( ! in_array($column_name, $allowed_fields)) {
+				$this->set_table_columns($column_name, 'edit_flag', FALSE);
+			}
+		}
+
+		return $this;
+	}
+
+	public function shipping_formatted() {
+		$str = '';
+
+		$this->set_mode('view');
+
+		if ( ! empty($this->shipping_company)) {
+			$str .= $this->shipping_company . PHP_EOL;
+		}
+
+		$str .= $this->shipping_first_name . ' ' . $this->shipping_last_name . PHP_EOL
+			. $this->shipping_address_1 . PHP_EOL;
+
+		if ( ! empty($this->shipping_address_2)) {
+			$str .= $this->shipping_address_2 . PHP_EOL;
+		}
+
+		$str .= $this->shipping_city . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
+			. $this->shipping_country_select->name;
+
+		return $str;
 	}
 } // class
