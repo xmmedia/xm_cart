@@ -4,6 +4,8 @@ class Controller_XM_Cart extends Controller_Public {
 	public $no_auto_render_actions = array('load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty');
 
 	public function action_load_cart() {
+		$sub_total = $total = 0;
+
 		$order = $this->retrieve_order();
 
 		if ( ! empty($order) && is_object($order)) {
@@ -15,6 +17,8 @@ class Controller_XM_Cart extends Controller_Public {
 					continue;
 				}
 
+				$amount = $order_product->unit_price * $order_product->quantity;
+
 				$order_product_array[] = array(
 					'id' => $order_product->id,
 					'cart_product_id' => $order_product->cart_product_id,
@@ -22,15 +26,25 @@ class Controller_XM_Cart extends Controller_Public {
 					'unit_price' => $order_product->unit_price,
 					'name' => $order_product->cart_product->name,
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
-					'amount_formatted' => Cart::cf($order_product->unit_price * $order_product->quantity),
+					'amount_formatted' => Cart::cf($amount),
 				);
-			}
+
+				$sub_total += $amount;
+			} // foreach
+
+			$total = $sub_total; // plus tax + shipping + +++
 		} else {
 			$order_product_array = array();
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'products' => $order_product_array,
+			'order' => array(
+				'sub_total' => $sub_total,
+				'sub_total_formatted' => Cart::cf($sub_total),
+				'total' => $total,
+				'total_formatted' => Cart::cf($total),
+			)
 		)));
 		return;
 
