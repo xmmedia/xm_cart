@@ -139,13 +139,4 @@ class Model_XM_Cart_Product extends ORM {
 			),
 		);
 	}
-
-	/**
-	 * Returns the formatted cost, with currency symbole.
-	 *
-	 * @return  string
-	 */
-	public function cost_formatted() {
-		return '$' . Num::format($this->cost, 2, TRUE);
-	}
 } // class
