@@ -14,6 +14,8 @@ return array(
 	// default is Canada, ID 40
 	'default_country_id' => 40,
 
+	// order status labels and values
+	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(
 		1 => 'New Order / Unpaid',
 		2 => 'Submitted / Waiting for Payment',
@@ -25,13 +27,13 @@ return array(
 		8 => 'Cancelled',
 	),
 	'order_status_ids' => array(
-		'new' => 1,
+		'new'       => 1,
 		'submitted' => 2,
-		'payment' => 3,
-		'paid' => 4,
-		'received' => 5,
-		'shipped' => 6,
-		'refunded' => 7,
+		'payment'   => 3,
+		'paid'      => 4,
+		'received'  => 5,
+		'shipped'   => 6,
+		'refunded'  => 7,
 		'cancelled' => 8,
 	),
 );

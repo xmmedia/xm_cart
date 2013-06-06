@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 class Controller_XM_Cart extends Controller_Public {
-	public $no_auto_render_actions = array('load_products', 'save_product', 'cart_empty');
+	public $no_auto_render_actions = array('load_products', 'save_product', 'add_product', 'change_quantity', 'cart_empty');
 
 	public function action_load_products() {
 		$order = $this->retrieve_order();
@@ -128,6 +128,98 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 	} // function action_save_product
+
+	public function action_add_product() {
+		// retrieve the values out of the model array
+		$cart_product_id = (int) $this->request->post('cart_product_id');
+		$quantity = (int) $this->request->post('quantity');
+
+		if (empty($cart_product_id)) {
+			throw new Kohana_Exception('No cart_product_id was received');
+		}
+
+		// attempt to retrieve or create a new order
+		$order = $this->retrieve_order(TRUE);
+
+		// attempt to retrieve the existing product in the cart or create an empty object
+		$order_product = ORM::factory('Cart_Order_Product', array(
+			'cart_order_id' => $order->id,
+			'cart_product_id' => $cart_product_id,
+		));
+
+		// make sure the product still exists (not expired)
+		$product = ORM::factory('Cart_Product', $cart_product_id);
+		if ( ! $product->loaded()) {
+			// since the product has been expired, also remove the product from order (cart_order_product)
+			if ($order_product->loaded()) {
+				$order_product->delete();
+			}
+
+			// then throw and error because this is bad!
+			throw new Kohana_Exception('The selected product is no longer available');
+		}
+
+		// everything seems successful, so save the cart_order_product record
+		$order_product->values(array(
+			'cart_order_id' => $order->id,
+			'cart_product_id' => $cart_product_id,
+			'quantity' => ($order_product->loaded() ? $order_product->quantity + $quantity : $quantity),
+			'unit_price' => $product->cost,
+		))->save();
+
+		// return the cart_order_product id and unit_price
+		AJAX_Status::is_json();
+		echo json_encode(array());
+	}
+
+	public function action_change_quantity() {
+		// retrieve the values out of the model array
+		$cart_order_product_id = (int) $this->request->post('cart_order_product_id');
+		$quantity = (int) $this->request->post('quantity');
+
+		if (empty($cart_order_product_id)) {
+			throw new Kohana_Exception('No cart_order_product_id was received');
+		}
+
+		// attempt to retrieve or create a new order
+		$order = $this->retrieve_order(TRUE);
+
+		// attempt to retrieve the existing product in the cart or create an empty object
+		$order_product = ORM::factory('Cart_Order_Product', $cart_order_product_id);
+
+		if ($quantity == 0) {
+			if ($order_product->loaded()) {
+				$order_product->delete();
+			}
+
+			AJAX_Status::is_json();
+			echo json_encode(array());
+
+			return;
+		}
+
+		// make sure the product still exists (not expired)
+		$product = ORM::factory('Cart_Product', $order_product->cart_product_id);
+		if ( ! $product->loaded()) {
+			// since the product has been expired, also remove the product from order (cart_order_product)
+			if ($order_product->loaded()) {
+				$order_product->delete();
+			}
+
+			// then throw and error because this is bad!
+			throw new Kohana_Exception('The selected product is no longer available');
+		}
+
+		// everything seems successful, so save the cart_order_product record
+		$order_product->values(array(
+			'quantity' => $quantity,
+			'unit_price' => $product->cost,
+		))->save();
+
+		// return the cart_order_product id and unit_price
+		AJAX_Status::is_json();
+		echo json_encode(array());
+	}
 
 	public function action_cart_empty() {
 		$order = $this->retrieve_order();
