@@ -152,7 +152,7 @@
 							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 18, 'maxlength' => 16, 'id' => 'credit_card_number', 'class' => 'js_cart_checkout_credit_card_number')); ?>
 						</div>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::input('credit_card[security_code]', NULL, array('size' => 5, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
+							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::password('credit_card[security_code]', NULL, array('size' => 5, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
 						</div>
 						<div class="cart_field">
 							<?php echo Form::label('credit_card_expiry_date_month', 'Expiry Date'),
@@ -176,16 +176,16 @@
 
 
 
-		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="4" data-cart_checkout_step_type="confirm">
+		<div class="cart_checkout_box cart_checkout_box_final js_cart_checkout_step" data-cart_checkout_step="4" data-cart_checkout_step_type="final">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2>4. Confirm Your Order</h2>
+			<h2>4. Notes</h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
-				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'confirm_order')) . '?c_ajax=1'); ?>
+				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_final')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_final')); ?>
 				<div class="cart_field">
 					<?php echo $order->get_field_layout('order_note'); ?>
 				</div>
@@ -195,12 +195,30 @@
 
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_right">
-						<?php echo Form::input_button(NULL, 'Complete Checkout', array('class' => 'js_cart_checkout_continue')); ?>
+						<?php echo Form::input_button(NULL, 'Continue', array('class' => 'js_cart_checkout_continue')); ?>
 					</div>
 				</div>
 			</div>
 
-			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed"></div>
+			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
+		</div>
+
+
+
+		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="4" data-cart_checkout_step_type="confirm">
+			<h2>5. Complete Your Order</h2>
+
+			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
+				<div class="js_cart_checkout_box_messages"></div>
+				<div style="text-align: center;">
+					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
+						Form::hidden('stripe_data', NULL, array('class' => 'js_cart_checkout_stripe_data')); ?>
+					<?php echo Form::submit(NULL, 'Complete My Order', array('class' => 'js_cart_checkout_complete_order_submit')); ?>
+					<?php echo Form::close(); ?>
+
+					<p><strong>Please review your order before completing your order.</storng></p>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

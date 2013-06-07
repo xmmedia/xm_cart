@@ -661,6 +661,10 @@ class Model_XM_Cart_Order extends ORM {
 		'billing_email',
 	);
 
+	protected $final_step_fields = array(
+		'order_note',
+	);
+
 	/**
 	 * Labels for columns.
 	 *
@@ -844,6 +848,10 @@ class Model_XM_Cart_Order extends ORM {
 
 	public function only_allow_billing() {
 		return $this->set_edit_flag_false($this->billing_fields);
+	}
+
+	public function only_allow_final_step() {
+		return $this->set_edit_flag_false($this->final_step_fields);
 	}
 
 	public function set_edit_flag_false($allowed_fields) {

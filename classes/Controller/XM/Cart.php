@@ -5,7 +5,7 @@ class Controller_XM_Cart extends Controller_Public {
 		// other actions
 		'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty',
 		// checkout actions
-		'save_shipping', 'save_billing', 'validate_payment',
+		'save_shipping', 'save_billing', 'validate_payment', 'save_final', 'complete_order',
 	);
 
 	protected $continue_shopping_url;
@@ -191,6 +191,7 @@ class Controller_XM_Cart extends Controller_Public {
 		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
+	// not ajax!!
 	public function action_checkout() {
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
@@ -274,7 +275,11 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			$this->request->redirect($this->continue_shopping_url);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
 		}
 
 		$ajax_status = AJAX_Status::SUCCESSFUL;
@@ -313,7 +318,11 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			$this->request->redirect($this->continue_shopping_url);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
 		}
 
 		$ajax_status = AJAX_Status::SUCCESSFUL;
@@ -359,8 +368,72 @@ class Controller_XM_Cart extends Controller_Public {
 		)));
 	}
 
-	public function action_complete() {
+	public function action_save_final() {
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
+		}
 
+		$ajax_status = AJAX_Status::SUCCESSFUL;
+		$final_display = '';
+
+		try {
+			$order->for_user()
+				->only_allow_final_step()
+				->save_values()
+				->save();
+
+			$final_display = View::factory('cart/final_display')
+				->bind('order', $order);
+		} catch (ORM_Validation_Exception $e) {
+			$ajax_status = AJAX_Status::VALIDATION_ERROR;
+
+			// get the errors in the validation object
+			$validation_msgs = $e->errors($order->table_name());
+
+			// if there are still validation messages, display them
+			if ( ! empty($validation_msgs)) {
+				Message::message('cl4admin', 'values_not_valid', array(
+					':validation_errors' => Message::add_validation_errors($e, 'Model_Cart_Order')
+				), Message::$error);
+			}
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'status' => $ajax_status,
+			'message_html' => (string) Message::display(),
+			'final_display' => (string) $final_display,
+		)));
+	}
+
+	public function action_complete_order() {
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
+		}
+
+		$stripe_data = $this->request->post('stripe_data');
+		if ( ! empty($stripe_data)) {
+			$stripe_data = json_decode($stripe_data, TRUE);
+		} else {
+			throw new Kohana_Exception('No Stripe data was received');
+		}
+
+		/*$order->set('status', CART_ORDER_STATUS_SUBMITTED)
+			->is_valid()
+			->save();*/
+
+		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
 	protected function retrieve_order($create = FALSE) {
