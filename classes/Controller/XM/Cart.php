@@ -5,7 +5,7 @@ class Controller_XM_Cart extends Controller_Public {
 		// other actions
 		'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty',
 		// checkout actions
-		'save_shipping'
+		'save_shipping', 'save_billing', 'validate_payment',
 	);
 
 	protected $continue_shopping_url;
@@ -279,7 +279,8 @@ class Controller_XM_Cart extends Controller_Public {
 		$shipping_display = '';
 
 		try {
-			$order->only_allow_shipping()
+			$order->for_user()
+				->only_allow_shipping()
 				->save_values()
 				->save();
 
@@ -301,8 +302,92 @@ class Controller_XM_Cart extends Controller_Public {
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'status' => $ajax_status,
-			'messages' => (string) Message::display(),
+			'message_html' => (string) Message::display(),
 			'shipping_display' => (string) $shipping_display,
+		)));
+	}
+
+	public function action_save_billing() {
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->request->redirect($this->continue_shopping_url);
+		}
+
+		$ajax_status = AJAX_Status::SUCCESSFUL;
+		$billing_display = '';
+
+		try {
+			$order->for_user()
+				->only_allow_billing()
+				->save_values()
+				->save();
+
+
+		} catch (ORM_Validation_Exception $e) {
+			$ajax_status = AJAX_Status::VALIDATION_ERROR;
+
+			// get the errors in the validation object
+			$validation_msgs = $e->errors($order->table_name());
+
+			// if there are still validation messages, display them
+			if ( ! empty($validation_msgs)) {
+				Message::message('cl4admin', 'values_not_valid', array(
+					':validation_errors' => Message::add_validation_errors($e, 'Model_Cart_Order')
+				), Message::$error);
+			}
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'status' => $ajax_status,
+			'message_html' => (string) Message::display(),
+		)));
+	}
+
+	public function action_validate_payment() {
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->request->redirect($this->continue_shopping_url);
+		}
+
+		$order->for_user();
+
+		$ajax_status = AJAX_Status::SUCCESSFUL;
+
+		$credit_card = (array) $this->request->post('credit_card');
+		$validation_errors = array();
+
+		if ( ! isset($credit_card['number']) || ! Valid::not_empty($credit_card['number']) || ! Valid::luhn($credit_card['number'])) {
+			$validation_errors[] = 'Your credit card number does not appear to be valid.';
+		}
+		if ( ! isset($credit_card['security_code']) || ! Valid::min_length($credit_card['security_code'], 3)) {
+			$validation_errors[] = 'The Security Code doesn\'t appear to be valid.';
+		}
+		if ( ! isset($credit_card['expiry_date']['year']) || ! isset($credit_card['expiry_date']['month']) || ! ($credit_card['expiry_date']['year'] > date('Y') || ($credit_card['expiry_date']['year'] == date('Y') && intval($credit_card['expiry_date']['month']) >= date('n')))) {
+			$validation_errors[] = 'Your credit card appears to have already expired. Please verify the Expiry Date.';
+		}
+
+		$message_html = '';
+		if ( ! empty($validation_errors)) {
+			$message_html .= '<ul class="cl4_message"><li class="error"><ul class="cl4_message_validation">';
+			foreach ($validation_errors as $validation_error) {
+				$message_html .= '<li>' . HTML::chars($validation_error) . '</li>';
+			}
+			$message_html .= '</ul></li></ul>';
+
+			$ajax_status = AJAX_Status::VALIDATION_ERROR;
+			$billing_display = '';
+		} else {
+			$billing_display = View::factory('cart/billing_display')
+				->set('billing_contact', Cart::address_html($order->billing_contact_formatted()))
+				->set('billing_address', Cart::address_html($order->billing_address_formatted()));
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'status' => $ajax_status,
+			'message_html' => $message_html,
+			'billing_display' => (string) $billing_display,
 		)));
 	}
 

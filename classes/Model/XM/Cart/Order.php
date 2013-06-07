@@ -673,6 +673,7 @@ class Model_XM_Cart_Order extends ORM {
 	 */
 	public function rules() {
 		return array(
+			// shipping
 			'shipping_first_name' => array(
 				array('not_empty'),
 			),
@@ -695,6 +696,32 @@ class Model_XM_Cart_Order extends ORM {
 				array('selected'),
 			),
 			'shipping_phone' => array(
+				array('not_empty'),
+			),
+
+			// billing
+			'billing_first_name' => array(
+				array('not_empty'),
+			),
+			'billing_last_name' => array(
+				array('not_empty'),
+			),
+			'billing_address_1' => array(
+				array('not_empty'),
+			),
+			'billing_city' => array(
+				array('not_empty'),
+			),
+			'billing_state_id' => array(
+				array('selected'),
+			),
+			'billing_postal_code' => array(
+				array('not_empty'),
+			),
+			'billing_country_id' => array(
+				array('selected'),
+			),
+			'billing_phone' => array(
 				array('not_empty'),
 			),
 		);
@@ -792,6 +819,8 @@ class Model_XM_Cart_Order extends ORM {
 		}
 
 		$str .= $this->shipping_first_name . ' ' . $this->shipping_last_name . PHP_EOL
+			. CL4::format_phone($this->shipping_phone) . PHP_EOL
+			. $this->shipping_email . PHP_EOL
 			. $this->shipping_address_1 . PHP_EOL;
 
 		if ( ! empty($this->shipping_address_2)) {
@@ -800,6 +829,39 @@ class Model_XM_Cart_Order extends ORM {
 
 		$str .= $this->shipping_city . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
 			. $this->shipping_country_select->name;
+
+		return $str;
+	}
+
+	public function billing_contact_formatted() {
+		$str = '';
+
+		$this->set_mode('view');
+
+		$str .= $this->billing_first_name . ' ' . $this->billing_last_name . PHP_EOL
+			. CL4::format_phone($this->billing_phone) . PHP_EOL
+			. $this->billing_email;
+
+		return $str;
+	}
+
+	public function billing_address_formatted() {
+		$str = '';
+
+		$this->set_mode('view');
+
+		if ( ! empty($this->billing_company)) {
+			$str .= $this->billing_company . PHP_EOL;
+		}
+
+		$str .= $this->billing_address_1 . PHP_EOL;
+
+		if ( ! empty($this->billing_address_2)) {
+			$str .= $this->billing_address_2 . PHP_EOL;
+		}
+
+		$str .= $this->billing_city . ', ' . $this->billing_state_select->name . '  ' . $this->billing_postal_code . PHP_EOL
+			. $this->billing_country_select->name;
 
 		return $str;
 	}

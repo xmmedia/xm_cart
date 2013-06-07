@@ -103,7 +103,7 @@
 					<p><a href="">Copy shipping address</a></p>
 
 					<div class="cart_billing_address">
-						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_billing')) . '?c_ajax=1'); ?>
+						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_billing')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_billing')); ?>
 						<p><strong>Billing Contact</strong></p>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_first_name'); ?>
@@ -145,13 +145,13 @@
 
 
 					<div class="cart_credit_card">
-						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'validate_payment')) . '?c_ajax=1'); ?>
+						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'validate_payment')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_payment')); ?>
 						<p><strong>Payment Method</strong></p>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 16, 'maxlength' => 16, 'id' => 'credit_card_number')); ?>
+							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 18, 'maxlength' => 16, 'id' => 'credit_card_number')); ?>
 						</div>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::input('credit_card[security_code]', NULL, array('size' => 3, 'maxlength' => 3, 'id' => 'credit_card_security_code')); ?>
+							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::input('credit_card[security_code]', NULL, array('size' => 5, 'maxlength' => 4, 'id' => 'credit_card_security_code')); ?>
 						</div>
 						<div class="cart_field">
 							<?php echo Form::label('credit_card_expiry_date_month', 'Expiry Date'),
@@ -170,9 +170,7 @@
 				</div>
 			</div>
 
-			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed">
-				payment info...
-			</div>
+			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
 		</div>
 
 

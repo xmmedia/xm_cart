@@ -12,6 +12,6 @@ class XM_Cart {
 	}
 
 	public static function address_html($str) {
-		return UTF8::str_ireplace(array(PHP_EOL, '  '), array('<br>' . PHP_EOL, '&nbsp;&nbsp;'), $str);
+		return UTF8::str_ireplace(array(PHP_EOL, '  '), array('<br>' . PHP_EOL, '&nbsp;&nbsp;'), HTML::chars($str));
 	}
 }
