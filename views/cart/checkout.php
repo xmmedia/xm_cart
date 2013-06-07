@@ -149,15 +149,15 @@
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'validate_payment')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_payment')); ?>
 						<p><strong>Payment Method</strong></p>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 18, 'maxlength' => 16, 'id' => 'credit_card_number')); ?>
+							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 18, 'maxlength' => 16, 'id' => 'credit_card_number', 'class' => 'js_cart_checkout_credit_card_number')); ?>
 						</div>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::input('credit_card[security_code]', NULL, array('size' => 5, 'maxlength' => 4, 'id' => 'credit_card_security_code')); ?>
+							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::input('credit_card[security_code]', NULL, array('size' => 5, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
 						</div>
 						<div class="cart_field">
 							<?php echo Form::label('credit_card_expiry_date_month', 'Expiry Date'),
-								Form::select('credit_card[expiry_date][month]', $expiry_date_months, NULL, array('id' => 'credit_card_expiry_date_month')),
-								Form::select('credit_card[expiry_date][year]', $expiry_date_years, NULL, array('id' => 'credit_card_expiry_date_year')); ?>
+								Form::select('credit_card[expiry_date][month]', $expiry_date_months, NULL, array('id' => 'credit_card_expiry_date_month', 'class' => 'js_cart_checkout_credit_card_expiry_date_month')),
+								Form::select('credit_card[expiry_date][year]', $expiry_date_years, NULL, array('id' => 'credit_card_expiry_date_year', 'class' => 'js_cart_checkout_credit_card_expiry_date_year')); ?>
 						</div>
 						<?php echo Form::close(); ?>
 					</div>
@@ -205,8 +205,4 @@
 	</div>
 </div>
 
-<script>
-var cart_config = {
-	prefix : <?php echo json_encode($cart_prefix); ?>
-};
-</script>
+<?php echo View::factory('cart/config')->set($kohana_view_data); ?>

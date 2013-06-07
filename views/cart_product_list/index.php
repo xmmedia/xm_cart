@@ -14,8 +14,4 @@
 	</div>
 </div>
 
-<script>
-var cart_config = {
-	prefix : <?php echo json_encode($cart_prefix); ?>
-};
-</script>
+<?php echo View::factory('cart/config')->set($kohana_view_data); ?>

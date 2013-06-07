@@ -120,7 +120,7 @@ class Model_XM_Cart_Order extends ORM {
 			'model' => 'State',
 			'foreign_key' => 'shipping_state_id',
 		),
-		'shipping_country_select' => array(
+		'shipping_country' => array(
 			'model' => 'Country',
 			'foreign_key' => 'shipping_country_id',
 		),
@@ -128,7 +128,7 @@ class Model_XM_Cart_Order extends ORM {
 			'model' => 'State',
 			'foreign_key' => 'billing_state_id',
 		),
-		'billing_country_select' => array(
+		'billing_country' => array(
 			'model' => 'Country',
 			'foreign_key' => 'billing_country_id',
 		),
@@ -875,7 +875,7 @@ class Model_XM_Cart_Order extends ORM {
 		}
 
 		$str .= $this->shipping_city . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
-			. $this->shipping_country_select->name;
+			. $this->shipping_country->name;
 
 		return $str;
 	}
@@ -908,7 +908,7 @@ class Model_XM_Cart_Order extends ORM {
 		}
 
 		$str .= $this->billing_city . ', ' . $this->billing_state_select->name . '  ' . $this->billing_postal_code . PHP_EOL
-			. $this->billing_country_select->name;
+			. $this->billing_country->name;
 
 		return $str;
 	}

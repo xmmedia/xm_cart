@@ -17,6 +17,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
+				->add_script('stripe_v2', 'https://js.stripe.com/v2/')
 				->add_script('cart_base', 'xm_cart/js/base.min.js')
 				->add_script('cart_public', 'xm_cart/js/public.min.js');
 		}
@@ -324,7 +325,9 @@ class Controller_XM_Cart extends Controller_Public {
 				->save_values()
 				->save();
 
-
+			$billing_display = View::factory('cart/billing_display')
+				->set('billing_contact', Cart::address_html($order->billing_contact_formatted()))
+				->set('billing_address', Cart::address_html($order->billing_address_formatted()));
 		} catch (ORM_Validation_Exception $e) {
 			$ajax_status = AJAX_Status::VALIDATION_ERROR;
 
@@ -342,10 +345,21 @@ class Controller_XM_Cart extends Controller_Public {
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'status' => $ajax_status,
 			'message_html' => (string) Message::display(),
+			'billing_display' => $billing_display,
+			'billing_address' => array(
+				'first_name' => $order->billing_first_name,
+				'last_name' => $order->billing_last_name,
+				'address_1' => $order->billing_address_1,
+				'address_2' => $order->billing_address_2,
+				'city' => $order->billing_city,
+				'state' => $order->billing_state_select->name,
+				'postal_code' => $order->billing_postal_code,
+				'country' => $order->billing_country->name,
+			),
 		)));
 	}
 
-	public function action_validate_payment() {
+	/*public function action_validate_payment() {
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
@@ -391,7 +405,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'message_html' => $message_html,
 			'billing_display' => (string) $billing_display,
 		)));
-	}
+	}*/
 
 	public function action_complete() {
 

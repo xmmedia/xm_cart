@@ -6,6 +6,7 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
+				->add_script('stripe_v2', 'https://js.stripe.com/v2/')
 				->add_script('cart_base', 'xm_cart/js/base.min.js')
 				->add_script('cart_public', 'xm_cart/js/public.min.js');
 		}
