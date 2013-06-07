@@ -293,6 +293,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_shipping_field' => 'first_name',
 			),
 		),
 		'shipping_last_name' => array(
@@ -304,6 +305,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_shipping_field' => 'last_name',
 			),
 		),
 		'shipping_company' => array(
@@ -315,6 +317,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 255,
+				'data-cart_shipping_field' => 'company',
 			),
 		),
 		'shipping_address_1' => array(
@@ -326,6 +329,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 255,
+				'data-cart_shipping_field' => 'address_1',
 			),
 		),
 		'shipping_address_2' => array(
@@ -337,6 +341,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 255,
+				'data-cart_shipping_field' => 'address_2',
 			),
 		),
 		'shipping_city' => array(
@@ -348,6 +353,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_shipping_field' => 'city',
 			),
 		),
 		'shipping_state_id' => array(
@@ -365,6 +371,9 @@ class Model_XM_Cart_Order extends ORM {
 				'select_none' => FALSE,
 				'select_one' => TRUE,
 			),
+			'field_attributes' => array(
+				'data-cart_shipping_field' => 'state_id',
+			),
 		),
 		'shipping_state' => array(
 			'field_type' => 'Text',
@@ -375,6 +384,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_shipping_field' => 'state',
 			),
 		),
 		'shipping_postal_code' => array(
@@ -387,6 +397,7 @@ class Model_XM_Cart_Order extends ORM {
 			'field_attributes' => array(
 				'maxlength' => 10,
 				'size' => 10,
+				'data-cart_shipping_field' => 'postal_code',
 			),
 		),
 		'shipping_country_id' => array(
@@ -404,6 +415,9 @@ class Model_XM_Cart_Order extends ORM {
 				'select_none' => FALSE,
 				'select_one' => TRUE,
 			),
+			'field_attributes' => array(
+				'data-cart_shipping_field' => 'country_id',
+			),
 		),
 		'shipping_phone' => array(
 			'field_type' => 'Phone',
@@ -415,6 +429,9 @@ class Model_XM_Cart_Order extends ORM {
 			'field_options' => array(
 				'default_value' => '1----',
 			),
+			'field_attributes' => array(
+				'data-cart_shipping_field' => 'phone',
+			),
 		),
 		'shipping_email' => array(
 			'field_type' => 'Text',
@@ -425,6 +442,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 200,
+				'data-cart_shipping_field' => 'email',
 			),
 		),
 		'same_as_shipping_flag' => array(
@@ -434,6 +452,9 @@ class Model_XM_Cart_Order extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'class' => 'js_cart_same_as_shipping_flag',
+			),
 		),
 		'billing_first_name' => array(
 			'field_type' => 'Text',
@@ -444,6 +465,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_billing_field' => 'first_name',
 			),
 		),
 		'billing_last_name' => array(
@@ -455,6 +477,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_billing_field' => 'last_name',
 			),
 		),
 		'billing_company' => array(
@@ -466,6 +489,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 255,
+				'data-cart_billing_field' => 'company',
 			),
 		),
 		'billing_address_1' => array(
@@ -477,6 +501,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 255,
+				'data-cart_billing_field' => 'address_1',
 			),
 		),
 		'billing_address_2' => array(
@@ -488,6 +513,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 255,
+				'data-cart_billing_field' => 'address_2',
 			),
 		),
 		'billing_city' => array(
@@ -499,6 +525,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_billing_field' => 'city',
 			),
 		),
 		'billing_state_id' => array(
@@ -516,6 +543,9 @@ class Model_XM_Cart_Order extends ORM {
 				'select_none' => FALSE,
 				'select_one' => TRUE,
 			),
+			'field_attributes' => array(
+				'data-cart_billing_field' => 'state_id',
+			),
 		),
 		'billing_state' => array(
 			'field_type' => 'Text',
@@ -526,6 +556,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
+				'data-cart_billing_field' => 'state',
 			),
 		),
 		'billing_postal_code' => array(
@@ -538,6 +569,7 @@ class Model_XM_Cart_Order extends ORM {
 			'field_attributes' => array(
 				'maxlength' => 10,
 				'size' => 10,
+				'data-cart_billing_field' => 'postal_code',
 			),
 		),
 		'billing_country_id' => array(
@@ -555,6 +587,9 @@ class Model_XM_Cart_Order extends ORM {
 				'select_none' => FALSE,
 				'select_one' => TRUE,
 			),
+			'field_attributes' => array(
+				'data-cart_billing_field' => 'country_id',
+			),
 		),
 		'billing_phone' => array(
 			'field_type' => 'Phone',
@@ -563,6 +598,12 @@ class Model_XM_Cart_Order extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'default_value' => '1----',
+			),
+			'field_attributes' => array(
+				'data-cart_billing_field' => 'phone',
+			),
 		),
 		'billing_email' => array(
 			'field_type' => 'Text',
@@ -573,6 +614,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 200,
+				'data-cart_billing_field' => 'email',
 			),
 		),
 	);
@@ -604,6 +646,7 @@ class Model_XM_Cart_Order extends ORM {
 	);
 
 	protected $billing_fields = array(
+		'same_as_shipping_flag',
 		'billing_first_name',
 		'billing_last_name',
 		'billing_company',

@@ -197,7 +197,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->request->redirect($this->continue_shopping_url);
 		}
 
-		$order->for_user();
+		$order->for_user()
+			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden');
 
 		$order_products = $order->cart_order_product->find_all();
 		$total = $sub_total = 0;
