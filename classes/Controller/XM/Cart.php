@@ -381,7 +381,8 @@ class Controller_XM_Cart extends Controller_Public {
 		} else {
 			$billing_display = View::factory('cart/billing_display')
 				->set('billing_contact', Cart::address_html($order->billing_contact_formatted()))
-				->set('billing_address', Cart::address_html($order->billing_address_formatted()));
+				->set('billing_address', Cart::address_html($order->billing_address_formatted()))
+				->set('cc_end', HTML::chars(substr($credit_card['number'], -4, 4)));
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -389,6 +390,10 @@ class Controller_XM_Cart extends Controller_Public {
 			'message_html' => $message_html,
 			'billing_display' => (string) $billing_display,
 		)));
+	}
+
+	public function action_complete() {
+
 	}
 
 	protected function retrieve_order($create = FALSE) {

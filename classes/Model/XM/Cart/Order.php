@@ -724,6 +724,10 @@ class Model_XM_Cart_Order extends ORM {
 			'billing_phone' => array(
 				array('not_empty'),
 			),
+			'billing_email' => array(
+				array('not_empty'),
+				array('email'),
+			),
 		);
 	}
 

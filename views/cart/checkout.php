@@ -4,7 +4,7 @@
 
 		<div class="cart_checkout_box cart_checkout_box_cart js_cart_checkout_step" data-cart_checkout_step="1" data-cart_checkout_step_type="cart">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
-				<a href="">Edit</a>
+				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
 			<h2>1. Your Cart</h2>
@@ -32,7 +32,7 @@
 
 		<div class="cart_checkout_box cart_checkout_box_shipping js_cart_checkout_step" data-cart_checkout_step="2" data-cart_checkout_step_type="shipping">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
-				<a href="">Edit</a>
+				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
 			<h2>2. Shipping Address</h2>
@@ -92,7 +92,7 @@
 
 		<div class="cart_checkout_box cart_checkout_box_payment js_cart_checkout_step" data-cart_checkout_step="3" data-cart_checkout_step_type="payment">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
-				<a href="">Edit</a>
+				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
 			<h2>3. Payment</h2>
@@ -170,14 +170,14 @@
 				</div>
 			</div>
 
-			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
+			<div class="cart_checkout_box_closed hidden cart_checkout_box_billing js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
 		</div>
 
 
 
 		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="4" data-cart_checkout_step_type="confirm">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
-				<a href="">Edit</a>
+				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
 			<h2>4. Confirm Your Order</h2>
@@ -190,16 +190,16 @@
 				</div>
 				<?php echo Form::close(); ?>
 
+				<p><strong>Please review your order before clicking Complete Checkout.</storng></p>
+
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_right">
-						<?php echo Form::input_button(NULL, 'Continue', array('class' => 'js_cart_checkout_continue')); ?>
+						<?php echo Form::input_button(NULL, 'Complete Checkout', array('class' => 'js_cart_checkout_continue')); ?>
 					</div>
 				</div>
 			</div>
 
-			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed">
-				additional info...
-			</div>
+			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed"></div>
 		</div>
 	</div>
 </div>
