@@ -196,7 +196,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			$this->request->redirect($this->continue_shopping_url);
+			$this->redirect($this->continue_shopping_url);
 		}
 
 		$order->for_user()
@@ -219,7 +219,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 		if (empty($order_product_array)) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			$this->request->redirect($this->continue_shopping_url);
+			$this->redirect($this->continue_shopping_url);
 		}
 
 		$total = $sub_total;
@@ -442,7 +442,7 @@ class Controller_XM_Cart extends Controller_Public {
 		/*$order->set('status', CART_ORDER_STATUS_SUBMITTED)
 			->is_valid()
 			->save();*/
-// $order->grand_total = 100;
+
 		try {
 			Stripe::setApiKey($stripe_config['secret_key']);
 			Stripe::setApiVersion($stripe_config['api_version']);
@@ -460,7 +460,6 @@ class Controller_XM_Cart extends Controller_Public {
 			// if the above didn't fail (throw exception), we want to complete the actual payment
 			$charge = Stripe_Charge::retrieve($charge_id);
 			$charge->capture();
-// Kohana::$log->add(Kohana_Log::DEBUG, print_r($charge, TRUE))->write();
 
 			if ( ! $charge->paid) {
 				throw new Kohana_Exception('The credit card was not charged/paid');
@@ -488,7 +487,6 @@ class Controller_XM_Cart extends Controller_Public {
 			// Since it's a decline, Stripe_CardError will be caught
 			Kohana::$log->add(Kohana_Log::ERROR, 'Stripe CardError')->write();
 			$error_body = $e->getJsonBody();
-// Kohana::$log->add(Kohana_Log::DEBUG, print_r($error_body, TRUE))->write();
 			$error  = $error_body['error'];
 			// error has type, code, param and message keys
 			// can also retrieve the HTTP status code: $e->getHttpStatus()
@@ -523,36 +521,98 @@ class Controller_XM_Cart extends Controller_Public {
 			// Invalid parameters were supplied to Stripe's API
 			Kohana::$log->add(Kohana_Log::ERROR, 'Invalid parameters were supplied to Stripe\'s API')->write();
 			Kohana_Exception::handler_continue($e);
+			$payment_status = 'error';
+			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 		} catch (Stripe_AuthenticationError $e) {
 			// Authentication with Stripe's API failed
 			// (maybe you changed API keys recently)
 			Kohana::$log->add(Kohana_Log::ERROR, 'Authentication with Stripe\'s API failed')->write();
 			Kohana_Exception::handler_continue($e);
+			$payment_status = 'error';
+			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 		} catch (Stripe_ApiConnectionError $e) {
 			// Network communication with Stripe failed
 			Kohana::$log->add(Kohana_Log::ERROR, 'Network communication with Stripe failed')->write();
 			Kohana_Exception::handler_continue($e);
+			$payment_status = 'error';
+			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 		} catch (Stripe_Error $e) {
 			// Display a very generic error to the user, and maybe send
 			// yourself an email
 			Kohana::$log->add(Kohana_Log::ERROR, 'General Stripe error')->write();
 			Kohana_Exception::handler_continue($e);
+			$payment_status = 'error';
+			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 		} catch (Kohana_Exception $e) {
 			Kohana_Exception::handler_continue($e);
-
 			$payment_status = 'fail';
-			Message::add('There was a problem completing the payment. Please contact us to complete your order.', Message::$error);
+			Message::add('There was a problem processing your payment. Please contact us to complete your payment.', Message::$error);
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'message_html' => (string) Message::display(),
+			// success: order completed successfully
+			// error: allow the user to try again, although we need to a new token
+			// fail: there was a major problem and we don't know if the payment was already processed so don't allow them to try again
 			'payment_status' => $payment_status,
 			'error_field' => (isset($error_field) ? $error_field : NULL),
 		)));
+	}
+
+	public function action_completed() {
+		$order_id = Session::instance()->path('xm_cart.cart_order_id');
+		if (empty($order_id)) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->redirect($this->continue_shopping_url);
+		}
+
+		$order = ORM::factory('Cart_Order', $order_id);
+		if ( ! $order->loaded()) {
+			throw new Kohana_Exception('The order in the session no longer exists');
+		}
+
+		if ((int) $order->status != CART_ORDER_STATUS_PAID) {
+			if (in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
+				Message::add('Your order has not been completed. Please checkout before continuing.', Message::$warning);
+				$this->redirect($this->continue_shopping_url);
+			} else {
+				Session::instance()->set_path('xm_cart.cart_order_id', NULL);
+				Message::add('Your order is no longer available. Please contact us if you\'d like to make changes.', Message::$warning);
+				$this->redirect($this->continue_shopping_url);
+			}
+		}
+
+		$this->template->body_html = View::factory('cart/completed');
+	}
+
+	public function action_payment_failed() {
+		$order_id = Session::instance()->path('xm_cart.cart_order_id');
+		if (empty($order_id)) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			$this->redirect($this->continue_shopping_url);
+		}
+
+		$order = ORM::factory('Cart_Order', $order_id);
+		if ( ! $order->loaded()) {
+			throw new Kohana_Exception('The order in the session no longer exists');
+		}
+
+		if ((int) $order->status != CART_ORDER_STATUS_PAYMENT) {
+			if (in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
+				Message::add('Your order has not been completed. Please checkout before continuing.', Message::$warning);
+				$this->redirect($this->continue_shopping_url);
+			} else {
+				Session::instance()->set_path('xm_cart.cart_order_id', NULL);
+				Message::add('Your order has already been completed.', Message::$warning);
+				$this->redirect($this->continue_shopping_url);
+			}
+		}
+
+		$this->template->body_html = View::factory('cart/payment_failed');
 	}
 
 	protected function retrieve_order($create = FALSE) {
