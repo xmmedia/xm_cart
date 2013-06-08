@@ -191,7 +191,7 @@
 				</div>
 				<?php echo Form::close(); ?>
 
-				<p><strong>Please review your order before clicking Complete Checkout.</storng></p>
+				<p><strong>Please review your order before clicking Complete Checkout.</strong></p>
 
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_right">
@@ -216,7 +216,7 @@
 					<?php echo Form::submit(NULL, 'Complete My Order', array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
-					<p><strong>Please review your order before completing your order.</storng></p>
+					<p><strong>Please review your order before completing your order.</strong></p>
 				</div>
 			</div>
 		</div>
