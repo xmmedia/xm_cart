@@ -629,6 +629,8 @@ class Model_XM_Cart_Order extends ORM {
 	);
 
 	protected $user_labels = FALSE;
+	protected $require_shipping = FALSE;
+	protected $require_billing = FALSE;
 
 	protected $shipping_fields = array(
 		'shipping_first_name',
@@ -719,63 +721,77 @@ class Model_XM_Cart_Order extends ORM {
 	 * @return  array
 	 */
 	public function rules() {
-		return array(
-			// shipping
-			'shipping_first_name' => array(
-				array('not_empty'),
-			),
-			'shipping_last_name' => array(
-				array('not_empty'),
-			),
-			'shipping_address_1' => array(
-				array('not_empty'),
-			),
-			'shipping_city' => array(
-				array('not_empty'),
-			),
-			'shipping_state_id' => array(
-				array('selected'),
-			),
-			'shipping_postal_code' => array(
-				array('not_empty'),
-			),
-			'shipping_country_id' => array(
-				array('selected'),
-			),
-			'shipping_phone' => array(
-				array('not_empty'),
-			),
+		$rules = array();
 
-			// billing
-			'billing_first_name' => array(
-				array('not_empty'),
-			),
-			'billing_last_name' => array(
-				array('not_empty'),
-			),
-			'billing_address_1' => array(
-				array('not_empty'),
-			),
-			'billing_city' => array(
-				array('not_empty'),
-			),
-			'billing_state_id' => array(
-				array('selected'),
-			),
-			'billing_postal_code' => array(
-				array('not_empty'),
-			),
-			'billing_country_id' => array(
-				array('selected'),
-			),
-			'billing_phone' => array(
-				array('not_empty'),
-			),
-			'billing_email' => array(
-				array('not_empty'),
-				array('email'),
-			),
-		);
+		// shipping
+		if ($this->require_shipping) {
+			$rules = array_merge($rules, array(
+				'shipping_first_name' => array(
+					array('not_empty'),
+				),
+				'shipping_last_name' => array(
+					array('not_empty'),
+				),
+				'shipping_address_1' => array(
+					array('not_empty'),
+				),
+				'shipping_city' => array(
+					array('not_empty'),
+				),
+				'shipping_state_id' => array(
+					array('selected'),
+				),
+				'shipping_postal_code' => array(
+					array('not_empty'),
+				),
+				'shipping_country_id' => array(
+					array('selected'),
+				),
+				'shipping_phone' => array(
+					array('not_empty'),
+				),
+				'shipping_email' => array(
+					array('not_empty'),
+					array('email'),
+				),
+			));
+		}
+
+		// billing
+		if ($this->require_billing) {
+			$rules = array_merge($rules, array(
+				'billing_first_name' => array(
+					array('not_empty'),
+				),
+				'billing_last_name' => array(
+					array('not_empty'),
+				),
+				'billing_address_1' => array(
+					array('not_empty'),
+				),
+				'billing_city' => array(
+					array('not_empty'),
+				),
+				'billing_state_id' => array(
+					array('selected'),
+				),
+				'billing_postal_code' => array(
+					array('not_empty'),
+				),
+				'billing_country_id' => array(
+					array('selected'),
+				),
+				'billing_phone' => array(
+					array('not_empty'),
+				),
+				'billing_email' => array(
+					array('not_empty'),
+					array('email'),
+				),
+			));
+		}
+
+		return $rules;
 	}
 
 	/**
@@ -843,10 +859,12 @@ class Model_XM_Cart_Order extends ORM {
 	}
 
 	public function only_allow_shipping() {
+		$this->require_shipping = TRUE;
 		return $this->set_edit_flag_false($this->shipping_fields);
 	}
 
 	public function only_allow_billing() {
+		$this->require_billing = TRUE;
 		return $this->set_edit_flag_false($this->billing_fields);
 	}
 
