@@ -14,6 +14,7 @@ return array(
 	// the default country to use on orders which don't have their country set to something else
 	// default is Canada, ID 40
 	'default_country_id' => 40,
+	'default_currency' => 'CAD',
 
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
@@ -36,5 +37,22 @@ return array(
 		'shipped'   => 6,
 		'refunded'  => 7,
 		'cancelled' => 8,
+	),
+
+	'payment_processors' => array(
+		'stripe' => array(
+			'test' => array(
+				'secret_key' => NULL,
+				'publishable_key' => NULL,
+				'api_version' => '2013-02-13',
+				'charge_description' => LONG_NAME . ' Payment ' . ADMIN_EMAIL,
+			),
+			'live' => array(
+				'secret_key' => NULL,
+				'publishable_key' => NULL,
+				'api_version' => '2013-02-13',
+				'charge_description' => LONG_NAME . ' Payment ' . ADMIN_EMAIL,
+			),
+		),
 	),
 );

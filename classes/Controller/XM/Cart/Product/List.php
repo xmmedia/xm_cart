@@ -28,7 +28,6 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 		}
 
 		$this->template->body_html = View::factory('cart_product_list/index')
-			->set('product_list', implode('', $_products))
-			->set('cart_prefix', (string) Kohana::$config->load('xm_cart.prefix'));
+			->set('product_list', implode('', $_products));
 	}
 }

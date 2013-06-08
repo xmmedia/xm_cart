@@ -168,8 +168,8 @@ class Model_XM_Cart_Order extends ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
-				'maxlength' => 13,
-				'size' => 13,
+				'maxlength' => 9,
+				'size' => 9,
 			),
 		),
 		'grand_total' => array(
@@ -180,8 +180,32 @@ class Model_XM_Cart_Order extends ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
-				'maxlength' => 13,
-				'size' => 13,
+				'maxlength' => 9,
+				'size' => 9,
+			),
+		),
+		'amount_paid' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 9,
+				'size' => 9,
+			),
+		),
+		'payment_processor_fee' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 7,
+				'size' => 7,
 			),
 		),
 		'exchange_rate' => array(
@@ -679,6 +703,8 @@ class Model_XM_Cart_Order extends ORM {
 			'user_id' => 'User',
 			'sub_total' => 'Sub Total',
 			'grand_total' => 'Grand Total',
+			'amount_paid' => 'Amount Paid',
+			'payment_processor_fee' => 'Payment Processor Fee',
 			'exchange_rate' => 'Exchange Rate',
 			'country_id' => 'Country',
 			'invoice' => 'Invoice',

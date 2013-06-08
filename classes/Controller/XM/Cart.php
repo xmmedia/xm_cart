@@ -267,8 +267,7 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('cart_html', $cart_html)
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
-			->set('continue_shopping_url', $this->continue_shopping_url)
-			->set('cart_prefix', (string) Kohana::$config->load('xm_cart.prefix'));
+			->set('continue_shopping_url', $this->continue_shopping_url);
 	} // function action_checkout
 
 	public function action_save_shipping() {
@@ -412,6 +411,8 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_complete_order() {
+		$payment_status = NULL;
+
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
@@ -422,18 +423,136 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 
-		$stripe_data = $this->request->post('stripe_data');
-		if ( ! empty($stripe_data)) {
-			$stripe_data = json_decode($stripe_data, TRUE);
-		} else {
-			throw new Kohana_Exception('No Stripe data was received');
+		$currency = strtoupper((string) Kohana::$config->load('xm_cart.default_currency'));
+
+		$stripe_config = (array) Kohana::$config->load('xm_cart.payment_processors.stripe.' . STRIPE_CONFIG);
+		if (empty($stripe_config['secret_key']) || empty($stripe_config['publishable_key'])) {
+			throw new Kohana_Exception('Stripe has not been fully configured');
+		}
+
+		if ( ! Kohana::load(Kohana::find_file('vendor', 'stripe/Stripe'))) {
+			throw new Kohana_Exception('Unable to load the Stripe libraries');
+		}
+
+		$stripe_token = $this->request->post('stripe_token');
+		if (empty($stripe_token)) {
+			throw new Kohana_Exception('No Stripe token was received');
 		}
 
 		/*$order->set('status', CART_ORDER_STATUS_SUBMITTED)
 			->is_valid()
 			->save();*/
+// $order->grand_total = 100;
+		try {
+			Stripe::setApiKey($stripe_config['secret_key']);
+			Stripe::setApiVersion($stripe_config['api_version']);
 
-		AJAX_Status::echo_json(AJAX_Status::success());
+			// first we want to do an uncaptured charge to verify the credit and address information
+			$charge_test = Stripe_Charge::create(array(
+				'amount' => $order->grand_total,
+				'currency' => $currency,
+				'card' => $stripe_token, // obtained with Stripe.js
+				'description' => $stripe_config['charge_description'],
+				'capture' => FALSE,
+			));
+			$charge_id = $charge_test->id;
+
+			// if the above didn't fail (throw exception), we want to complete the actual payment
+			$charge = Stripe_Charge::retrieve($charge_id);
+			$charge->capture();
+// Kohana::$log->add(Kohana_Log::DEBUG, print_r($charge, TRUE))->write();
+
+			if ( ! $charge->paid) {
+				throw new Kohana_Exception('The credit card was not charged/paid');
+			}
+
+			if ($charge->refunded) {
+				throw new Kohana_Exception('It was a refund instead of a charge');
+			}
+
+			if ( ! $charge->captured) {
+				throw new Kohana_Exception('The charge was not captured (completed immediately)');
+			}
+
+			if ($order->grand_total != $charge->amount) {
+				throw new Kohana_Exception('The amount charged does not match the grand total');
+			}
+
+			if ($currency != strtoupper($charge->currency)) {
+				throw new Kohana_Exception('The received currency does not match the passed currency');
+			}
+
+			$payment_status = 'success';
+
+		} catch(Stripe_CardError $e) {
+			// Since it's a decline, Stripe_CardError will be caught
+			Kohana::$log->add(Kohana_Log::ERROR, 'Stripe CardError')->write();
+			$error_body = $e->getJsonBody();
+// Kohana::$log->add(Kohana_Log::DEBUG, print_r($error_body, TRUE))->write();
+			$error  = $error_body['error'];
+			// error has type, code, param and message keys
+			// can also retrieve the HTTP status code: $e->getHttpStatus()
+
+			$payment_status = 'error';
+
+			switch ($error['code']) {
+				case 'incorrect_zip' :
+					Message::add('The Postal/Zip Code you supplied failed validation. Please verify before trying again.', Message::$error);
+					break;
+				case 'card_declined' :
+					Message::add('Your card was declined. Please check that you\'ve entered it correctly before trying again.', Message::$error);
+					break;
+				default :
+					Message::add($error['message'], Message::$error);
+					break;
+			}
+
+			switch ($error['code']) {
+				case 'incorrect_zip' :
+					$error_field = 'billing_postal_code';
+					break;
+				case 'incorrect_cvc' :
+					$error_field = 'security_code';
+					break;
+				case 'card_declined' :
+					$error_field = 'credit_card_number';
+					break;
+			}
+
+		} catch (Stripe_InvalidRequestError $e) {
+			// Invalid parameters were supplied to Stripe's API
+			Kohana::$log->add(Kohana_Log::ERROR, 'Invalid parameters were supplied to Stripe\'s API')->write();
+			Kohana_Exception::handler_continue($e);
+
+		} catch (Stripe_AuthenticationError $e) {
+			// Authentication with Stripe's API failed
+			// (maybe you changed API keys recently)
+			Kohana::$log->add(Kohana_Log::ERROR, 'Authentication with Stripe\'s API failed')->write();
+			Kohana_Exception::handler_continue($e);
+
+		} catch (Stripe_ApiConnectionError $e) {
+			// Network communication with Stripe failed
+			Kohana::$log->add(Kohana_Log::ERROR, 'Network communication with Stripe failed')->write();
+			Kohana_Exception::handler_continue($e);
+
+		} catch (Stripe_Error $e) {
+			// Display a very generic error to the user, and maybe send
+			// yourself an email
+			Kohana::$log->add(Kohana_Log::ERROR, 'General Stripe error')->write();
+			Kohana_Exception::handler_continue($e);
+
+		} catch (Kohana_Exception $e) {
+			Kohana_Exception::handler_continue($e);
+
+			$payment_status = 'fail';
+			Message::add('There was a problem completing the payment. Please contact us to complete your order.', Message::$error);
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'message_html' => (string) Message::display(),
+			'payment_status' => $payment_status,
+			'error_field' => (isset($error_field) ? $error_field : NULL),
+		)));
 	}
 
 	protected function retrieve_order($create = FALSE) {

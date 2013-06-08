@@ -149,10 +149,10 @@
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'validate_payment')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_payment')); ?>
 						<p><strong>Payment Method</strong></p>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 18, 'maxlength' => 16, 'id' => 'credit_card_number', 'class' => 'js_cart_checkout_credit_card_number')); ?>
+							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 22, 'maxlength' => 20, 'id' => 'credit_card_number', 'class' => 'js_cart_checkout_credit_card_number')); ?>
 						</div>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::password('credit_card[security_code]', NULL, array('size' => 5, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
+							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::password('credit_card[security_code]', NULL, array('size' => 4, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
 						</div>
 						<div class="cart_field">
 							<?php echo Form::label('credit_card_expiry_date_month', 'Expiry Date'),
@@ -212,7 +212,7 @@
 				<div class="js_cart_checkout_box_messages"></div>
 				<div style="text-align: center;">
 					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
-						Form::hidden('stripe_data', NULL, array('class' => 'js_cart_checkout_stripe_data')); ?>
+						Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
 					<?php echo Form::submit(NULL, 'Complete My Order', array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
