@@ -94,7 +94,7 @@ class Model_XM_Cart_Order_Payment extends ORM {
 				'size' => 15,
 			),
 		),
-		'payment_type_id' => array(
+		'payment_processor' => array(
 			'field_type' => 'Select',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -103,8 +103,8 @@ class Model_XM_Cart_Order_Payment extends ORM {
 			'is_nullable' => FALSE,
 			'field_options' => array(
 				'source' => array(
-					'source' => 'model',
-					'data' => 'Payment_Type',
+					'source' => 'array',
+					'data' => array(),
 				),
 			),
 		),
@@ -120,14 +120,6 @@ class Model_XM_Cart_Order_Payment extends ORM {
 				'size' => 10,
 			),
 		),
-		'data' => array(
-			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-		),
 		'amount' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -140,6 +132,14 @@ class Model_XM_Cart_Order_Payment extends ORM {
 				'size' => 9,
 			),
 		),
+		'data' => array(
+			'field_type' => 'TextArea',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+		),
 		'response' => array(
 			'field_type' => 'TextArea',
 			'list_flag' => TRUE,
@@ -149,30 +149,12 @@ class Model_XM_Cart_Order_Payment extends ORM {
 			'is_nullable' => FALSE,
 		),
 		'transaction_id' => array(
-			'field_type' => 'Select',
+			'field_type' => 'TextArea',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
-			'field_options' => array(
-				'source' => array(
-					'source' => 'model',
-					'data' => 'Transaction',
-				),
-			),
-		),
-		'auth_code' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 6,
-				'size' => 6,
-			),
 		),
 	);
 
@@ -184,6 +166,14 @@ class Model_XM_Cart_Order_Payment extends ORM {
 		'column' 	=> 'expiry_date',
 		'default'	=> 0,
 	);
+
+	protected $_serialize_columns = array('data', 'response');
+
+	protected function _initialize() {
+		parent::_initialize();
+
+		$this->_table_columns['payment_processor']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_processors.' . PAYMENT_PROCESSOR_LIST);
+	}
 
 	/**
 	 * Labels for columns.
@@ -199,13 +189,12 @@ class Model_XM_Cart_Order_Payment extends ORM {
 			'date_completed' => 'Date Completed',
 			'date_refunded' => 'Date Refunded',
 			'ip_address' => 'IP Address',
-			'payment_type_id' => 'Payment Type',
+			'payment_processor' => 'Payment Processor',
 			'status' => 'Status',
-			'data' => 'Data',
 			'amount' => 'Amount',
+			'data' => 'Data',
 			'response' => 'Response',
 			'transaction_id' => 'Transaction',
-			'auth_code' => 'Auth Code',
 		);
 	}
 
@@ -217,6 +206,9 @@ class Model_XM_Cart_Order_Payment extends ORM {
 	public function rules() {
 		return array(
 			'cart_order' => array(
+				array('selected'),
+			),
+			'payment_processor' => array(
 				array('selected'),
 			),
 		);

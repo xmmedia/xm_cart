@@ -691,6 +691,12 @@ class Model_XM_Cart_Order extends ORM {
 		'order_note',
 	);
 
+	protected function _initialize() {
+		parent::_initialize();
+
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.order_status_labels');
+	}
+
 	/**
 	 * Labels for columns.
 	 *
@@ -963,5 +969,31 @@ class Model_XM_Cart_Order extends ORM {
 			. $this->billing_country->name;
 
 		return $str;
+	}
+
+	public function set_status($status) {
+		return $this->set('status', $status)
+			->is_valid()
+			->save();
+	}
+
+	public function calculate_totals() {
+		if ( ! $this->loaded()) {
+			return $this;
+		}
+
+		$sub_total = 0;
+		foreach ($this->cart_order_product->find_all() as $order_product) {
+			$sub_total += $order_product->unit_price * $order_product->quantity;
+		} // foreach
+
+		$grand_total = $sub_total; // plus tax + shipping + +++
+
+		return $this->values(array(
+				'sub_total' => $sub_total,
+				'grand_total' => $grand_total,
+			))
+			->is_valid()
+			->save();
 	}
 } // class

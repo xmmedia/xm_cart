@@ -39,7 +39,50 @@ return array(
 		'cancelled' => 8,
 	),
 
+	'payment_status_labels' => array(
+		// the payment is in progress and has not been completed
+		1 => 'In Progress',
+		// the payment was completed succesfully, without errors
+		2 => 'Successful',
+		// the payment was denied, for any number of reasons: wrong info, invalid card, not enough room, etc
+		3 => 'Denied',
+		// there was a problem processing the payment
+		4 => 'Error',
+		// the payment was not completed
+		5 => 'Incomplete',
+		// the payment was cancelled, likely on the payment processor
+		6 => 'Cancelled',
+		// the payment was reversed, probably a chargeback
+		7 => 'Reversed',
+		// the payment was refunded
+		8 => 'Refunded',
+	),
+	'payment_status_ids' => array(
+		'in_progress' => 1,
+		'successful'  => 2,
+		'denied'      => 3,
+		'error'       => 4,
+		'incomplete'  => 5,
+		'cancelled'   => 6,
+		'reversed'    => 7,
+		'refunded'    => 8,
+	),
+
+	// payment processor ids
+	// this also controls which ones are enabled for the site
+	// recommended: don't change the IDs between configs (ie, 1 is stripe on one config and 2 on another config)
 	'payment_processors' => array(
+		'default' => array(
+			1 => 'Stripe',
+		),
+	),
+	'payment_processor_ids' => array(
+		'stripe' => 1,
+	),
+
+	// the configuration for each payment processor
+	// the one used is controlled by constants for each processor
+	'payment_processor_config' => array(
 		'stripe' => array(
 			'test' => array(
 				'secret_key' => NULL,
