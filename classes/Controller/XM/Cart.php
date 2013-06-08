@@ -24,7 +24,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_load_cart() {
-		$sub_total = $total = 0;
+		$sub_total = $grand_total = 0;
 
 		$order = $this->retrieve_order();
 
@@ -52,7 +52,16 @@ class Controller_XM_Cart extends Controller_Public {
 				$sub_total += $amount;
 			} // foreach
 
-			$total = $sub_total; // plus tax + shipping + +++
+			$grand_total = $sub_total; // plus tax + shipping + +++
+
+			// set the totals again just incase a product was skipped above
+			// if the totals are the same, nothing will actually happen
+			$order->values(array(
+				'sub_total' => $sub_total,
+				'grand_total' => $grand_total,
+			))
+			->is_valid()
+			->save();
 		} else {
 			$order_product_array = array();
 		}
@@ -62,8 +71,8 @@ class Controller_XM_Cart extends Controller_Public {
 			'order' => array(
 				'sub_total' => $sub_total,
 				'sub_total_formatted' => Cart::cf($sub_total),
-				'total' => $total,
-				'total_formatted' => Cart::cf($total),
+				'grand_total' => $grand_total,
+				'grand_total_formatted' => Cart::cf($grand_total),
 			)
 		)));
 	}
@@ -106,8 +115,30 @@ class Controller_XM_Cart extends Controller_Public {
 			'unit_price' => $product->cost,
 		))->save();
 
+		$this->calculate_totals($order);
+
 		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_add_product
+
+	protected function calculate_totals($order) {
+		$order_products = $order->cart_order_product->find_all();
+
+		$sub_total = 0;
+		foreach ($order_products as $order_product) {
+			$amount = $order_product->unit_price * $order_product->quantity;
+
+			$sub_total += $amount;
+		} // foreach
+
+		$grand_total = $sub_total; // plus tax + shipping + +++
+
+		$order->values(array(
+			'sub_total' => $sub_total,
+			'grand_total' => $grand_total,
+		))
+		->is_valid()
+		->save();
+	}
 
 	public function action_remove_product() {
 		// for deletion, the id in a route param
@@ -130,6 +161,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$order_product->delete();
 		}
 
+		$this->calculate_totals($order);
+
 		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
@@ -147,15 +180,16 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$order_product = ORM::factory('Cart_Order_Product', $cart_order_product_id);
+		if ( ! $order_product->loaded()) {
+			throw new Kohana_Exception('The order product cannot be found');
+		}
 
 		if ($quantity == 0) {
 			if ($order_product->loaded()) {
 				$order_product->delete();
 			}
 
-			AJAX_Status::is_json();
-			echo json_encode(array());
-
+			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
 
@@ -176,6 +210,8 @@ class Controller_XM_Cart extends Controller_Public {
 			'quantity' => $quantity,
 			'unit_price' => $product->cost,
 		))->save();
+
+		$this->calculate_totals($order);
 
 		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_change_quantity
@@ -198,6 +234,8 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
 			$this->redirect($this->continue_shopping_url);
 		}
+
+		$this->calculate_totals($order);
 
 		$order->for_user()
 			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden');
