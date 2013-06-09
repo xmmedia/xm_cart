@@ -12,7 +12,7 @@ return array(
 		'Cart_Order_Discount' => 'Cart - Order - Discounts',
 		'Cart_Order_Log' => 'Cart - Order - Log',
 		'Cart_Order_Payment' => 'Cart - Order - Payments',
-		'Cart_Order_Payment_Log' => 'Cart - Order - Payment -Log',
+		'Cart_Order_Payment_Log' => 'Cart - Order - Payment - Log',
 		'Cart_Order_Product' => 'Cart - Order - Products',
 		'Cart_Order_Shipping' => 'Cart - Order - Shipping',
 		'Cart_Order_Tax' => 'Cart - Order - Taxes',

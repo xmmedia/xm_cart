@@ -48,22 +48,33 @@ class Model_XM_Cart_Order_Payment_Log extends ORM {
 				'source' => array(
 					'source' => 'model',
 					'data' => 'Cart_Order_Payment',
+					'label' => 'id',
 				),
 			),
 		),
 		'timestamp' => array(
-			'field_type' => 'Text',
+			'field_type' => 'DateTime',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 10,
-				'size' => 10,
+		),
+		'status' => array(
+			'field_type' => 'Select',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_options' => array(
+				'source' => array(
+					'source' => 'array',
+					'data' => array(),
+				),
 			),
 		),
-		'payment_status' => array(
+		'status_string' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -76,29 +87,21 @@ class Model_XM_Cart_Order_Payment_Log extends ORM {
 		),
 		'details' => array(
 			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-		),
-		'response' => array(
-			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-		),
-		'error' => array(
-			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
+
+	protected $_serialize_columns = array('details');
+
+	protected function _initialize() {
+		parent::_initialize();
+
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_status_labels');
+	}
 
 	/**
 	 * Labels for columns.
@@ -110,10 +113,9 @@ class Model_XM_Cart_Order_Payment_Log extends ORM {
 			'id' => 'ID',
 			'cart_order_payment_id' => 'Cart Order Payment',
 			'timestamp' => 'Timestamp',
-			'payment_status' => 'Payment Status',
+			'status' => 'Status',
+			'status_string' => 'Status String',
 			'details' => 'Details',
-			'response' => 'Response',
-			'error' => 'Error',
 		);
 	}
 

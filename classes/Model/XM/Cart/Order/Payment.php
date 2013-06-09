@@ -109,15 +109,17 @@ class Model_XM_Cart_Order_Payment extends ORM {
 			),
 		),
 		'status' => array(
-			'field_type' => 'Text',
+			'field_type' => 'Select',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 10,
-				'size' => 10,
+			'field_options' => array(
+				'source' => array(
+					'source' => 'array',
+					'data' => array(),
+				),
 			),
 		),
 		'amount' => array(
@@ -134,18 +136,18 @@ class Model_XM_Cart_Order_Payment extends ORM {
 		),
 		'data' => array(
 			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 		'response' => array(
 			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 		'transaction_id' => array(
@@ -173,6 +175,7 @@ class Model_XM_Cart_Order_Payment extends ORM {
 		parent::_initialize();
 
 		$this->_table_columns['payment_processor']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_processors.' . PAYMENT_PROCESSOR_LIST);
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_status_labels');
 	}
 
 	/**
@@ -212,5 +215,19 @@ class Model_XM_Cart_Order_Payment extends ORM {
 				array('selected'),
 			),
 		);
+	}
+
+	public function add_payment_log($status, $details) {
+		ORM::factory('Cart_Order_Payment_Log')
+			->values(array(
+				'cart_order_payment_id' => $this->id,
+				'timestamp' => Date::formatted_time(),
+				'status' => (is_int($status) ? $status : 0),
+				'status_string' => (is_string($status) ? $status : ''),
+				'details' => $details,
+			))
+			->save();
+
+		return $this;
 	}
 } // class

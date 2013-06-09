@@ -72,16 +72,12 @@ class Model_XM_Cart_Order_Log extends ORM {
 			),
 		),
 		'timestamp' => array(
-			'field_type' => 'Text',
+			'field_type' => 'DateTime',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 10,
-				'size' => 10,
-			),
 		),
 		'action' => array(
 			'field_type' => 'Text',

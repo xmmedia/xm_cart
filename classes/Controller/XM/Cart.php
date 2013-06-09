@@ -482,7 +482,9 @@ class Controller_XM_Cart extends Controller_Public {
 				'amount' => $order->grand_total,
 				'data' => $stripe_data,
 			))
-			->save();
+			->save()
+			->add_payment_log(CART_PAYMENT_STATUS_IN_PROGRESS, $stripe_data);
+
 
 		try {
 			Stripe::setApiKey($stripe_config['secret_key']);
@@ -493,11 +495,14 @@ class Controller_XM_Cart extends Controller_Public {
 			$charge_id = $charge_test->id;
 
 			$order_payment->set('transaction_id', $charge_id)
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge_test->__toArray(TRUE));
 
 			// if the above didn't fail (throw exception), we want to complete the actual payment
 			$charge = Stripe_Charge::retrieve($charge_id);
 			$charge->capture();
+
+			$order_payment->add_payment_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge->__toArray(TRUE));
 
 			if ( ! $charge->paid) {
 				throw new Kohana_Exception('The credit card was not charged/paid');
@@ -524,7 +529,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_SUCCESSFUL,
 					'response' => $charge->__toArray(TRUE),
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_SUCCESSFUL, $charge->__toArray(TRUE));
 
 			$payment_status = 'success';
 			$order->set_status(CART_ORDER_STATUS_PAID);
@@ -572,7 +578,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_DENIED,
 					'response' => $error_body,
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_DENIED, $error_body);
 
 		} catch (Stripe_InvalidRequestError $e) {
 			// Invalid parameters were supplied to Stripe's API
@@ -587,7 +594,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Stripe_AuthenticationError $e) {
 			// Authentication with Stripe's API failed
@@ -603,7 +611,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Stripe_ApiConnectionError $e) {
 			// Network communication with Stripe failed
@@ -618,7 +627,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Stripe_Error $e) {
 			// Display a very generic error to the user, and maybe send
@@ -634,7 +644,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Kohana_Exception $e) {
 			Kohana_Exception::log($e);
@@ -646,7 +657,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (isset($charge) ? $charge->__toArray(TRUE) : (isset($charge_test) ? $charge_test->__toArray(TRUE) : '')),
 				))
-				->save();
+				->save()
+				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
