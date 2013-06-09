@@ -217,7 +217,7 @@ class Model_XM_Cart_Order_Payment extends ORM {
 		);
 	}
 
-	public function add_payment_log($status, $details) {
+	public function add_log($status, $details) {
 		ORM::factory('Cart_Order_Payment_Log')
 			->values(array(
 				'cart_order_payment_id' => $this->id,

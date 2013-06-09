@@ -996,4 +996,18 @@ class Model_XM_Cart_Order extends ORM {
 			->is_valid()
 			->save();
 	}
+
+	public function add_log($action, $data = array()) {
+		ORM::factory('Cart_Order_Log')
+			->values(array(
+				'cart_order_id' => $this->id,
+				'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
+				'timestamp' => Date::formatted_time(),
+				'action' => $action,
+				'data' => $data,
+			))
+			->save();
+
+		return $this;
+	}
 } // class

@@ -98,4 +98,22 @@ return array(
 			),
 		),
 	),
+
+	'cart_order_log_actions' => array(
+		'created' => 'Order Created',
+		'add_product' => 'Add Product',
+		'remove_product' => 'Remove Product',
+		'change_quantity' => 'Change Quantity',
+		'empty_cart' => 'Empty Cart',
+		'checkout' => 'Checkout',
+		'save_shipping' => 'Save Shipping',
+		'save_billing' => 'Save Billing',
+		'save_final' => 'Save Final',
+		'complete_order' => 'Complete Order',
+		'processing_payment' => 'Processing Payment',
+		'paid' => 'Paid',
+		'payment_error' => 'Payment Error',
+		'payment_failed' => 'Payment Failed',
+		'set_user' => 'Set User/Assigned to User',
+	),
 );

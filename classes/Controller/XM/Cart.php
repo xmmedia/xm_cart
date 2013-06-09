@@ -100,7 +100,15 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $product->loaded()) {
 			// since the product has been expired, also remove the product from order (cart_order_product)
 			if ($order_product->loaded()) {
+				$order->add_log('remove_product', array(
+						'cart_order_product_id' => $order_product->id,
+						'cart_product_id' => $order_product->cart_product_id,
+						'unit_price' => $product->cost,
+						'name' => $product->name,
+					));
+
 				$order_product->delete();
+				$order->calculate_totals();
 			}
 
 			// then throw and error because this is bad!
@@ -109,13 +117,21 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// everything seems successful, so save the cart_order_product record
 		$order_product->values(array(
-			'cart_order_id' => $order->id,
-			'cart_product_id' => $cart_product_id,
-			'quantity' => ($order_product->loaded() ? $order_product->quantity + $quantity : $quantity),
-			'unit_price' => $product->cost,
-		))->save();
+				'cart_order_id' => $order->id,
+				'cart_product_id' => $cart_product_id,
+				'quantity' => ($order_product->loaded() ? $order_product->quantity + $quantity : $quantity),
+				'unit_price' => $product->cost,
+			))
+			->save();
 
-		$order->calculate_totals();
+		$order->calculate_totals()
+			->add_log('add_product', array(
+				'cart_order_product_id' => $order_product->id,
+				'cart_product_id' => $order_product->cart_product_id,
+				'quantity' => $order_product->quantity,
+				'unit_price' => $product->cost,
+				'name' => $product->name,
+			));
 
 		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_add_product
@@ -131,17 +147,20 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = $this->retrieve_order(FALSE);
 		// if no order was found, just get out since we can't really do anything anyway
 		if ( ! is_object($order) || ! $order->loaded()) {
-			AJAX_Status::is_json();
-			echo json_encode(array());
+			AJAX_Status::echo_json(AJAX_Status::success());
 		}
 
 		// attempt to retrieve the existing product in the cart
 		$order_product = ORM::factory('Cart_Order_Product', $cart_order_product_id);
 		if ($order_product->loaded()) {
-			$order_product->delete();
-		}
+			$order->add_log('remove_product', array(
+					'cart_order_product_id' => $order_product->id,
+					'cart_product_id' => $order_product->cart_product_id,
+				));
 
-		$order->calculate_totals();
+			$order_product->delete();
+			$order->calculate_totals();
+		}
 
 		AJAX_Status::echo_json(AJAX_Status::success());
 	}
@@ -166,7 +185,13 @@ class Controller_XM_Cart extends Controller_Public {
 
 		if ($quantity == 0) {
 			if ($order_product->loaded()) {
+				$order->add_log('remove_product', array(
+						'cart_order_product_id' => $order_product->id,
+						'cart_product_id' => $order_product->cart_product_id,
+					));
+
 				$order_product->delete();
+				$order->calculate_totals();
 			}
 
 			AJAX_Status::echo_json(AJAX_Status::success());
@@ -178,7 +203,15 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $product->loaded()) {
 			// since the product has been expired, also remove the product from order (cart_order_product)
 			if ($order_product->loaded()) {
+				$order->add_log('remove_product', array(
+						'cart_order_product_id' => $order_product->id,
+						'cart_product_id' => $order_product->cart_product_id,
+						'unit_price' => $product->cost,
+						'name' => $product->name,
+					));
+
 				$order_product->delete();
+				$order->calculate_totals();
 			}
 
 			// then throw and error because this is bad!
@@ -187,11 +220,18 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// everything seems successful, so save the cart_order_product record
 		$order_product->values(array(
-			'quantity' => $quantity,
-			'unit_price' => $product->cost,
-		))->save();
+				'quantity' => $quantity,
+				'unit_price' => $product->cost,
+			))->save();
 
-		$order->calculate_totals();
+		$order->calculate_totals()
+			->add_log('change_quantity', array(
+				'cart_order_product_id' => $order_product->id,
+				'cart_product_id' => $order_product->cart_product_id,
+				'quantity' => $order_product->quantity,
+				'unit_price' => $product->cost,
+				'name' => $product->name,
+			));
 
 		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_change_quantity
@@ -200,7 +240,8 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = $this->retrieve_order();
 
 		if (is_object($order) && $order->loaded()) {
-			$order->delete();
+			$order->add_log('empty_cart')
+				->delete();
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 		}
 
@@ -217,7 +258,8 @@ class Controller_XM_Cart extends Controller_Public {
 
 		$order->calculate_totals()
 			->for_user()
-			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden');
+			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden')
+			->add_log('checkout');
 
 		$order_products = $order->cart_order_product->find_all();
 		$total = $sub_total = 0;
@@ -305,7 +347,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$order->for_user()
 				->only_allow_shipping()
 				->save_values()
-				->save();
+				->save()
+				->add_log('save_shipping');
 
 			$shipping_display = View::factory('cart/shipping_display')
 				->set('shipping_address', Cart::address_html($order->shipping_formatted()));
@@ -348,7 +391,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$order->for_user()
 				->only_allow_billing()
 				->save_values()
-				->save();
+				->save()
+				->add_log('save_billing');
 
 			$billing_display = View::factory('cart/billing_display')
 				->set('billing_contact', Cart::address_html($order->billing_contact_formatted()))
@@ -402,7 +446,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$order->for_user()
 				->only_allow_final_step()
 				->save_values()
-				->save();
+				->save()
+				->add_log('save_final');
 
 			$final_display = View::factory('cart/final_display')
 				->bind('order', $order);
@@ -443,7 +488,8 @@ class Controller_XM_Cart extends Controller_Public {
 		// set the status to submitted
 		$order->set_status(CART_ORDER_STATUS_SUBMITTED)
 			// calculate the totals just in case
-			->calculate_totals();
+			->calculate_totals()
+			->add_log('complete_order');
 
 		$currency = strtoupper((string) Kohana::$config->load('xm_cart.default_currency'));
 
@@ -461,9 +507,6 @@ class Controller_XM_Cart extends Controller_Public {
 			throw new Kohana_Exception('No Stripe token was received');
 		}
 
-		// starting payment, so set as payment
-		$order->set_status(CART_ORDER_STATUS_PAYMENT);
-
 		$stripe_data = array(
 			'amount' => $order->grand_total * 100, // charged in cents
 			'currency' => $currency,
@@ -471,6 +514,12 @@ class Controller_XM_Cart extends Controller_Public {
 			'description' => $stripe_config['charge_description'],
 			'capture' => FALSE,
 		);
+
+		// starting payment, so set as payment
+		$order->set_status(CART_ORDER_STATUS_PAYMENT)
+			->add_log('processing_payment', array(
+				'stripe_data' => $stripe_data,
+			));
 
 		$order_payment = ORM::factory('Cart_Order_Payment')
 			->values(array(
@@ -483,8 +532,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'data' => $stripe_data,
 			))
 			->save()
-			->add_payment_log(CART_PAYMENT_STATUS_IN_PROGRESS, $stripe_data);
-
+			->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $stripe_data);
 
 		try {
 			Stripe::setApiKey($stripe_config['secret_key']);
@@ -496,13 +544,13 @@ class Controller_XM_Cart extends Controller_Public {
 
 			$order_payment->set('transaction_id', $charge_id)
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge_test->__toArray(TRUE));
+				->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge_test->__toArray(TRUE));
 
 			// if the above didn't fail (throw exception), we want to complete the actual payment
 			$charge = Stripe_Charge::retrieve($charge_id);
 			$charge->capture();
 
-			$order_payment->add_payment_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge->__toArray(TRUE));
+			$order_payment->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge->__toArray(TRUE));
 
 			if ( ! $charge->paid) {
 				throw new Kohana_Exception('The credit card was not charged/paid');
@@ -530,10 +578,11 @@ class Controller_XM_Cart extends Controller_Public {
 					'response' => $charge->__toArray(TRUE),
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_SUCCESSFUL, $charge->__toArray(TRUE));
+				->add_log(CART_PAYMENT_STATUS_SUCCESSFUL, $charge->__toArray(TRUE));
 
 			$payment_status = 'success';
-			$order->set_status(CART_ORDER_STATUS_PAID);
+			$order->set_status(CART_ORDER_STATUS_PAID)
+				->add_log('paid', $charge->__toArray(TRUE));
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 
 		} catch(Stripe_CardError $e) {
@@ -573,13 +622,14 @@ class Controller_XM_Cart extends Controller_Public {
 			}
 
 			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
+			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
+				->add_log('payment_error', $error_body);
 			$order_payment->values(array(
 					'status' => CART_PAYMENT_STATUS_DENIED,
 					'response' => $error_body,
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_DENIED, $error_body);
+				->add_log(CART_PAYMENT_STATUS_DENIED, $error_body);
 
 		} catch (Stripe_InvalidRequestError $e) {
 			// Invalid parameters were supplied to Stripe's API
@@ -589,13 +639,14 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
+			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
+				->add_log('payment_error', (array) $e->getJsonBody());
 			$order_payment->values(array(
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
+				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Stripe_AuthenticationError $e) {
 			// Authentication with Stripe's API failed
@@ -606,13 +657,14 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
+			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
+				->add_log('payment_error', (array) $e->getJsonBody());
 			$order_payment->values(array(
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
+				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Stripe_ApiConnectionError $e) {
 			// Network communication with Stripe failed
@@ -622,13 +674,14 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
+			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
+				->add_log('payment_error', (array) $e->getJsonBody());
 			$order_payment->values(array(
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
+				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Stripe_Error $e) {
 			// Display a very generic error to the user, and maybe send
@@ -639,13 +692,14 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
+			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
+				->add_log('payment_error', (array) $e->getJsonBody());
 			$order_payment->values(array(
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (array) $e->getJsonBody(),
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
+				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 
 		} catch (Kohana_Exception $e) {
 			Kohana_Exception::log($e);
@@ -653,12 +707,13 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add('There was a problem processing your payment. Please contact us to complete your payment.', Message::$error);
 			// we don't set the order status as there was a problem and it should stay in payment so it can't be attempted again
 
+			$order->add_log('payment_error', (array) $e->getJsonBody());
 			$order_payment->values(array(
 					'status' => CART_PAYMENT_STATUS_ERROR,
 					'response' => (isset($charge) ? $charge->__toArray(TRUE) : (isset($charge_test) ? $charge_test->__toArray(TRUE) : '')),
 				))
 				->save()
-				->add_payment_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
+				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -686,6 +741,8 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $order->loaded()) {
 			throw new Kohana_Exception('The order in the session no longer exists');
 		}
+
+		$order->add_log('payment_failed');
 
 		if ((int) $order->status != CART_ORDER_STATUS_PAYMENT) {
 			if (in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
@@ -725,7 +782,8 @@ class Controller_XM_Cart extends Controller_Public {
 				// user is logged in and the current order is unassigned, so assign it to them
 				} else if (Auth::instance()->logged_in() && empty($order->user_id)) {
 					$order->set('user_id', Auth::instance()->get_user()->pk())
-						->save();
+						->save()
+						->add_log('set_user');
 				}
 			}
 		}
@@ -738,7 +796,8 @@ class Controller_XM_Cart extends Controller_Public {
 					'country_id' => (int) Kohana::$config->load('xm_cart.default_country_id'),
 					'status' => CART_ORDER_STATUS_NEW,
 				))
-				->save();
+				->save()
+				->add_log('created');
 		}
 
 		if (isset($order) && $order->loaded()) {

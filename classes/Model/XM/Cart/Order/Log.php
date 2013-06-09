@@ -100,6 +100,8 @@ class Model_XM_Cart_Order_Log extends ORM {
 		),
 	);
 
+	protected $_serialize_columns = array('data');
+
 	/**
 	 * Labels for columns.
 	 *
