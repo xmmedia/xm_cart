@@ -25,6 +25,11 @@ class Controller_XM_Cart extends Controller_Public {
 
 	public function action_load_cart() {
 		$sub_total = $grand_total = 0;
+		$order_product_array = array();
+		$taxes = array();
+		$show_location_select = FALSE;
+		$shipping_country = '';
+		$shipping_state = '';
 
 		$order = $this->retrieve_order();
 
@@ -56,31 +61,27 @@ class Controller_XM_Cart extends Controller_Public {
 			if ($deleted_product) {
 				$order->calculate_totals();
 			}
-		} else {
-			$order_product_array = array();
-		}
 
-		$taxes = array();
-		foreach ($order->cart_order_tax->find_all() as $tax) {
-			$taxes[] = array(
-				'name' => $tax->display_name,
-				'amount', $tax->amount,
-				'amount_formatted' => Cart::cf($tax->amount),
-			);
-		}
+			foreach ($order->cart_order_tax->find_all() as $tax) {
+				$taxes[] = array(
+					'name' => $tax->display_name,
+					'amount', $tax->amount,
+					'amount_formatted' => Cart::cf($tax->amount),
+				);
+			}
 
-		$show_location_select = FALSE;
-		if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
-			$show_location_select = TRUE;
-		} else if ( ! empty($order->shipping_country_id) && empty($order->shipping_state_id) && Model_Cart_Tax::show_state_select($order->shipping_country_id)) {
-			$show_location_select = TRUE;
-		}
-		if ( ! $show_location_select) {
-			$shipping_country = $order->shipping_country->name;
-			$shipping_state = $order->shipping_state_select->name;
-		} else {
-			$shipping_country = '';
-			$shipping_state = '';
+			if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
+				$show_location_select = TRUE;
+			} else if ( ! empty($order->shipping_country_id) && empty($order->shipping_state_id) && Model_Cart_Tax::show_state_select($order->shipping_country_id)) {
+				$show_location_select = TRUE;
+			}
+			if ( ! $show_location_select) {
+				$shipping_country = $order->shipping_country->name;
+				$shipping_state = $order->shipping_state_select->name;
+			}
+
+			$sub_total = $order->sub_total;
+			$grand_total = $order->grand_total;
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -91,10 +92,10 @@ class Controller_XM_Cart extends Controller_Public {
 				'shipping_state' => $shipping_state,
 
 				'taxes' => $taxes,
-				'sub_total' => $order->sub_total,
-				'sub_total_formatted' => Cart::cf($order->sub_total),
-				'grand_total' => $order->grand_total,
-				'grand_total_formatted' => Cart::cf($order->grand_total),
+				'sub_total' => $sub_total,
+				'sub_total_formatted' => Cart::cf($sub_total),
+				'grand_total' => $grand_total,
+				'grand_total_formatted' => Cart::cf($grand_total),
 			)
 		)));
 	}
