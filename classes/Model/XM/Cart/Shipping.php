@@ -3,6 +3,33 @@
 /**
  * Model for `cart_shipping`.
  *
+ * Some sample JSON data for the data attribute:
+ *
+ * Flat rate:
+ *
+ *     {"reasons":[{"reason":"flat_rate"}]}
+ *
+ * Order total between $0 and $100:
+ *
+ *     {"reasons":[{"reason":"order_total","min":0,"max":100}]}
+ *
+ * Order total above $100.01 (works along side the above one):
+ *
+ *     {"reasons":[{"reason":"order_total","min":100.01}]}
+ *
+ * Shipping location of Alberta, Canada:
+ *
+ *     {"reasons":[{"reason":"shipping_location","locations":[{"country_id":40,"state_id":1}]}]}
+ *
+ * No other rate (will be applied if no other rate applies):
+ *
+ *     {"reasons":[{"reason":"no_other_rate"}]}
+ *
+ * Shipping location of Alberta or BC, Canada and minimum order of $100:
+ *
+ *     {"reasons":[{"reason":"shipping_location","locations":[{"country_id":40,"state_id":1},{"country_id":40,"state_id":7}]},{"reason":"order_total","min":100}]}
+ *
+ *
  * @package    XM
  * @category   Models
  * @author     XM Media Inc.
@@ -25,22 +52,6 @@ class Model_XM_Cart_Shipping extends ORM {
 		'cart_order_shipping' => array(
 			'model' => 'Cart_Order_Shipping',
 			'foreign_key' => 'cart_shipping_id',
-		),
-		'cart_shipping_location' => array(
-			'model' => 'Cart_Shipping_Location',
-			'foreign_key' => 'cart_shipping_id',
-		),
-		'country' => array(
-			'model' => 'Country',
-			'through' => 'cart_shipping_location',
-			'foreign_key' => 'cart_shipping_id',
-			'far_key' => 'country_id',
-		),
-		'state' => array(
-			'model' => 'State',
-			'through' => 'cart_shipping_location',
-			'foreign_key' => 'cart_shipping_id',
-			'far_key' => 'state_id',
 		),
 	);
 	// protected $_belongs_to = array();
@@ -95,7 +106,7 @@ class Model_XM_Cart_Shipping extends ORM {
 			'is_nullable' => FALSE,
 		),
 		'calculation_method' => array(
-			'field_type' => 'Text',
+			'field_type' => 'Radios',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
@@ -120,97 +131,9 @@ class Model_XM_Cart_Shipping extends ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
-				'maxlength' => 11,
-				'size' => 11,
+				'maxlength' => 9,
+				'size' => 9,
 				'class' => 'numeric',
-			),
-		),
-		'shipping_reason_1' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_options' => array(
-				'source' => array(
-					'source' => 'array',
-					'data' => array(
-						'location' => 'Shipping Location',
-						'order_total' => 'Order Total',
-						'flat_rate' => 'Flat Rate (on all orders)',
-						// 'weight' => 'Weight', not implemented
-					),
-				),
-				'default_value' => NULL,
-			),
-		),
-		'val1_1' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 20,
-				'size' => 20,
-			),
-		),
-		'val1_2' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 20,
-				'size' => 20,
-			),
-		),
-		'shipping_reason_2' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_options' => array(
-				'source' => array(
-					'source' => 'array',
-					'data' => array(
-						'location' => 'Shipping Location',
-						'order_total' => 'Order Total',
-						'flat_rate' => 'Flat Rate (on all orders)',
-						// 'weight' => 'Weight', not implemented
-					),
-				),
-				'default_value' => NULL,
-			),
-		),
-		'val2_1' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 20,
-				'size' => 20,
-			),
-		),
-		'val2_2' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 20,
-				'size' => 20,
 			),
 		),
 		'display_order' => array(
@@ -225,12 +148,12 @@ class Model_XM_Cart_Shipping extends ORM {
 				'size' => 6,
 			),
 		),
-		'user_selectable_flag' => array(
-			'field_type' => 'Checkbox',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
+		'data' => array(
+			'field_type' => 'TextArea',
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
@@ -243,6 +166,8 @@ class Model_XM_Cart_Shipping extends ORM {
 		'column' 	=> 'expiry_date',
 		'default'	=> 0,
 	);
+
+	protected $_serialize_columns = array('data');
 
 	/**
 	 * Labels for columns.
@@ -259,14 +184,8 @@ class Model_XM_Cart_Shipping extends ORM {
 			'end' => 'End',
 			'calculation_method' => 'Calculation Method',
 			'amount' => 'Amount',
-			'shipping_reason_1' => 'Shipping Reason 1',
-			'val1_1' => 'Val1 1',
-			'val1_2' => 'Val1 2',
-			'shipping_reason_2' => 'Shipping Reason 2',
-			'val2_1' => 'Val2 1',
-			'val2_2' => 'Val2 2',
 			'display_order' => 'Display Order',
-			'user_selectable_flag' => 'User Selectable',
+			'data' => 'Data',
 		);
 	}
 
@@ -280,6 +199,17 @@ class Model_XM_Cart_Shipping extends ORM {
 			'name' => array(
 				array('not_empty'),
 			),
+			'display_name' => array(
+				array('not_empty'),
+			),
+			'calculation_method' => array(
+				array('not_empty'),
+			),
+			'amount' => array(
+				array('not_empty'),
+			),
+			// data probably shouldn't be empty either
+			// but we can't add that requirement till we've added the admin tool
 		);
 	}
 
@@ -293,6 +223,43 @@ class Model_XM_Cart_Shipping extends ORM {
 			'name' => array(
 				array('trim'),
 			),
+			'display_name' => array(
+				array('trim'),
+			),
 		);
+	}
+
+	public function where_active_dates() {
+		return $this
+			->where_open()
+				->or_where_open()
+					->where('start', '<=', DB::expr("NOW()"))
+					->where('end', '>=', DB::expr("NOW()"))
+				->or_where_close()
+				->or_where_open()
+					->where('start', '<=', DB::expr("NOW()"))
+					->where('end', '=', 0)
+				->or_where_close()
+				->or_where_open()
+					->where('start', '=', 0)
+					->where('end', '>=', DB::expr("NOW()"))
+				->or_where_close()
+				->or_where_open()
+					->where('start', '=', 0)
+					->where('end', '=', 0)
+				->or_where_close()
+			->where_close();
+	}
+
+	public function display_name() {
+		if ($this->calculation_method == '%') {
+			return $this->display_name . ' ' . Num::format($this->amount, Cart::num_decimals($this->amount)) . '%';
+		} else if ($this->calculation_method == '$') {
+			return $this->display_name;
+		}
+	}
+
+	public function data() {
+		return Arr::extract($this->as_array(), array('name', 'display_name', 'start', 'end', 'display_order', 'calculation_method', 'amount', 'data'));
 	}
 } // class

@@ -987,6 +987,72 @@ class Model_XM_Cart_Order extends ORM {
 			$sub_total += $order_product->unit_price * $order_product->quantity;
 		}
 
+		// ****************************************************************
+		// ****************************************************************
+		// Shipping
+		$possible_shipping_rates = array();
+		$shipping_total = 0;
+
+		$shipping_rates = ORM::factory('Cart_Shipping')
+			->where_active_dates()
+			->find_all();
+		// first want a list of all the possible shipping rates
+		foreach ($shipping_rates as $shipping_rate) {
+			if ( ! empty($shipping_rate->data['reasons']) && is_array($shipping_rate->data['reasons'])) {
+				foreach ($shipping_rate->data['reasons'] as $reason) {
+					switch ($reason['reason']) {
+						case 'flat_rate' :
+							$possible_shipping_rates[$shipping_rate->pk()]['model'] = $shipping_rate;
+							$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $sub_total);
+							break;
+					} // switch reasons
+				} // foreach reasons
+			} // if reasons
+		} // foreach shipping rates
+
+		// now loop through the shipping rates to find the cheapest one
+		$lowest_shipping_rate = NULL;
+		$selected_shipping_rate = NULL;
+		foreach ($possible_shipping_rates as $shipping_rate) {
+			if ($lowest_shipping_rate === NULL || $shipping_rate['order_amount'] < $lowest_shipping_rate) {
+				$lowest_shipping_rate = $shipping_rate['order_amount'];
+				$selected_shipping_rate = $shipping_rate;
+			}
+		}
+
+		$existing_shipping_rate = $this->cart_order_shipping->find();
+		$add_shipping = FALSE;
+		$cart_order_shipping_data = array(
+			'cart_order_id' => $this->pk(),
+			'cart_shipping_id' => $selected_shipping_rate['model']->pk(),
+			'display_name' => $selected_shipping_rate['model']->display_name(),
+			'amount' => $selected_shipping_rate['order_amount'],
+			'manual_flag' => 0,
+			'data' => $selected_shipping_rate['model']->data(),
+		);
+		if ($existing_shipping_rate->loaded()) {
+			if ($existing_shipping_rate->cart_shipping_id == $selected_shipping_rate['model']->pk()) {
+				$existing_shipping_rate->values($cart_order_shipping_data)
+					->save();
+			} else {
+				$existing_shipping_rate->delete();
+				$add_shipping = TRUE;
+			}
+		} else {
+			$add_shipping = TRUE;
+		}
+		if ($add_shipping) {
+			ORM::factory('Cart_Order_Shipping')
+				->values($cart_order_shipping_data)
+				->save();
+		}
+
+		$shipping_total = $selected_shipping_rate['order_amount'];
+		$sub_total += $shipping_total;
+
+		// ****************************************************************
+		// ****************************************************************
+		// Tax
 		$taxes = array();
 
 		$all_location_taxes = ORM::factory('Cart_Tax')
@@ -995,7 +1061,7 @@ class Model_XM_Cart_Order extends ORM {
 			->where_active_dates()
 			->find_all();
 		foreach($all_location_taxes as $tax) {
-			$taxes[$tax->id] = $tax;
+			$taxes[$tax->pk()] = $tax;
 		}
 
 		if ( ! empty($this->shipping_country_id)) {
@@ -1007,7 +1073,7 @@ class Model_XM_Cart_Order extends ORM {
 				->where_active_dates()
 				->find_all();
 			foreach ($country_taxes as $tax) {
-				$taxes[$tax->id] = $tax;
+				$taxes[$tax->pk()] = $tax;
 			}
 
 			if ( ! empty($this->shipping_state_id)) {
@@ -1019,7 +1085,7 @@ class Model_XM_Cart_Order extends ORM {
 					->where_active_dates()
 					->find_all();
 				foreach ($state_taxes as $tax) {
-					$taxes[$tax->id] = $tax;
+					$taxes[$tax->pk()] = $tax;
 				}
 			}
 		}
@@ -1032,18 +1098,14 @@ class Model_XM_Cart_Order extends ORM {
 				->where_active_dates()
 				->find_all();
 			foreach ($only_without_taxes as $tax) {
-				$taxes[$tax->id] = $tax;
+				$taxes[$tax->pk()] = $tax;
 			}
 		}
 
 		$tax_total = 0;
 		$applied_taxes = array();
 		foreach ($taxes as $tax) {
-			if ($tax->calculation_method == '%') {
-				$amount = $sub_total * ($tax->amount / 100);
-			} else if ($tax->calculation_method == '$') {
-				$amount = $tax->amount;
-			}
+			$amount = Cart::calc_method($tax->calculation_method, $tax->amount, $sub_total);
 
 			$applied_taxes[$tax->pk()] = array(
 				'cart_order_id' => $this->pk(),
@@ -1073,7 +1135,7 @@ class Model_XM_Cart_Order extends ORM {
 			}
 		}
 		foreach ($existing_taxes as $tax) {
-			if ( ! in_array($tax->id, $keep_of_existing)) {
+			if ( ! in_array($tax->pk(), $keep_of_existing)) {
 				$tax->delete();
 			}
 		}
@@ -1099,7 +1161,7 @@ class Model_XM_Cart_Order extends ORM {
 	public function add_log($action, $data = array()) {
 		ORM::factory('Cart_Order_Log')
 			->values(array(
-				'cart_order_id' => $this->id,
+				'cart_order_id' => $this->pk(),
 				'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
 				'timestamp' => Date::formatted_time(),
 				'action' => $action,

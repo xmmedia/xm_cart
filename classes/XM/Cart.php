@@ -33,4 +33,12 @@ class XM_Cart {
 
 		return $countries;
 	}
+
+	public static function calc_method($calculation_method, $amount, $total) {
+		if ($calculation_method == '%') {
+				return $total * ($amount / 100);
+			} else if ($calculation_method == '$') {
+				return $amount;
+			}
+	}
 }

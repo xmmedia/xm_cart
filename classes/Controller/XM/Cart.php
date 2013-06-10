@@ -30,6 +30,9 @@ class Controller_XM_Cart extends Controller_Public {
 		$show_location_select = FALSE;
 		$shipping_country = '';
 		$shipping_state = '';
+		$shipping_added = FALSE;
+		$shipping_display_name = '';
+		$shipping_amount = 0;
 
 		$order = $this->retrieve_order();
 
@@ -62,6 +65,13 @@ class Controller_XM_Cart extends Controller_Public {
 				$order->calculate_totals();
 			}
 
+			$shipping = $order->cart_order_shipping->find();
+			if ($shipping->loaded()) {
+				$shipping_added = TRUE;
+				$shipping_display_name = $shipping->display_name;
+				$shipping_amount = $shipping->amount;
+			}
+
 			foreach ($order->cart_order_tax->find_all() as $tax) {
 				$taxes[] = array(
 					'name' => $tax->display_name,
@@ -91,6 +101,12 @@ class Controller_XM_Cart extends Controller_Public {
 				'shipping_country' => $shipping_country,
 				'shipping_state' => $shipping_state,
 
+				'shipping' => array(
+					'added' => (int) $shipping_added,
+					'display_name' => $shipping_display_name,
+					'amount' => $shipping_amount,
+					'amount_formatted' => Cart::cf($shipping_amount),
+				),
 				'taxes' => $taxes,
 				'sub_total' => $sub_total,
 				'sub_total_formatted' => Cart::cf($sub_total),

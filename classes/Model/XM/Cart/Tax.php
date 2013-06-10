@@ -174,6 +174,18 @@ class Model_XM_Cart_Tax extends ORM {
 				'class' => 'numeric',
 			),
 		),
+		/**
+		 * Options:
+		 * applies_to_shipping: if true, the tax will also be applied to shipping
+		 */
+		'data' => array(
+			'field_type' => 'TextArea',
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+		),
 	);
 
 	/**
@@ -184,6 +196,8 @@ class Model_XM_Cart_Tax extends ORM {
 		'column' 	=> 'expiry_date',
 		'default'	=> 0,
 	);
+
+	protected $_serialize_columns = array('data');
 
 	protected $_options = array(
 		'add_field_help' => TRUE,
@@ -236,6 +250,7 @@ class Model_XM_Cart_Tax extends ORM {
 			'display_order' => 'Display Order',
 			'calculation_method' => 'Calculation Method',
 			'amount' => 'Amount',
+			'data' => 'Data',
 		);
 	}
 
@@ -253,7 +268,7 @@ class Model_XM_Cart_Tax extends ORM {
 				array('not_empty'),
 			),
 			'calculation_method' => array(
-				array('selected'),
+				array('not_empty'),
 			),
 			'amount' => array(
 				array('not_empty'),
@@ -327,6 +342,6 @@ class Model_XM_Cart_Tax extends ORM {
 	}
 
 	public function data() {
-		return Arr::extract($this->as_array(), array('name', 'display_name', 'start', 'end', 'all_locations_flag', 'only_without_flag', 'country_id', 'state_id', 'display_order', 'calculation_method', 'amount'));
+		return Arr::extract($this->as_array(), array('name', 'display_name', 'start', 'end', 'all_locations_flag', 'only_without_flag', 'country_id', 'state_id', 'display_order', 'calculation_method', 'amount', 'data'));
 	}
 } // class

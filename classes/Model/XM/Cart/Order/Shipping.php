@@ -71,6 +71,17 @@ class Model_XM_Cart_Order_Shipping extends ORM {
 				),
 			),
 		),
+		'display_name' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 50,
+			),
+		),
 		'amount' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -83,7 +94,7 @@ class Model_XM_Cart_Order_Shipping extends ORM {
 				'size' => 9,
 			),
 		),
-		'set_flag' => array(
+		'manual_flag' => array(
 			'field_type' => 'Checkbox',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -93,10 +104,10 @@ class Model_XM_Cart_Order_Shipping extends ORM {
 		),
 		'data' => array(
 			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
@@ -110,6 +121,8 @@ class Model_XM_Cart_Order_Shipping extends ORM {
 		'default'	=> 0,
 	);
 
+	protected $_serialize_columns = array('data');
+
 	/**
 	 * Labels for columns.
 	 *
@@ -121,8 +134,9 @@ class Model_XM_Cart_Order_Shipping extends ORM {
 			'expiry_date' => 'Expiry Date',
 			'cart_order_id' => 'Cart Order',
 			'cart_shipping_id' => 'Cart Shipping',
+			'display_name' => 'Display Name',
 			'amount' => 'Amount',
-			'set_flag' => 'Set',
+			'manual_flag' => 'Manual',
 			'data' => 'Data',
 		);
 	}
