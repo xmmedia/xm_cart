@@ -53,6 +53,7 @@ class Model_XM_Cart_Order_Shipping extends ORM {
 				'source' => array(
 					'source' => 'model',
 					'data' => 'Cart_Order',
+					'label' => 'invoice',
 				),
 			),
 		),

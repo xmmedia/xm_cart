@@ -15,7 +15,10 @@ class Model_XM_Cart_Order_Tax extends ORM {
 	public $_table_name_display = 'Cart - Order - Tax'; // cl4 specific
 
 	// default sorting
-	// protected $_sorting = array();
+	protected $_sorting = array(
+		'cart_order_id' => 'DESC',
+		'display_order' => 'ASC',
+	);
 
 	// relationships
 	// protected $_has_one = array();
@@ -53,6 +56,7 @@ class Model_XM_Cart_Order_Tax extends ORM {
 				'source' => array(
 					'source' => 'model',
 					'data' => 'Cart_Order',
+					'label' => 'invoice',
 				),
 			),
 		),
@@ -70,6 +74,17 @@ class Model_XM_Cart_Order_Tax extends ORM {
 				),
 			),
 		),
+		'display_name' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 50,
+			),
+		),
 		'amount' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -81,6 +96,18 @@ class Model_XM_Cart_Order_Tax extends ORM {
 				'maxlength' => 9,
 				'size' => 9,
 				'class' => 'numeric',
+			),
+		),
+		'display_order' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 5,
+				'size' => 5,
 			),
 		),
 		'data' => array(
@@ -102,6 +129,8 @@ class Model_XM_Cart_Order_Tax extends ORM {
 		'default'	=> 0,
 	);
 
+	protected $_serialize_columns = array('data');
+
 	/**
 	 * Labels for columns.
 	 *
@@ -113,6 +142,7 @@ class Model_XM_Cart_Order_Tax extends ORM {
 			'expiry_date' => 'Expiry Date',
 			'cart_order_id' => 'Cart Order',
 			'cart_tax_id' => 'Cart Tax',
+			'display_name' => 'Display Name',
 			'amount' => 'Amount',
 			'data' => 'Data',
 		);

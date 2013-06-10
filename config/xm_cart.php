@@ -115,5 +115,8 @@ return array(
 		'payment_error' => 'Payment Error',
 		'payment_failed' => 'Payment Failed',
 		'set_user' => 'Set User/Assigned to User',
+		'set_shipping_country' => 'Set Shipping Country',
+		'set_shipping_state' => 'Set Shipping State',
+		'unset_shipping_country' => 'Unset Shipping Country',
 	),
 );

@@ -985,9 +985,100 @@ class Model_XM_Cart_Order extends ORM {
 		$sub_total = 0;
 		foreach ($this->cart_order_product->find_all() as $order_product) {
 			$sub_total += $order_product->unit_price * $order_product->quantity;
-		} // foreach
+		}
 
-		$grand_total = $sub_total; // plus tax + shipping + +++
+		$taxes = array();
+
+		$all_location_taxes = ORM::factory('Cart_Tax')
+			->where('all_locations_flag', '=', 1)
+			->where('only_without_flag', '=', 0)
+			->where_active_dates()
+			->find_all();
+		foreach($all_location_taxes as $tax) {
+			$taxes[$tax->id] = $tax;
+		}
+
+		if ( ! empty($this->shipping_country_id)) {
+			$country_taxes = ORM::factory('Cart_Tax')
+				->where('country_id', '=', $this->shipping_country_id)
+				->where('state_id', '=', 0)
+				->where('only_without_flag', '=', 0)
+				->where('all_locations_flag', '=', 0)
+				->where_active_dates()
+				->find_all();
+			foreach ($country_taxes as $tax) {
+				$taxes[$tax->id] = $tax;
+			}
+
+			if ( ! empty($this->shipping_state_id)) {
+				$state_taxes = ORM::factory('Cart_Tax')
+					->where('country_id', '=', $this->shipping_country_id)
+					->where('state_id', '=', $this->shipping_state_id)
+					->where('only_without_flag', '=', 0)
+					->where('all_locations_flag', '=', 0)
+					->where_active_dates()
+					->find_all();
+				foreach ($state_taxes as $tax) {
+					$taxes[$tax->id] = $tax;
+				}
+			}
+		}
+
+		// if we haven't applied any other taxes, retrieve the taxes that are applied when no other taxes are applied
+		if (empty($taxes)) {
+			$only_without_taxes = ORM::factory('Cart_Tax')
+				->where('only_without_flag', '=', 1)
+				->where('all_locations_flag', '=', 0)
+				->where_active_dates()
+				->find_all();
+			foreach ($only_without_taxes as $tax) {
+				$taxes[$tax->id] = $tax;
+			}
+		}
+
+		$tax_total = 0;
+		$applied_taxes = array();
+		foreach ($taxes as $tax) {
+			if ($tax->calculation_method == '%') {
+				$amount = $sub_total * ($tax->amount / 100);
+			} else if ($tax->calculation_method == '$') {
+				$amount = $tax->amount;
+			}
+
+			$applied_taxes[$tax->pk()] = array(
+				'cart_order_id' => $this->pk(),
+				'cart_tax_id' => $tax->pk(),
+				'display_name' => $tax->display_name(),
+				'amount' => $amount,
+				'display_order' => $tax->display_order,
+				'data' => $tax->data(),
+			);
+
+			$tax_total += $amount;
+		}
+
+		$existing_taxes = $this->cart_order_tax
+			->find_all()
+			->as_array('cart_tax_id');
+		$keep_of_existing = array();
+		foreach ($applied_taxes as $cart_tax_id => $tax_data) {
+			if (isset($existing_taxes[$cart_tax_id])) {
+				$existing_taxes[$cart_tax_id]->values($tax_data)
+					->save();
+				$keep_of_existing[] = $existing_taxes[$cart_tax_id]->pk();
+			} else {
+				ORM::factory('Cart_Order_Tax')
+					->values($tax_data)
+					->save();
+			}
+		}
+		foreach ($existing_taxes as $tax) {
+			if ( ! in_array($tax->id, $keep_of_existing)) {
+				$tax->delete();
+			}
+		}
+
+		$grand_total = $sub_total + $tax_total; // plus tax + shipping + +++
 
 		return $this->values(array(
 				'sub_total' => $sub_total,
@@ -995,6 +1086,14 @@ class Model_XM_Cart_Order extends ORM {
 			))
 			->is_valid()
 			->save();
+	}
+
+	public function clear_taxes() {
+		foreach ($this->cart_order_tax->find_all() as $tax) {
+			$tax->delete();
+		}
+
+		return $this;
 	}
 
 	public function add_log($action, $data = array()) {

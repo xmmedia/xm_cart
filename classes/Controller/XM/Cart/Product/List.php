@@ -28,6 +28,7 @@ class Controller_XM_Cart_Product_List extends Controller_Public {
 		}
 
 		$this->template->body_html = View::factory('cart_product_list/index')
-			->set('product_list', implode('', $_products));
+			->set('product_list', implode('', $_products))
+			->set('countries', Cart::countries());
 	}
 }

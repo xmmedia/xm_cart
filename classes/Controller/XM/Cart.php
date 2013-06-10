@@ -3,7 +3,7 @@
 class Controller_XM_Cart extends Controller_Public {
 	public $no_auto_render_actions = array(
 		// other actions
-		'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty',
+		'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty', 'set_shipping_country', 'set_shipping_state',
 		// checkout actions
 		'save_shipping', 'save_billing', 'validate_payment', 'save_final', 'complete_order',
 	);
@@ -32,8 +32,11 @@ class Controller_XM_Cart extends Controller_Public {
 			$order_products = $order->cart_order_product->find_all();
 
 			$order_product_array = array();
+			$deleted_product = FALSE;
 			foreach ($order_products as $order_product) {
 				if ( ! $order_product->cart_product->loaded()) {
+					$order_product->delete();
+					$deleted_product = TRUE;
 					continue;
 				}
 
@@ -48,31 +51,50 @@ class Controller_XM_Cart extends Controller_Public {
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
 					'amount_formatted' => Cart::cf($amount),
 				);
-
-				$sub_total += $amount;
 			} // foreach
 
-			$grand_total = $sub_total; // plus tax + shipping + +++
-
-			// set the totals again just incase a product was skipped above
-			// if the totals are the same, nothing will actually happen
-			$order->values(array(
-				'sub_total' => $sub_total,
-				'grand_total' => $grand_total,
-			))
-			->is_valid()
-			->save();
+			if ($deleted_product) {
+				$order->calculate_totals();
+			}
 		} else {
 			$order_product_array = array();
+		}
+
+		$taxes = array();
+		foreach ($order->cart_order_tax->find_all() as $tax) {
+			$taxes[] = array(
+				'name' => $tax->display_name,
+				'amount', $tax->amount,
+				'amount_formatted' => Cart::cf($tax->amount),
+			);
+		}
+
+		$show_location_select = FALSE;
+		if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
+			$show_location_select = TRUE;
+		} else if ( ! empty($order->shipping_country_id) && empty($order->shipping_state_id) && Model_Cart_Tax::show_state_select($order->shipping_country_id)) {
+			$show_location_select = TRUE;
+		}
+		if ( ! $show_location_select) {
+			$shipping_country = $order->shipping_country->name;
+			$shipping_state = $order->shipping_state_select->name;
+		} else {
+			$shipping_country = '';
+			$shipping_state = '';
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'products' => $order_product_array,
 			'order' => array(
-				'sub_total' => $sub_total,
-				'sub_total_formatted' => Cart::cf($sub_total),
-				'grand_total' => $grand_total,
-				'grand_total_formatted' => Cart::cf($grand_total),
+				'show_location_select' => (int) $show_location_select,
+				'shipping_country' => $shipping_country,
+				'shipping_state' => $shipping_state,
+
+				'taxes' => $taxes,
+				'sub_total' => $order->sub_total,
+				'sub_total_formatted' => Cart::cf($order->sub_total),
+				'grand_total' => $order->grand_total,
+				'grand_total_formatted' => Cart::cf($order->grand_total),
 			)
 		)));
 	}
@@ -248,6 +270,109 @@ class Controller_XM_Cart extends Controller_Public {
 		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
+	public function action_set_shipping_country() {
+		$show_state_select = FALSE;
+		$states = array();
+
+		// attempt to retrieve the order
+		$order = $this->retrieve_order(TRUE);
+
+		$country_id = $this->request->post('country_id');
+		if (empty($country_id)) {
+			throw new Kohana_Exception('No country was received');
+		}
+
+		$country = ORM::factory('Country', $country_id);
+		if ( ! $country->loaded()) {
+			throw new Kohana_Exception('The country could not be found');
+		}
+
+		$order->clear_taxes()
+			->values(array(
+				'shipping_country_id' => $country_id,
+				'shipping_state_id' => 0,
+			))
+			->save()
+			->calculate_totals()
+			->add_log('set_shipping_country', array(
+				'shipping_country_id' => $country_id,
+				'shipping_state_id' => 0,
+			));
+
+		$taxes_with_states_for_country = ORM::factory('Cart_Tax')
+			->where('country_id', '=', $country_id)
+			->where('state_id', '>', 0)
+			->where_open()
+				->or_where_open()
+					->where('start', '<=', DB::expr("NOW()"))
+					->where('end', '>=', DB::expr("NOW()"))
+				->or_where_close()
+				->or_where_open()
+					->where('start', '<=', DB::expr("NOW()"))
+					->where('end', '=', 0)
+				->or_where_close()
+				->or_where_open()
+					->where('start', '=', 0)
+					->where('end', '>=', DB::expr("NOW()"))
+				->or_where_close()
+				->or_where_open()
+					->where('start', '=', 0)
+					->where('end', '=', 0)
+				->or_where_close()
+			->where_close()
+			->find_all();
+		// if there are taxes for states within the selected country, then we need to display the state/province select for the customer
+		if (count($taxes_with_states_for_country) > 0) {
+			$show_state_select = TRUE;
+
+			foreach ($country->state->find_all() as $state) {
+				$states[] = array('id' => $state->id, 'name' => $state->name);
+			}
+		} else {
+			$order->calculate_totals();
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'show_state_select' => (int) $show_state_select,
+			'states' => $states,
+		)));
+	}
+
+	public function action_set_shipping_state() {
+		// attempt to retrieve the order
+		$order = $this->retrieve_order(TRUE);
+
+		$state_id = $this->request->post('state_id');
+		if (empty($state_id)) {
+			throw new Kohana_Exception('No state was received');
+		}
+
+		$state = ORM::factory('State', $state_id);
+		if ( ! $state->loaded()) {
+			throw new Kohana_Exception('The state could not be found');
+		}
+		if ( ! empty($order->shipping_country_id) && $state->country_id != $order->shipping_country_id) {
+			$order->set('shipping_country_id', 0)
+				->calculate_totals()
+				->save()
+				->add_log('unset_shipping_country', array(
+					'details' => 'The selected shipping state is not in the shipping country.',
+				));
+
+			AJAX_Status::echo_json(AJAX_Status::success());
+		}
+
+		$order->set('shipping_state_id', $state_id)
+			->calculate_totals()
+			->save()
+			->add_log('set_shipping_state', array(
+				'shipping_state_id' => $state_id,
+			));
+
+
+		AJAX_Status::echo_json(AJAX_Status::success());
+	}
+
 	// not ajax!!
 	public function action_checkout() {
 		$order = $this->retrieve_order();
@@ -326,7 +451,9 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('cart_html', $cart_html)
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
-			->set('continue_shopping_url', $this->continue_shopping_url);
+			->set('continue_shopping_url', $this->continue_shopping_url)
+			// used in the cart config view
+			->set('countries', Cart::countries());
 	} // function action_checkout
 
 	public function action_save_shipping() {
