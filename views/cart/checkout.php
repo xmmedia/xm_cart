@@ -152,7 +152,7 @@
 							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 22, 'maxlength' => 20, 'id' => 'credit_card_number', 'class' => 'js_cart_checkout_credit_card_number')); ?>
 						</div>
 						<div class="cart_field">
-							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::password('credit_card[security_code]', NULL, array('size' => 4, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
+							<?php echo Form::label('credit_card_security_code', 'Security Code'), Form::input('credit_card[security_code]', NULL, array('size' => 4, 'maxlength' => 4, 'id' => 'credit_card_security_code', 'class' => 'js_cart_checkout_credit_card_security_code')); ?>
 						</div>
 						<div class="cart_field">
 							<?php echo Form::label('credit_card_expiry_date_month', 'Expiry Date'),
