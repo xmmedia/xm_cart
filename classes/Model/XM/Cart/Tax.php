@@ -78,6 +78,9 @@ class Model_XM_Cart_Tax extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'24_hour' => TRUE,
+			),
 		),
 		'end' => array(
 			'field_type' => 'DateTime',
@@ -86,6 +89,9 @@ class Model_XM_Cart_Tax extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'24_hour' => TRUE,
+			),
 		),
 		'all_locations_flag' => array(
 			'field_type' => 'Checkbox',

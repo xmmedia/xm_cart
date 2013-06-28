@@ -86,17 +86,80 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 		);
 
 		$uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk()));
-		$cancel_uri = URL::site($this->shipping_uri());
 
 		$this->template->page_title = 'Shipping Rate Edit - Cart Admin' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping_edit')
 			->set('form_open', Form::open($uri, array('class' => 'cart_form')))
-			->bind('cancel_uri', $cancel_uri)
+			->set('cancel_uri', URL::site($this->shipping_uri()))
 			->bind('shipping_rate', $shipping_rate)
 			->bind('reasons', $reasons);
 	}
 
 	public function shipping_uri() {
 		return Route::get('cart_admin')->uri(array('action' => 'shipping'));
+	}
+
+	public function action_tax() {
+		$taxes = ORM::factory('Cart_Tax')
+			->where_active_dates()
+			->find_all();
+
+		$taxes_html = array();
+		foreach ($taxes as $tax) {
+			$html = '<strong>' . HTML::chars($tax->name) . '</strong>'
+				. ($tax->name != $tax->display_name ? ' (' . HTML::chars($tax->display_name) . ')' : '')
+				. '<br>';
+			if ( ! Form::check_date_empty_value($tax->start)) {
+				$html .= 'Starting ' . $tax->start;
+			}
+			if ( ! Form::check_date_empty_value($tax->end)) {
+				$html .= ' Ending ' . $tax->end;
+			}
+
+			$html .= '<br>' . Cart::calc_method_display($tax->calculation_method, $tax->amount);
+
+			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk())), 'Edit') . ' | '
+				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_delete', 'id' => $tax->pk())), 'Delete');
+
+			$taxes_html[] = $html;
+		}
+
+		$this->template->page_title = 'Taxes - Cart Admin' . $this->page_title_append;
+		$this->template->body_html = View::factory('cart_admin/tax')
+			->bind('taxes_html', $taxes_html);
+	}
+
+	public function action_tax_edit() {
+		$tax_id = $this->request->param('id');
+		$tax = ORM::factory('Cart_Tax', $tax_id);
+		if ( ! $tax->loaded()) {
+			Message::add('The tax could not be found.', Message::$error);
+			$this->redirect($this->tax_uri());
+		}
+
+		if ( ! empty($_POST)) {
+			try {
+				$tax->save_values()
+					->save();
+
+				Message::add('The tax has been saved.', Message::$notice);
+				$this->redirect($this->tax_uri());
+
+			} catch (ORM_Validation_Exception $e) {
+				Message::add('Please fix the following errors: ' . Message::add_validation_errors($e, ''), Message::$error);
+			}
+		}
+
+		$uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk()));
+
+		$this->template->page_title = 'Tax Edit - Cart Admin' . $this->page_title_append;
+		$this->template->body_html = View::factory('cart_admin/tax_edit')
+			->set('form_open', Form::open($uri, array('class' => 'cart_form')))
+			->set('cancel_uri', URL::site($this->tax_uri()))
+			->bind('tax', $tax);
+	}
+
+	public function tax_uri() {
+		return Route::get('cart_admin')->uri(array('action' => 'tax'));
 	}
 }
