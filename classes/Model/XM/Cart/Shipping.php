@@ -96,6 +96,9 @@ class Model_XM_Cart_Shipping extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'24_hour' => TRUE,
+			),
 		),
 		'end' => array(
 			'field_type' => 'DateTime',
@@ -104,6 +107,9 @@ class Model_XM_Cart_Shipping extends ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'24_hour' => TRUE,
+			),
 		),
 		'calculation_method' => array(
 			'field_type' => 'Radios',

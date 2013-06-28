@@ -41,4 +41,8 @@ class XM_Cart {
 				return $amount;
 			}
 	}
+
+	public static function calc_method_display($calculation_method, $amount) {
+		return ($calculation_method == '$' ? '$' : '') . $amount . ($calculation_method == '%' ? '%' : '');
+	}
 }
