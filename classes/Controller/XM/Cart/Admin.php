@@ -6,17 +6,148 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	public function before() {
 		parent::before();
 
+		$this->page_title_append = 'Cart Admin - ' . $this->page_title_append;
+
 		if ($this->auto_render) {
-			$this->add_style('cart_private', 'xm_cart/css/private.css');
+			$this->add_style('cart_private', 'xm_cart/css/private.css')
+				->add_script('cart_private', 'xm_cart/js/private.min.js');
 		}
+
+		$cart_admin_session = (array) Session::instance()->path('xm_cart.cart_admin');
+		$cart_admin_session += array(
+			'order_filters' => array(
+				'status' => implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)),
+			),
+		);
+		Session::instance()->set_path('xm_cart.cart_admin', $cart_admin_session);
 	}
 
 	/**
 	 * List recent orders, show current shipping and tax rates, available discounts.
 	 */
 	public function action_index() {
-		$this->template->page_title = 'Cart Admin' . $this->page_title_append;
+		$this->template->page_title = $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/index');
+	}
+
+	public function action_order() {
+		$order_filters = (array) Session::instance()->path('xm_cart.cart_admin.order_filters');
+
+		$received_order_filters = (array) $this->request->query('order_filters');
+		if ( ! empty($received_order_filters)) {
+			$received_order_filters += $order_filters;
+			$order_filters = $received_order_filters;
+			Session::instance()->set_path('xm_cart.cart_admin.order_filters', $received_order_filters);
+		}
+
+		$order_filters_html = array();
+		$order_statuses = array(
+			implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)) => 'Paid & Not Shipped',
+			'' => 'All Orders',
+			implode(',', array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, CART_ORDER_STATUS_PAYMENT)) => 'New & Not Paid',
+			CART_ORDER_STATUS_NEW       => 'New Order / Unpaid',
+			CART_ORDER_STATUS_SUBMITTED => 'Submitted / Waiting for Payment',
+			CART_ORDER_STATUS_PAYMENT   => 'Payment in Progress',
+			CART_ORDER_STATUS_PAID      => 'Paid',
+			CART_ORDER_STATUS_RECEIVED  => 'Received',
+			CART_ORDER_STATUS_SHIPPED   => 'Shipped',
+			CART_ORDER_STATUS_REFUNDED  => 'Refunded',
+			CART_ORDER_STATUS_CANCELLED => 'Cancelled',
+		);
+		$order_filters_html['status'] = Form::select('order_filters[status]', $order_statuses, $order_filters['status']);
+
+		$order_query = ORM::factory('Cart_Order');
+		if ( ! empty($order_filters['status'])) {
+			$order_filter_statuses = explode(',', $order_filters['status']);
+			$order_query->where('status', 'IN', $order_filter_statuses);
+		}
+		$orders = $order_query->find_all();
+
+		$order_table = new HTMLTable(array(
+			'heading' => array(
+				'',
+				'Status',
+				'Name',
+				'Total',
+				'Invoice',
+			),
+		));
+
+		foreach ($orders as $order) {
+			$order->set_mode('view');
+
+			if ($order->shipping_first_name != $order->billing_first_name || $order->shipping_last_name != $order->billing_last_name || $order->shipping_email != $order->billing_email) {
+				$name = '<span title="Shipping">'
+						. HTML::chars($order->shipping_first_name . ' ' . $order->shipping_last_name) . ' '
+						. HTML::mailto($order->shipping_email)
+					. '</span><br>'
+					. '<span title="Billing">'
+						. HTML::chars($order->billing_first_name . ' ' . $order->billing_last_name)  . ' '
+						. HTML::mailto($order->shipping_email)
+					. '</span>';
+			} else {
+				$name = HTML::chars($order->shipping_first_name . ' ' . $order->shipping_last_name) . '<br>' . HTML::mailto($order->shipping_email);
+			}
+
+			$row = array(
+				HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order_view', 'id' => $order->id)), HTML::icon('view')),
+				$order->get_field('status'),
+				$name,
+				Cart::cf($order->grand_total),
+				HTML::chars($order->invoice),
+			);
+			$order_table->add_row($row);
+		}
+
+		$uri = Route::get('cart_admin')->uri(array('action' => 'order'));
+
+		$this->template->page_title = 'Orders - ' . $this->page_title_append;
+		$this->template->body_html = View::factory('cart_admin/order')
+			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form')))
+			->bind('order_filters_html', $order_filters_html)
+			->set('order_html', $order_table->get_html());
+	}
+
+	public function action_order_view() {
+		$order = ORM::factory('Cart_Order', (int) $this->request->param('id'));
+		if ( ! $order->loaded()) {
+			Message::add('The order could not be found.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
+		$order_products = $order->cart_order_product->find_all();
+
+		$order_product_array = array();
+		foreach ($order_products as $order_product) {
+			$order_product_array[] = $order_product;
+		} // foreach
+
+		$total_rows = array();
+		$total_rows[] = array(
+			'name' => 'Sub Total',
+			'value' => $order->sub_total,
+		);
+		$total_rows[] = array(
+			'name' => 'Total',
+			'value' => $order->grand_total,
+			'class' => 'grand_total',
+		);
+
+		$cart_html = View::factory('cart/cart')
+			->bind('order_product_array', $order_product_array)
+			->bind('total_rows', $total_rows);
+
+		if ($this->auto_render) {
+			$this->add_style('cart_public', 'xm_cart/css/public.css')
+				/*->add_script('stripe_v2', 'https://js.stripe.com/v2/')
+				->add_script('cart_base', 'xm_cart/js/base.min.js')
+				->add_script('cart_public', 'xm_cart/js/public.min.js')*/;
+		}
+
+		$this->template->page_title = 'Order View - ' . $this->page_title_append;
+		$this->template->body_html = View::factory('cart_admin/order_view')
+			->bind('order', $order)
+			->bind('cart_html', $cart_html);
 	}
 
 	public function action_shipping() {
@@ -54,14 +185,13 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			$shipping_rate_html[] = $html;
 		}
 
-		$this->template->page_title = 'Shipping Rates - Cart Admin' . $this->page_title_append;
+		$this->template->page_title = 'Shipping Rates - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping')
 			->bind('shipping_rate_html', $shipping_rate_html);
 	}
 
 	public function action_shipping_edit() {
-		$shipping_rate_id = $this->request->param('id');
-		$shipping_rate = ORM::factory('Cart_Shipping', $shipping_rate_id);
+		$shipping_rate = ORM::factory('Cart_Shipping', (int) $this->request->param('id'));
 		if ( ! $shipping_rate->loaded()) {
 			Message::add('The shipping rate could not be found.', Message::$error);
 			$this->redirect($this->shipping_uri());
@@ -87,7 +217,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 		$uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk()));
 
-		$this->template->page_title = 'Shipping Rate Edit - Cart Admin' . $this->page_title_append;
+		$this->template->page_title = 'Shipping Rate Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping_edit')
 			->set('form_open', Form::open($uri, array('class' => 'cart_form')))
 			->set('cancel_uri', URL::site($this->shipping_uri()))
@@ -95,9 +225,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			->bind('reasons', $reasons);
 	}
 
-	public function shipping_uri() {
-		return Route::get('cart_admin')->uri(array('action' => 'shipping'));
-	}
+
 
 	public function action_tax() {
 		$taxes = ORM::factory('Cart_Tax')
@@ -124,14 +252,13 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			$taxes_html[] = $html;
 		}
 
-		$this->template->page_title = 'Taxes - Cart Admin' . $this->page_title_append;
+		$this->template->page_title = 'Taxes - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/tax')
 			->bind('taxes_html', $taxes_html);
 	}
 
 	public function action_tax_edit() {
-		$tax_id = $this->request->param('id');
-		$tax = ORM::factory('Cart_Tax', $tax_id);
+		$tax = ORM::factory('Cart_Tax', (int) $this->request->param('id'));
 		if ( ! $tax->loaded()) {
 			Message::add('The tax could not be found.', Message::$error);
 			$this->redirect($this->tax_uri());
@@ -152,14 +279,22 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 		$uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk()));
 
-		$this->template->page_title = 'Tax Edit - Cart Admin' . $this->page_title_append;
+		$this->template->page_title = 'Tax Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/tax_edit')
 			->set('form_open', Form::open($uri, array('class' => 'cart_form')))
 			->set('cancel_uri', URL::site($this->tax_uri()))
 			->bind('tax', $tax);
 	}
 
-	public function tax_uri() {
+	protected function order_uri() {
+		return Route::get('cart_admin')->uri(array('action' => 'order'));
+	}
+
+	protected function shipping_uri() {
+		return Route::get('cart_admin')->uri(array('action' => 'shipping'));
+	}
+
+	protected function tax_uri() {
 		return Route::get('cart_admin')->uri(array('action' => 'tax'));
 	}
 }
