@@ -727,6 +727,67 @@ class Controller_XM_Cart extends Controller_Public {
 			$payment_status = 'success';
 			$order->set_status(CART_ORDER_STATUS_PAID)
 				->add_log('paid', $charge->__toArray(TRUE));
+
+			// send emails
+			// first retrieve the necessary data
+			$order_products = $order->cart_order_product->find_all();
+
+			$order_product_array = array();
+			foreach ($order_products as $order_product) {
+				// make sure the product is still avaialble, otherwise remove it from the order
+				if ( ! $order_product->cart_product->loaded()) {
+					$order_product->delete();
+					continue;
+				}
+
+				$order_product_array[] = $order_product;
+			} // foreach
+
+			$total_rows = array();
+			$total_rows[] = array(
+				'name' => 'Sub Total',
+				'value' => $order->sub_total,
+			);
+			$total_rows[] = array(
+				'name' => 'Total',
+				'value' => $order->grand_total,
+				'is_grand_total' => TRUE,
+			);
+
+			$paid_with = array(
+				'type' => $order_payment->response['card']['type'],
+				'last_4' => $order_payment->response['card']['last4'],
+			);
+
+			// create the customer email
+			$mail = new Mail();
+			$mail->AddAddress($order->shipping_email, $order->shipping_first_name . ' ' . $order->shipping_last_name);
+			if (UTF8::strtolower($order->shipping_email) != UTF8::strtolower($order->billing_email)) {
+				$mail->AddAddress($order->billing_email, $order->billing_first_name . ' ' . $order->billing_last_name);
+			}
+			$mail->Subject = 'Your order from ' . LONG_NAME;
+			$mail->IsHTML(TRUE);
+			$mail->Body = View::factory('cart/email/customer_order')
+				->bind('order', $order)
+				->bind('order_product_array', $order_product_array)
+				->bind('total_rows', $total_rows)
+				->bind('paid_with', $paid_with);
+			$mail->Send();
+
+			// create the owner/administrator email
+			$administrator_email = Kohana::$config->load('xm_cart.administrator_email');
+
+			$mail = new Mail();
+			$mail->AddAddress($administrator_email[0], $administrator_email[1]);
+			$mail->Subject = 'Order Received – [invoice]';
+			$mail->IsHTML(TRUE);
+			$mail->Body = View::factory('cart/email/admin_order')
+				->bind('order', $order)
+				->bind('order_product_array', $order_product_array)
+				->bind('total_rows', $total_rows)
+				->bind('paid_with', $paid_with);
+			$mail->Send();
+
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 
 		} catch(Stripe_CardError $e) {

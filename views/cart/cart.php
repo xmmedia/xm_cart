@@ -1,10 +1,12 @@
 <table class="cart_product_list js_cart_product_list">
-	<thead><tr>
-		<th class="col_name">Item</th>
-		<th class="col_quantity">Quantity</th>
-		<th class="col_unit_price">Unit Price</th>
-		<th class="col_amount">Amount</th>
-	</tr></thead>
+	<thead>
+		<tr>
+			<th class="col_name">Item</th>
+			<th class="col_quantity">Quantity</th>
+			<th class="col_unit_price">Unit Price</th>
+			<th class="col_amount">Amount</th>
+		</tr>
+	</thead>
 	<tbody>
 		<?php
 		foreach ($order_product_array as $order_product) {

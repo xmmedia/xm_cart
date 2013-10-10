@@ -1,6 +1,8 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 return array(
+	'administrator_email' => array('webmaster@example.com', 'Cart Admin'),
+
 	// the prefix of all the cart routes
 	// can't be an empty string
 	// default: cart
