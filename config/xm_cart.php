@@ -89,13 +89,13 @@ return array(
 			'test' => array(
 				'secret_key' => NULL,
 				'publishable_key' => NULL,
-				'api_version' => '2013-02-13',
+				'api_version' => '2013-08-13',
 				'charge_description' => LONG_NAME . ' Payment ' . ADMIN_EMAIL,
 			),
 			'live' => array(
 				'secret_key' => NULL,
 				'publishable_key' => NULL,
-				'api_version' => '2013-02-13',
+				'api_version' => '2013-08-13',
 				'charge_description' => LONG_NAME . ' Payment ' . ADMIN_EMAIL,
 			),
 		),
