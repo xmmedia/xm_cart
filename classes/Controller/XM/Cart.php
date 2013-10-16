@@ -423,13 +423,32 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect($this->continue_shopping_url);
 		}
 
-		$total = $sub_total;
-
 		$total_rows = array();
+
+		$shipping = $order->cart_order_shipping->find();
+		if ($shipping->loaded()) {
+			$total_rows[] = array(
+				'name' => $shipping->display_name,
+				'value' => $shipping->amount,
+			);
+			$sub_total += $shipping->amount;
+		}
+
 		$total_rows[] = array(
 			'name' => 'Sub Total',
 			'value' => $sub_total,
 		);
+
+		$total = $sub_total;
+
+		foreach ($order->cart_order_tax->find_all() as $tax) {
+			$total_rows[] = array(
+				'name' => $tax->display_name,
+				'value' => $tax->amount,
+			);
+			$total += $tax->amount;
+		}
+
 		$total_rows[] = array(
 			'name' => 'Total',
 			'value' => $total,
@@ -743,11 +762,26 @@ class Controller_XM_Cart extends Controller_Public {
 				$order_product_array[] = $order_product;
 			} // foreach
 
-			$total_rows = array();
+			$shipping = $order->cart_order_shipping->find();
+			if ($shipping->loaded()) {
+				$total_rows[] = array(
+					'name' => $shipping->display_name,
+					'value' => $shipping->amount,
+				);
+			}
+
 			$total_rows[] = array(
 				'name' => 'Sub Total',
 				'value' => $order->sub_total,
 			);
+
+			foreach ($order->cart_order_tax->find_all() as $tax) {
+				$total_rows[] = array(
+					'name' => $tax->display_name,
+					'value' => $tax->amount,
+				);
+			}
+
 			$total_rows[] = array(
 				'name' => 'Total',
 				'value' => $order->grand_total,
