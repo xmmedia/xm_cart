@@ -27,11 +27,17 @@
 			<?php
 			++ $i;
 		}
+		?>
+	</tbody>
+</table>
 
+<table cellpadding="2" cellspacing="0" width="100%">
+	<tbody>
+		<?php
 		foreach ($total_rows as $total_row) {
 			if (isset($total_row['is_grand_total']) && $total_row['is_grand_total']) { ?>
 			<tr>
-				<td colspan="2"></td>
+				<td></td>
 				<td align="left" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></span></td>
 				<td align="right" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></font></span></td>
 			</tr>
@@ -39,7 +45,7 @@
 			} else {
 			?>
 			<tr>
-				<td colspan="2"></td>
+				<td></td>
 				<td align="left" valign="top"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></td>
 				<td align="right" valign="top"><font size="2"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></font></td>
 			</tr>
@@ -47,5 +53,10 @@
 			} // if
 		}
 		?>
+		<tr>
+			<th width="60%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="50" height="1"></th>
+			<th width="20%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="100" height="1"></th>
+			<th width="20%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="75" height="1"></th>
+		</tr>
 	</tbody>
 </table>
