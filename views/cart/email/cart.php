@@ -1,4 +1,4 @@
-<table cellpadding="2" cellspacing="0" width="100%">
+<table cellpadding="2" cellspacing="0" width="100%" border="0">
 	<thead>
 		<tr>
 			<th width="55%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="100" height="1"></th>
@@ -31,14 +31,14 @@
 	</tbody>
 </table>
 
-<table cellpadding="2" cellspacing="0" width="100%">
+<table cellpadding="2" cellspacing="0" width="100%" border="0">
 	<tbody>
 		<?php
 		foreach ($total_rows as $total_row) {
 			if (isset($total_row['is_grand_total']) && $total_row['is_grand_total']) { ?>
 			<tr>
 				<td></td>
-				<td align="left" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></span></td>
+				<td align="right" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></span></td>
 				<td align="right" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></font></span></td>
 			</tr>
 			<?php
@@ -46,7 +46,7 @@
 			?>
 			<tr>
 				<td></td>
-				<td align="left" valign="top"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></td>
+				<td align="right" valign="top"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></td>
 				<td align="right" valign="top"><font size="2"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></font></td>
 			</tr>
 			<?php
@@ -54,9 +54,9 @@
 		}
 		?>
 		<tr>
-			<th width="60%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="50" height="1"></th>
-			<th width="20%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="100" height="1"></th>
-			<th width="20%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="75" height="1"></th>
+			<th width="55%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="50" height="1"></th>
+			<th width="30%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="100" height="1"></th>
+			<th width="15%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="75" height="1"></th>
 		</tr>
 	</tbody>
 </table>

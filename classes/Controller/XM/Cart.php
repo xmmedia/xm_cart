@@ -801,11 +801,13 @@ class Controller_XM_Cart extends Controller_Public {
 			}
 			$mail->Subject = 'Your order from ' . LONG_NAME;
 			$mail->IsHTML(TRUE);
-			$mail->Body = View::factory('cart/email/customer_order')
+			$email_body_html = View::factory('cart/email/customer_order')
 				->bind('order', $order)
 				->bind('order_product_array', $order_product_array)
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with);
+			$mail->Body = View::factory('cart/email/template')
+				->bind('body_html', $email_body_html);
 			$mail->Send();
 
 			// create the owner/administrator email
@@ -815,11 +817,13 @@ class Controller_XM_Cart extends Controller_Public {
 			$mail->AddAddress($administrator_email[0], $administrator_email[1]);
 			$mail->Subject = 'Order Received – [invoice]';
 			$mail->IsHTML(TRUE);
-			$mail->Body = View::factory('cart/email/admin_order')
+			$email_body_html = View::factory('cart/email/admin_order')
 				->bind('order', $order)
 				->bind('order_product_array', $order_product_array)
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with);
+			$mail->Body = View::factory('cart/email/template')
+				->bind('body_html', $email_body_html);
 			$mail->Send();
 
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
