@@ -139,6 +139,18 @@
 	<tr>
 		<td valign="top">
 
+			<?php /*
+			<!-- Yahoo Link color fix updated: Simply bring your link styling inline. -->
+			<a href="http://htmlemailboilerplate.com" target ="_blank" title="Styling Links" style="color: orange; text-decoration: none;">Coloring Links appropriately</a>
+
+			<!-- Gmail/Hotmail image display fix -->
+			<img class="image_fix" src="full path to image" alt="Your alt text" title="Your title text" width="x" height="x" />
+
+			<!-- Working with telephone numbers (including sms prompts).  Use the "mobile" class to style appropriately in desktop clients
+			versus mobile clients. -->
+			<span class="mobile_link">123-456-7890</span>
+			*/ ?>
+
 			<table cellpadding="20" cellspacing="0" border="0" align="center">
 				<tbody><tr><td>
 					<font size="2">
