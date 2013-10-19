@@ -7,10 +7,10 @@
 			<th width="15%"><img src="<?php echo URL_ROOT; ?>/images/spacer.gif" width="75" height="1"></th>
 		</tr>
 		<tr>
-			<th align="left" valign="top"><font size="2">Item</font></th>
-			<th align="center" valign="top"><font size="2">Quantity</font></th>
-			<th align="right" valign="top"><font size="2">Unit Price</font></th>
-			<th align="right" valign="top"><font size="2">Amount</font></th>
+			<th align="left" valign="top">Item</th>
+			<th align="center" valign="top">Quantity</th>
+			<th align="right" valign="top">Unit Price</th>
+			<th align="right" valign="top">Amount</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -19,10 +19,10 @@
 		foreach ($order_product_array as $order_product) {
 			?>
 			<tr<?php echo ($i % 2 ? '' : ' style="background-color: #e6e6e6;"'); ?>>
-				<td align="left" valign="top"><font size="2"><?php echo HTML::chars($order_product->cart_product->name); ?></font></td>
-				<td align="center" valign="top"><font size="2"><?php echo (int) $order_product->quantity; ?></font></td>
-				<td align="right" valign="top"><font size="2"><?php echo HTML::chars(Cart::cf($order_product->unit_price)); ?></font></td>
-				<td align="right" valign="top"><font size="2"><?php echo HTML::chars(Cart::cf($order_product->amount())); ?></font></td>
+				<td align="left" valign="top"><?php echo HTML::chars($order_product->cart_product->name); ?></td>
+				<td align="center" valign="top"><?php echo (int) $order_product->quantity; ?></td>
+				<td align="right" valign="top"><?php echo HTML::chars(Cart::cf($order_product->unit_price)); ?></td>
+				<td align="right" valign="top"><?php echo HTML::chars(Cart::cf($order_product->amount())); ?></td>
 			</tr>
 			<?php
 			++ $i;
@@ -38,16 +38,16 @@
 			if (isset($total_row['is_grand_total']) && $total_row['is_grand_total']) { ?>
 			<tr>
 				<td></td>
-				<td align="right" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></span></td>
-				<td align="right" valign="top"><span style="font-weight: bold;"><font size="2"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></font></span></td>
+				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars($total_row['name']); ?></span></td>
+				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></span></td>
 			</tr>
 			<?php
 			} else {
 			?>
 			<tr>
 				<td></td>
-				<td align="right" valign="top"><font size="2"><?php echo HTML::chars($total_row['name']); ?></font></td>
-				<td align="right" valign="top"><font size="2"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></font></td>
+				<td align="right" valign="top"><?php echo HTML::chars($total_row['name']); ?></td>
+				<td align="right" valign="top"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></td>
 			</tr>
 			<?php
 			} // if

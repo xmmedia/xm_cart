@@ -6,11 +6,11 @@
 <table cellpadding="3" cellspacing="0" width="100%" border="0">
 	<tbody>
 		<tr>
-			<td valign="top" width="33%"><font size="2">
+			<td valign="top" width="33%">
 				<strong>Shipping Address</strong><br>
 				<?php echo Cart::address_html($order->shipping_formatted()); ?>
-			</font></td>
-			<td valign="top" width="33%"><font size="2">
+			</td>
+			<td valign="top" width="33%">
 			<?php if ( ! $order->same_as_shipping_flag) { ?>
 				<strong>Billing Contact</strong><br>
 				<?php echo Cart::address_html($order->billing_contact()); ?>
@@ -20,8 +20,8 @@
 				<strong>Billing Information</strong><br>
 				<em>Same as shipping</em>
 			<?php } // if ?>
-			</font></td>
-			<td valign="top" width="33%"><font size="2">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?></font></td>
+			</td>
+			<td valign="top" width="33%">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?></td>
 		</tr>
 	</tbody>
 </table>

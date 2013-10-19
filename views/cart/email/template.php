@@ -152,11 +152,9 @@
 			*/ ?>
 
 			<table cellpadding="20" cellspacing="0" border="0" align="center">
-				<tbody><tr><td>
-					<font size="2">
-						<?php echo $body_html; ?>
-					</font>
-				</td></tr></tbody>
+				<tr><td valign="top">
+					<?php echo $body_html; ?>
+				</td></tr>
 			</table>
 
 		</td>
