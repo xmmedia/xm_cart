@@ -210,17 +210,29 @@
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
-				<div style="text-align: center;">
+				<div style="text-align: right;">
+					<div class="js_cart_totals"></div>
+
 					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
 						Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
 					<?php echo Form::submit(NULL, 'Complete My Order', array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
-					<p><strong>Please review your order before completing your order.</strong></p>
+					<p><strong>Please review your order.</strong></p>
 				</div>
 			</div>
 		</div>
+
+
+
+		<div class="js_cart_totals js_cart_totals_outside"></div>
 	</div>
 </div>
 
 <?php echo View::factory('cart/config')->set($kohana_view_data); ?>
+
+<script>
+var cart_preload = {
+	total_rows : <?php echo json_encode($total_rows); ?>
+};
+</script>

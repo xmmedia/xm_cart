@@ -423,6 +423,11 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect($this->continue_shopping_url);
 		}
 
+		$cart_html = View::factory('cart/cart')
+			->bind('order_product_array', $order_product_array)
+			// the total rows are sent through JSON and rendered in JS
+			->set('total_rows', array());
+
 		$total_rows = array();
 
 		$shipping = $order->cart_order_shipping->find();
@@ -430,6 +435,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$total_rows[] = array(
 				'name' => $shipping->display_name,
 				'value' => $shipping->amount,
+				'value_formatted' => Cart::cf($shipping->amount),
 			);
 			$sub_total += $shipping->amount;
 		}
@@ -437,6 +443,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$total_rows[] = array(
 			'name' => 'Sub Total',
 			'value' => $sub_total,
+			'value_formatted' => Cart::cf($sub_total),
 		);
 
 		$total = $sub_total;
@@ -445,6 +452,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$total_rows[] = array(
 				'name' => $tax->display_name,
 				'value' => $tax->amount,
+				'value_formatted' => Cart::cf($tax->amount),
 			);
 			$total += $tax->amount;
 		}
@@ -452,12 +460,9 @@ class Controller_XM_Cart extends Controller_Public {
 		$total_rows[] = array(
 			'name' => 'Total',
 			'value' => $total,
-			'class' => 'grand_total',
+			'value_formatted' => Cart::cf($total),
+			'is_grand_total' => TRUE,
 		);
-
-		$cart_html = View::factory('cart/cart')
-			->bind('order_product_array', $order_product_array)
-			->bind('total_rows', $total_rows);
 
 		$expiry_date_months = array(
 			'' => 'Month',
@@ -485,6 +490,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$this->template->body_html = View::factory('cart/checkout')
 			->bind('order', $order)
 			->bind('cart_html', $cart_html)
+			->bind('total_rows', $total_rows)
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('continue_shopping_url', $this->continue_shopping_url)
