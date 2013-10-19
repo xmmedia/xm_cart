@@ -404,7 +404,6 @@ class Controller_XM_Cart extends Controller_Public {
 			->add_log('checkout');
 
 		$order_products = $order->cart_order_product->find_all();
-		$total = $sub_total = 0;
 
 		$order_product_array = array();
 		foreach ($order_products as $order_product) {
@@ -415,7 +414,6 @@ class Controller_XM_Cart extends Controller_Public {
 			}
 
 			$order_product_array[] = $order_product;
-			$sub_total += $order_product->unit_price * $order_product->quantity;
 		} // foreach
 
 		if (empty($order_product_array)) {
@@ -427,42 +425,6 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('order_product_array', $order_product_array)
 			// the total rows are sent through JSON and rendered in JS
 			->set('total_rows', array());
-
-		$total_rows = array();
-
-		$shipping = $order->cart_order_shipping->find();
-		if ($shipping->loaded()) {
-			$total_rows[] = array(
-				'name' => $shipping->display_name,
-				'value' => $shipping->amount,
-				'value_formatted' => Cart::cf($shipping->amount),
-			);
-			$sub_total += $shipping->amount;
-		}
-
-		$total_rows[] = array(
-			'name' => 'Sub Total',
-			'value' => $sub_total,
-			'value_formatted' => Cart::cf($sub_total),
-		);
-
-		$total = $sub_total;
-
-		foreach ($order->cart_order_tax->find_all() as $tax) {
-			$total_rows[] = array(
-				'name' => $tax->display_name,
-				'value' => $tax->amount,
-				'value_formatted' => Cart::cf($tax->amount),
-			);
-			$total += $tax->amount;
-		}
-
-		$total_rows[] = array(
-			'name' => 'Total',
-			'value' => $total,
-			'value_formatted' => Cart::cf($total),
-			'is_grand_total' => TRUE,
-		);
 
 		$expiry_date_months = array(
 			'' => 'Month',
@@ -490,7 +452,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$this->template->body_html = View::factory('cart/checkout')
 			->bind('order', $order)
 			->bind('cart_html', $cart_html)
-			->bind('total_rows', $total_rows)
+			->set('total_rows', $this->total_rows($order))
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('continue_shopping_url', $this->continue_shopping_url)
@@ -516,7 +478,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$order->for_user()
 				->only_allow_shipping()
 				->save_values()
-				->save()
+				->calculate_totals() // also saves
 				->add_log('save_shipping');
 
 			$shipping_display = View::factory('cart/shipping_display')
@@ -539,6 +501,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'status' => $ajax_status,
 			'message_html' => (string) Message::display(),
 			'shipping_display' => (string) $shipping_display,
+			'total_rows' => $this->total_rows($order),
 		)));
 	}
 
@@ -594,6 +557,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'postal_code' => $order->billing_postal_code,
 				'country' => $order->billing_country->name,
 			),
+			'total_rows' => $this->total_rows($order),
 		)));
 	}
 
@@ -638,6 +602,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'status' => $ajax_status,
 			'message_html' => (string) Message::display(),
 			'final_display' => (string) $final_display,
+			'total_rows' => $this->total_rows($order),
 		)));
 	}
 
@@ -1057,4 +1022,40 @@ class Controller_XM_Cart extends Controller_Public {
 			return NULL;
 		}
 	} // function retrieve_order
+
+	protected function total_rows($order) {
+		$total_rows = array();
+
+		$shipping = $order->cart_order_shipping->find();
+		if ($shipping->loaded()) {
+			$total_rows[] = array(
+				'name' => $shipping->display_name,
+				'value' => $shipping->amount,
+				'value_formatted' => Cart::cf($shipping->amount),
+			);
+		}
+
+		$total_rows[] = array(
+			'name' => 'Sub Total',
+			'value' => $order->sub_total,
+			'value_formatted' => Cart::cf($order->sub_total),
+		);
+
+		foreach ($order->cart_order_tax->find_all() as $tax) {
+			$total_rows[] = array(
+				'name' => $tax->display_name,
+				'value' => $tax->amount,
+				'value_formatted' => Cart::cf($tax->amount),
+			);
+		}
+
+		$total_rows[] = array(
+			'name' => 'Total',
+			'value' => $order->grand_total,
+			'value_formatted' => Cart::cf($order->grand_total),
+			'is_grand_total' => TRUE,
+		);
+
+		return $total_rows;
+	}
 }
