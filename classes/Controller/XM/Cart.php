@@ -398,6 +398,11 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect($this->continue_shopping_url);
 		}
 
+		if ( ! $this->allow_order_status($order)) {
+			Message::add('The order you\'ve submitted is already being processed.', Message::$error);
+			$this->redirect($this->continue_shopping_url);
+		}
+
 		$order->calculate_totals()
 			->for_user()
 			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden')
@@ -461,13 +466,8 @@ class Controller_XM_Cart extends Controller_Public {
 	} // function action_checkout
 
 	public function action_save_shipping() {
-		$order = $this->retrieve_order();
-		if ( ! is_object($order) || ! $order->loaded()) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			AJAX_Status::echo_json(AJAX_Status::ajax(array(
-				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
-			)));
+		$order = $this->check_valid_order();
+		if ( ! $order) {
 			return;
 		}
 
@@ -507,13 +507,8 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_save_billing() {
-		$order = $this->retrieve_order();
-		if ( ! is_object($order) || ! $order->loaded()) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			AJAX_Status::echo_json(AJAX_Status::ajax(array(
-				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
-			)));
+		$order = $this->check_valid_order();
+		if ( ! $order) {
 			return;
 		}
 
@@ -574,6 +569,15 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 
+		if ( ! $this->allow_order_status($order)) {
+			Message::add('The order you\'ve submitted is already being processed.', Message::$notice);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
+		}
+
 		$ajax_status = AJAX_Status::SUCCESSFUL;
 		$final_display = '';
 
@@ -614,6 +618,15 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = $this->retrieve_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
+		}
+
+		if ( ! $this->allow_order_status($order)) {
+			Message::add('The order you\'ve submitted is already being processed.', Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
 				'redirect' => $this->continue_shopping_url,
@@ -987,7 +1000,7 @@ class Controller_XM_Cart extends Controller_Public {
 			}
 
 			// only allow access to new orders and those that have been submitted, but not paidec
-			if (isset($order) && ! in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
+			if (isset($order) && ! $this->allow_order_status($order)) {
 				unset($order);
 			}
 
@@ -1060,5 +1073,32 @@ class Controller_XM_Cart extends Controller_Public {
 		);
 
 		return $total_rows;
+	}
+
+	protected function check_valid_order() {
+		$order = $this->retrieve_order();
+		if ( ! is_object($order) || ! $order->loaded()) {
+			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
+		}
+
+		if ( ! $this->allow_order_status($order)) {
+			Message::add('The order you\'ve submitted is already being processed.', Message::$error);
+			AJAX_Status::echo_json(AJAX_Status::ajax(array(
+				'status' => AJAX_Status::VALIDATION_ERROR,
+				'redirect' => $this->continue_shopping_url,
+			)));
+			return;
+		}
+
+		return $order;
+	}
+
+	protected function allow_order_status($order) {
+		return in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED), TRUE);
 	}
 }
