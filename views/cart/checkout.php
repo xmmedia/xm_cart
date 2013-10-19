@@ -39,6 +39,11 @@
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
+
+				<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
+				<p><a href="" class="js_cart_add_shipping_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+				<?php } ?>
+
 				<p><strong>Shipping Contact</strong></p>
 				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_shipping')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_shipping')); ?>
 				<div class="cart_field">
@@ -148,6 +153,11 @@
 					<div class="cart_credit_card">
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'validate_payment')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_payment')); ?>
 						<p><strong>Payment Method</strong></p>
+
+						<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
+						<p><a href="" class="js_cart_add_credit_card_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+						<?php } ?>
+
 						<div class="cart_field">
 							<?php echo Form::label('credit_card_number', 'Credit Card Number'), Form::input('credit_card[number]', NULL, array('size' => 22, 'maxlength' => 20, 'id' => 'credit_card_number', 'class' => 'js_cart_checkout_credit_card_number')); ?>
 						</div>
