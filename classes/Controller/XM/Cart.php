@@ -478,6 +478,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$order->for_user()
 				->only_allow_shipping()
 				->save_values()
+				->save()
 				->calculate_totals() // also saves
 				->add_log('save_shipping');
 
@@ -524,6 +525,7 @@ class Controller_XM_Cart extends Controller_Public {
 				->only_allow_billing()
 				->save_values()
 				->save()
+				->calculate_totals() // also saves
 				->add_log('save_billing');
 
 			$billing_display = View::factory('cart/billing_display')
