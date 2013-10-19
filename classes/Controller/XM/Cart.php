@@ -621,6 +621,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// set the status to submitted
 		$order->set_status(CART_ORDER_STATUS_SUBMITTED)
+			->generate_order_num()
 			// calculate the totals just in case
 			->calculate_totals()
 			->add_log('complete_order');
@@ -786,7 +787,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 			$mail = new Mail();
 			$mail->AddAddress($administrator_email[0], $administrator_email[1]);
-			$mail->Subject = 'Order Received – [invoice]';
+			$mail->Subject = 'Order Received – ' . $order->order_num;
 			$mail->IsHTML(TRUE);
 			$email_body_html = View::factory('cart/email/admin_order')
 				->bind('order', $order)

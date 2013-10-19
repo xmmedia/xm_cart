@@ -21,7 +21,8 @@
 				<em>Same as shipping</em>
 			<?php } // if ?>
 			</td>
-			<td valign="top" width="33%">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?></td>
+			<td valign="top" width="33%">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?><br><br>
+				Order Number: <?php echo HTML::chars($order->order_num); ?></td>
 		</tr>
 	</tbody>
 </table>

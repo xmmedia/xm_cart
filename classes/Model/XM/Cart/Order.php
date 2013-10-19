@@ -234,7 +234,7 @@ class Model_XM_Cart_Order extends ORM {
 				),
 			),
 		),
-		'invoice' => array(
+		'order_num' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -713,7 +713,7 @@ class Model_XM_Cart_Order extends ORM {
 			'payment_processor_fee' => 'Payment Processor Fee',
 			'exchange_rate' => 'Exchange Rate',
 			'country_id' => 'Country',
-			'invoice' => 'Invoice',
+			'order_num' => 'Order Num',
 			'internal_order_num' => 'Internal Order Num',
 			'status' => 'Status',
 			'po_number' => 'PO Number',
@@ -1168,6 +1168,21 @@ class Model_XM_Cart_Order extends ORM {
 				'data' => $data,
 			))
 			->save();
+
+		return $this;
+	}
+
+	/**
+	 * Generates the order number and sets it on the object.
+	 * Uses the first character of the first and last names and the primary key/ID padded with 0's.
+	 *
+	 * @return  Model_Order
+	 */
+	public function generate_order_num() {
+		// first char of the first & last name and then capitalize
+		$this->order_num = strtoupper(substr(UTF8::clean($this->billing_first_name), 0, 1) . substr(UTF8::clean($this->billing_last_name), 0, 1))
+			// pad the id/primary key with up to 6 0's
+			. sprintf('%06d', $this->pk());
 
 		return $this;
 	}
