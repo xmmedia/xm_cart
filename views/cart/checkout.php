@@ -105,7 +105,7 @@
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="cart_billing_container">
 					<div class="js_cart_checkout_box_messages"></div>
-					<p><a href="" class="js_cart_checkout_copy_shipping">Copy shipping address</a></p>
+					<p><a href="" class="js_cart_checkout_copy_shipping">Copy shipping contact &amp; address</a></p>
 
 					<div class="cart_billing_address">
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_billing')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_billing')),
