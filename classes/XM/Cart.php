@@ -45,4 +45,40 @@ class XM_Cart {
 	public static function calc_method_display($calculation_method, $amount) {
 		return ($calculation_method == '$' ? '$' : '') . $amount . ($calculation_method == '%' ? '%' : '');
 	}
+
+	public static function total_rows($order) {
+		$total_rows = array();
+
+		$shipping = $order->cart_order_shipping->find();
+		if ($shipping->loaded()) {
+			$total_rows[] = array(
+				'name' => $shipping->display_name,
+				'value' => $shipping->amount,
+				'value_formatted' => Cart::cf($shipping->amount),
+			);
+		}
+
+		$total_rows[] = array(
+			'name' => 'Sub Total',
+			'value' => $order->sub_total,
+			'value_formatted' => Cart::cf($order->sub_total),
+		);
+
+		foreach ($order->cart_order_tax->find_all() as $tax) {
+			$total_rows[] = array(
+				'name' => $tax->display_name,
+				'value' => $tax->amount,
+				'value_formatted' => Cart::cf($tax->amount),
+			);
+		}
+
+		$total_rows[] = array(
+			'name' => 'Total',
+			'value' => $order->grand_total,
+			'value_formatted' => Cart::cf($order->grand_total),
+			'is_grand_total' => TRUE,
+		);
+
+		return $total_rows;
+	}
 }

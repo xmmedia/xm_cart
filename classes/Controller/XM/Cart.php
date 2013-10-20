@@ -457,7 +457,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$this->template->body_html = View::factory('cart/checkout')
 			->bind('order', $order)
 			->bind('cart_html', $cart_html)
-			->set('total_rows', $this->total_rows($order))
+			->set('total_rows', Cart::total_rows($order))
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('continue_shopping_url', $this->continue_shopping_url)
@@ -502,7 +502,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'status' => $ajax_status,
 			'message_html' => (string) Message::display(),
 			'shipping_display' => (string) $shipping_display,
-			'total_rows' => $this->total_rows($order),
+			'total_rows' => Cart::total_rows($order),
 		)));
 	}
 
@@ -554,7 +554,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'postal_code' => $order->billing_postal_code,
 				'country' => $order->billing_country->name,
 			),
-			'total_rows' => $this->total_rows($order),
+			'total_rows' => Cart::total_rows($order),
 		)));
 	}
 
@@ -608,7 +608,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'status' => $ajax_status,
 			'message_html' => (string) Message::display(),
 			'final_display' => (string) $final_display,
-			'total_rows' => $this->total_rows($order),
+			'total_rows' => Cart::total_rows($order),
 		)));
 	}
 
@@ -736,45 +736,8 @@ class Controller_XM_Cart extends Controller_Public {
 
 			// send emails
 			// first retrieve the necessary data
-			$order_products = $order->cart_order_product->find_all();
-
-			$order_product_array = array();
-			foreach ($order_products as $order_product) {
-				// make sure the product is still avaialble, otherwise remove it from the order
-				if ( ! $order_product->cart_product->loaded()) {
-					$order_product->delete();
-					continue;
-				}
-
-				$order_product_array[] = $order_product;
-			} // foreach
-
-			$shipping = $order->cart_order_shipping->find();
-			if ($shipping->loaded()) {
-				$total_rows[] = array(
-					'name' => $shipping->display_name,
-					'value' => $shipping->amount,
-				);
-			}
-
-			$total_rows[] = array(
-				'name' => 'Sub Total',
-				'value' => $order->sub_total,
-			);
-
-			foreach ($order->cart_order_tax->find_all() as $tax) {
-				$total_rows[] = array(
-					'name' => $tax->display_name,
-					'value' => $tax->amount,
-				);
-			}
-
-			$total_rows[] = array(
-				'name' => 'Total',
-				'value' => $order->grand_total,
-				'is_grand_total' => TRUE,
-			);
-
+			$order_products = $order->cart_order_product->find_all()->as_array();
+			$total_rows = Cart::total_rows($order);
 			$paid_with = array(
 				'type' => $order_payment->response['card']['type'],
 				'last_4' => $order_payment->response['card']['last4'],
@@ -790,7 +753,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$mail->IsHTML(TRUE);
 			$email_body_html = View::factory('cart/email/customer_order')
 				->bind('order', $order)
-				->bind('order_product_array', $order_product_array)
+				->bind('order_product_array', $order_products)
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with);
 			$mail->Body = View::factory('cart/email/template')
@@ -806,7 +769,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$mail->IsHTML(TRUE);
 			$email_body_html = View::factory('cart/email/admin_order')
 				->bind('order', $order)
-				->bind('order_product_array', $order_product_array)
+				->bind('order_product_array', $order_products)
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with);
 			$mail->Body = View::factory('cart/email/template')
@@ -1038,42 +1001,6 @@ class Controller_XM_Cart extends Controller_Public {
 			return NULL;
 		}
 	} // function retrieve_order
-
-	protected function total_rows($order) {
-		$total_rows = array();
-
-		$shipping = $order->cart_order_shipping->find();
-		if ($shipping->loaded()) {
-			$total_rows[] = array(
-				'name' => $shipping->display_name,
-				'value' => $shipping->amount,
-				'value_formatted' => Cart::cf($shipping->amount),
-			);
-		}
-
-		$total_rows[] = array(
-			'name' => 'Sub Total',
-			'value' => $order->sub_total,
-			'value_formatted' => Cart::cf($order->sub_total),
-		);
-
-		foreach ($order->cart_order_tax->find_all() as $tax) {
-			$total_rows[] = array(
-				'name' => $tax->display_name,
-				'value' => $tax->amount,
-				'value_formatted' => Cart::cf($tax->amount),
-			);
-		}
-
-		$total_rows[] = array(
-			'name' => 'Total',
-			'value' => $order->grand_total,
-			'value_formatted' => Cart::cf($order->grand_total),
-			'is_grand_total' => TRUE,
-		);
-
-		return $total_rows;
-	}
 
 	protected function check_valid_order() {
 		$order = $this->retrieve_order();
