@@ -15,7 +15,9 @@ class Model_XM_Cart_Order extends ORM {
 	public $_table_name_display = 'Cart - Order'; // cl4 specific
 
 	// default sorting
-	// protected $_sorting = array();
+	protected $_sorting = array(
+		'id' => 'DESC',
+	);
 
 	// relationships
 	// protected $_has_one = array();

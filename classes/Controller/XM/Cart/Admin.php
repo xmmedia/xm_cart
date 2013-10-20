@@ -66,15 +66,17 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 		$order_table = new HTMLTable(array(
 			'heading' => array(
 				'',
-				'Status',
+				'Status<br>Last Change',
 				'Name',
 				'Total',
-				'Invoice',
+				'Order #',
 			),
 		));
 
 		foreach ($orders as $order) {
 			$order->set_mode('view');
+
+			$last_log = $order->cart_order_log->find();
 
 			if ($order->shipping_first_name != $order->billing_first_name || $order->shipping_last_name != $order->billing_last_name || $order->shipping_email != $order->billing_email) {
 				$name = '<span title="Shipping">'
@@ -91,10 +93,10 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 			$row = array(
 				HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order_view', 'id' => $order->id)), HTML::icon('view')),
-				$order->get_field('status'),
+				$order->get_field('status') . '<br>' . $last_log->timestamp,
 				$name,
 				Cart::cf($order->grand_total),
-				HTML::chars($order->invoice),
+				HTML::chars($order->order_num),
 			);
 			$order_table->add_row($row);
 		}
@@ -115,27 +117,22 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			$this->redirect($this->order_uri());
 		}
 
+		$order->set_mode('view');
+
 		$order_products = $order->cart_order_product->find_all();
 
-		$order_product_array = array();
-		foreach ($order_products as $order_product) {
-			$order_product_array[] = $order_product;
-		} // foreach
-
-		$total_rows = array();
-		$total_rows[] = array(
-			'name' => 'Sub Total',
-			'value' => $order->sub_total,
-		);
-		$total_rows[] = array(
-			'name' => 'Total',
-			'value' => $order->grand_total,
-			'class' => 'grand_total',
+		$order_payment = $order->cart_order_payment
+			->where('status', '=', CART_PAYMENT_STATUS_SUCCESSFUL)
+			->order_by('date_completed', 'DESC')
+			->find();
+		$paid_with = array(
+			'type' => $order_payment->response['card']['type'],
+			'last_4' => $order_payment->response['card']['last4'],
 		);
 
 		$cart_html = View::factory('cart/cart')
-			->bind('order_product_array', $order_product_array)
-			->bind('total_rows', $total_rows);
+			->bind('order_product_array', $order_products)
+			->set('total_rows', Cart::total_rows($order));
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
@@ -144,10 +141,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 				->add_script('cart_public', 'xm_cart/js/public.min.js')*/;
 		}
 
-		$this->template->page_title = 'Order View - ' . $this->page_title_append;
+		$this->template->page_title = ( ! empty($order->order_num) ? $order->order_num . ' - ' : '') . 'Order View - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order_view')
 			->bind('order', $order)
-			->bind('cart_html', $cart_html);
+			->bind('cart_html', $cart_html)
+			->bind('paid_with', $paid_with);
 	}
 
 	public function action_shipping() {
