@@ -183,16 +183,24 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			$shipping_rate_html[] = $html;
 		}
 
+		$add_uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit')) . '?add=1';
+
 		$this->template->page_title = 'Shipping Rates - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping')
+			->bind('add_uri', $add_uri)
 			->bind('shipping_rate_html', $shipping_rate_html);
 	}
 
 	public function action_shipping_edit() {
-		$shipping_rate = ORM::factory('Cart_Shipping', (int) $this->request->param('id'));
-		if ( ! $shipping_rate->loaded()) {
-			Message::add('The shipping rate could not be found.', Message::$error);
-			$this->redirect($this->shipping_uri());
+		$add = (bool) $this->request->query('add');
+		if ($add) {
+			$shipping_rate = ORM::factory('Cart_Shipping');
+		} else {
+			$shipping_rate = ORM::factory('Cart_Shipping', (int) $this->request->param('id'));
+			if ( ! $shipping_rate->loaded()) {
+				Message::add('The shipping rate could not be found.', Message::$error);
+				$this->redirect($this->shipping_uri());
+			}
 		}
 
 		if ( ! empty($_POST)) {
@@ -213,7 +221,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			'flat_rate' => 'Flat Rate',
 		);
 
-		$uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk()));
+		$uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk())) . ($add ? '?add=1' : '');
 
 		$this->template->page_title = 'Shipping Rate Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping_edit')
@@ -250,16 +258,24 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			$taxes_html[] = $html;
 		}
 
+		$add_uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit')) . '?add=1';
+
 		$this->template->page_title = 'Taxes - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/tax')
+			->bind('add_uri', $add_uri)
 			->bind('taxes_html', $taxes_html);
 	}
 
 	public function action_tax_edit() {
-		$tax = ORM::factory('Cart_Tax', (int) $this->request->param('id'));
-		if ( ! $tax->loaded()) {
-			Message::add('The tax could not be found.', Message::$error);
-			$this->redirect($this->tax_uri());
+		$add = (bool) $this->request->query('add');
+		if ($add) {
+			$tax = ORM::factory('Cart_Tax');
+		} else {
+			$tax = ORM::factory('Cart_Tax', (int) $this->request->param('id'));
+			if ( ! $tax->loaded()) {
+				Message::add('The tax could not be found.', Message::$error);
+				$this->redirect($this->tax_uri());
+			}
 		}
 
 		if ( ! empty($_POST)) {
@@ -275,7 +291,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			}
 		}
 
-		$uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk()));
+		$uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk())) . ($add ? '?add=1' : '');
 
 		$this->template->page_title = 'Tax Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/tax_edit')
