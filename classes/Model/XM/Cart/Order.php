@@ -1057,6 +1057,7 @@ class Model_XM_Cart_Order extends ORM {
 		// Tax
 		$taxes = array();
 
+		// get the taxes that apply to all loctions/all orders
 		$all_location_taxes = ORM::factory('Cart_Tax')
 			->where('all_locations_flag', '=', 1)
 			->where('only_without_flag', '=', 0)
@@ -1067,6 +1068,7 @@ class Model_XM_Cart_Order extends ORM {
 		}
 
 		if ( ! empty($this->shipping_country_id)) {
+			// get the taxes that apply to a specific country
 			$country_taxes = ORM::factory('Cart_Tax')
 				->where('country_id', '=', $this->shipping_country_id)
 				->where('state_id', '=', 0)
@@ -1079,6 +1081,7 @@ class Model_XM_Cart_Order extends ORM {
 			}
 
 			if ( ! empty($this->shipping_state_id)) {
+				// get the taxes that apply to a specific state/province
 				$state_taxes = ORM::factory('Cart_Tax')
 					->where('country_id', '=', $this->shipping_country_id)
 					->where('state_id', '=', $this->shipping_state_id)
