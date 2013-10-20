@@ -1037,6 +1037,10 @@ class Model_XM_Cart_Order extends ORM {
 				$existing_shipping_rate->values($cart_order_shipping_data)
 					->save();
 			} else {
+				$this->add_log('remove_shipping', array(
+					'cart_order_shipping_id' => $existing_shipping_rate->pk(),
+					'cart_shipping_id' => $existing_shipping_rate->cart_shipping_id,
+				));
 				$existing_shipping_rate->delete();
 				$add_shipping = TRUE;
 			}
@@ -1044,9 +1048,13 @@ class Model_XM_Cart_Order extends ORM {
 			$add_shipping = TRUE;
 		}
 		if ($add_shipping) {
-			ORM::factory('Cart_Order_Shipping')
+			$new_shipping_rate = ORM::factory('Cart_Order_Shipping')
 				->values($cart_order_shipping_data)
 				->save();
+			$this->add_log('add_shipping', array(
+				'cart_order_shipping_id' => $new_shipping_rate->pk(),
+				'cart_shipping_id' => $new_shipping_rate->cart_shipping_id,
+			));
 		}
 
 		$shipping_total = $selected_shipping_rate['order_amount'];
@@ -1134,13 +1142,21 @@ class Model_XM_Cart_Order extends ORM {
 					->save();
 				$keep_of_existing[] = $existing_taxes[$cart_tax_id]->pk();
 			} else {
-				ORM::factory('Cart_Order_Tax')
+				$new_tax = ORM::factory('Cart_Order_Tax')
 					->values($tax_data)
 					->save();
+				$this->add_log('add_tax', array(
+					'cart_order_tax_id' => $new_tax->pk(),
+					'cart_tax_id' => $new_tax->cart_tax_id,
+				));
 			}
 		}
 		foreach ($existing_taxes as $tax) {
 			if ( ! in_array($tax->pk(), $keep_of_existing)) {
+				$this->add_log('remove_tax', array(
+					'cart_order_tax_id' => $tax->pk(),
+					'cart_tax_id' => $tax->cart_tax_id,
+				));
 				$tax->delete();
 			}
 		}

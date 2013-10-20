@@ -120,5 +120,9 @@ return array(
 		'set_shipping_country' => 'Set Shipping Country',
 		'set_shipping_state' => 'Set Shipping State',
 		'unset_shipping_country' => 'Unset Shipping Country',
+		'add_shipping' => 'Add Shipping Rate',
+		'remove_shipping' => 'Remove Shipping Rate',
+		'add_tax' => 'Add Tax',
+		'remove_tax' => 'Remove Tax',
 	),
 );
