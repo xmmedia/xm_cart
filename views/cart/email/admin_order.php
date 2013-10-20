@@ -13,9 +13,9 @@
 			<td valign="top" width="33%">
 			<?php if ( ! $order->same_as_shipping_flag) { ?>
 				<strong>Billing Contact</strong><br>
-				<?php echo Cart::address_html($order->billing_contact()); ?>
+				<?php echo Cart::address_html($order->billing_contact_formatted()); ?>
 				<strong>Billing Address</strong><br>
-				<?php echo Cart::address_html($order->billing_formatted()); ?>
+				<?php echo Cart::address_html($order->billing_address_formatted()); ?>
 			<?php } else { ?>
 				<strong>Billing Information</strong><br>
 				<em>Same as shipping</em>
