@@ -4,12 +4,21 @@
 			<ul class="left">
 				<li class="home"><?php echo HTML::anchor('', __('Home')); ?></li>
 				<?php if ($logged_in) { ?>
+				<?php //if (Auth::instance()->allowed('cart_admin')) { ?>
+				<li class="cart_admin has_subnav"><?php echo HTML::anchor(Route::get('cl4admin')->uri(), __('Shopping Cart') . '<span class="more"></span>'); ?>
+					<ul class="sub_nav">
+
+						<li class="cart_admin_index"><?php echo HTML::anchor(Route::get('cart_admin')->uri(), __('Main')); ?></li>
+						<li class="cart_admin_order"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order')), __('Orders')); ?></li>
+						<li class="cart_admin_shipping"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping')), __('Shipping Rates')); ?></li>
+						<li class="cart_admin_tax"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax')), __('Taxes')); ?></li>
+					</ul>
+				</li>
+				<?php //} // if cart admin perm ?>
+
 				<?php if (Auth::instance()->allowed('content_admin') || Auth::instance()->allowed('user_admin/index') || Auth::instance()->allowed('cl4admin') || (CL4::is_dev() && Auth::instance()->allowed('userguide')) || (CL4::is_dev() && Auth::instance()->allowed('cl4admin/model_create')) || Auth::instance()->allowed('db_change/index')) { ?>
 				<li class="dbadmin has_subnav"><?php echo HTML::anchor(Route::get('cl4admin')->uri(), __('DB Admin') . '<span class="more"></span>'); ?>
 					<ul class="sub_nav">
-						<?php //if (Auth::instance()->allowed('cart_admin')) { ?>
-						<li class="cart_admin"><?php echo HTML::anchor(Route::get('cart_admin')->uri(), __('Cart Admin')); ?></li>
-						<?php //} ?>
 						<?php if (Auth::instance()->allowed('user_admin/index')) { ?>
 						<li class="user_admin"><?php echo HTML::anchor(Route::get('user_admin')->uri(), __('User Admin')); ?></li>
 						<?php } ?>

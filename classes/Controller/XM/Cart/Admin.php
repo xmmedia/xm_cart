@@ -1,7 +1,7 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 class Controller_XM_Cart_Admin extends Controller_Private {
-	public $page = 'cl4admin';
+	public $page = 'cart_admin';
 
 	public function before() {
 		parent::before();

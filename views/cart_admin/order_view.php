@@ -1,5 +1,3 @@
-<?php echo View::factory('cart_admin/menu'); ?>
-
 <div class="grid cart_order_view_header">
 	<div class="col-1-2 cart">
 		<h1>Order<?php if ( ! empty($order->order_num)) { echo ' – ', HTML::chars($order->order_num); } ?></h1>
