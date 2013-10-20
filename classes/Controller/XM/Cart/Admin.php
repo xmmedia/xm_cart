@@ -177,8 +177,8 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 			$html .= '<br>' . Cart::calc_method_display($shipping_rate->calculation_method, $shipping_rate->amount);
 
-			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk())), 'Edit')/* . ' | '
-				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping_delete', 'id' => $shipping_rate->pk())), 'Delete')*/;
+			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk())), 'Edit') . ' | '
+				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping_delete', 'id' => $shipping_rate->pk())), 'Delete', array('class' => 'js_delete_shipping', 'data-name' => $shipping_rate->name));;
 
 			$shipping_rate_html[] = $html;
 		}
@@ -231,6 +231,19 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			->bind('reasons', $reasons);
 	}
 
+	public function action_shipping_delete() {
+		$shipping_rate = ORM::factory('Cart_Shipping', (int) $this->request->param('id'));
+		if ( ! $shipping_rate->loaded()) {
+			Message::add('The shipping rate could not be found.', Message::$error);
+			$this->redirect($this->shipping_uri());
+		}
+
+		$shipping_rate->delete();
+
+		Message::add('The shipping rate has been deleted.', Message::$notice);
+		$this->redirect($this->shipping_uri());
+	}
+
 
 
 	public function action_tax() {
@@ -252,8 +265,8 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 			$html .= '<br>' . Cart::calc_method_display($tax->calculation_method, $tax->amount);
 
-			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk())), 'Edit')/* . ' | '
-				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_delete', 'id' => $tax->pk())), 'Delete')*/;
+			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk())), 'Edit') . ' | '
+				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_delete', 'id' => $tax->pk())), 'Delete', array('class' => 'js_delete_tax', 'data-name' => $tax->name));
 
 			$taxes_html[] = $html;
 		}
@@ -299,6 +312,21 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			->set('cancel_uri', URL::site($this->tax_uri()))
 			->bind('tax', $tax);
 	}
+
+	public function action_tax_delete() {
+		$tax = ORM::factory('Cart_Tax', (int) $this->request->param('id'));
+		if ( ! $tax->loaded()) {
+			Message::add('The tax could not be found.', Message::$error);
+			$this->redirect($this->tax_uri());
+		}
+
+		$tax->delete();
+
+		Message::add('The tax has been deleted.', Message::$notice);
+		$this->redirect($this->tax_uri());
+	}
+
+
 
 	protected function order_uri() {
 		return Route::get('cart_admin')->uri(array('action' => 'order'));
