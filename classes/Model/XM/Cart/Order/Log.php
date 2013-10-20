@@ -18,7 +18,9 @@ class Model_XM_Cart_Order_Log extends ORM {
 	protected $_log = FALSE;
 
 	// default sorting
-	// protected $_sorting = array();
+	protected $_sorting = array(
+		'timestamp' => 'DESC',
+	);
 
 	// relationships
 	// protected $_has_one = array();
