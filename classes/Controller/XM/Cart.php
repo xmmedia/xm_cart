@@ -549,7 +549,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'last_name' => $order->billing_last_name,
 				'address_1' => $order->billing_address_1,
 				'address_2' => $order->billing_address_2,
-				'city' => $order->billing_city,
+				'municipality' => $order->billing_municipality,
 				'state' => $order->billing_state_select->name,
 				'postal_code' => $order->billing_postal_code,
 				'country' => $order->billing_country->name,

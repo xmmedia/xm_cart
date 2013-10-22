@@ -370,7 +370,7 @@ class Model_XM_Cart_Order extends ORM {
 				'data-cart_shipping_field' => 'address_2',
 			),
 		),
-		'shipping_city' => array(
+		'shipping_municipality' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -379,7 +379,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
-				'data-cart_shipping_field' => 'city',
+				'data-cart_shipping_field' => 'municipality',
 			),
 		),
 		'shipping_state_id' => array(
@@ -542,7 +542,7 @@ class Model_XM_Cart_Order extends ORM {
 				'data-cart_billing_field' => 'address_2',
 			),
 		),
-		'billing_city' => array(
+		'billing_municipality' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -551,7 +551,7 @@ class Model_XM_Cart_Order extends ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 150,
-				'data-cart_billing_field' => 'city',
+				'data-cart_billing_field' => 'municipality',
 			),
 		),
 		'billing_state_id' => array(
@@ -664,7 +664,7 @@ class Model_XM_Cart_Order extends ORM {
 		'shipping_company',
 		'shipping_address_1',
 		'shipping_address_2',
-		'shipping_city',
+		'shipping_municipality',
 		'shipping_state_id',
 		'shipping_state',
 		'shipping_postal_code',
@@ -680,7 +680,7 @@ class Model_XM_Cart_Order extends ORM {
 		'billing_company',
 		'billing_address_1',
 		'billing_address_2',
-		'billing_city',
+		'billing_municipality',
 		'billing_state_id',
 		'billing_state',
 		'billing_postal_code',
@@ -726,7 +726,7 @@ class Model_XM_Cart_Order extends ORM {
 			'shipping_company' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Company',
 			'shipping_address_1' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Address Line 1',
 			'shipping_address_2' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Address Line 2',
-			'shipping_city' => ( ! $this->user_labels ? 'Shipping ' : '') . 'City',
+			'shipping_municipality' => ( ! $this->user_labels ? 'Shipping ' : '') . 'City',
 			'shipping_state_id' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Province / State',
 			'shipping_state' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Province / State',
 			'shipping_postal_code' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Postal / Zip Code',
@@ -739,7 +739,7 @@ class Model_XM_Cart_Order extends ORM {
 			'billing_company' => ( ! $this->user_labels ? 'Billing ' : '') . 'Company',
 			'billing_address_1' => ( ! $this->user_labels ? 'Billing ' : '') . 'Address Line 1',
 			'billing_address_2' => ( ! $this->user_labels ? 'Billing ' : '') . 'Address Line 2',
-			'billing_city' => ( ! $this->user_labels ? 'Billing ' : '') . 'City',
+			'billing_municipality' => ( ! $this->user_labels ? 'Billing ' : '') . 'City',
 			'billing_state_id' => ( ! $this->user_labels ? 'Billing ' : '') . 'Province / State',
 			'billing_state' => ( ! $this->user_labels ? 'Billing ' : '') . 'Province / State',
 			'billing_postal_code' => ( ! $this->user_labels ? 'Billing ' : '') . 'Postal / Zip Code',
@@ -769,7 +769,7 @@ class Model_XM_Cart_Order extends ORM {
 				'shipping_address_1' => array(
 					array('not_empty'),
 				),
-				'shipping_city' => array(
+				'shipping_municipality' => array(
 					array('not_empty'),
 				),
 				'shipping_state_id' => array(
@@ -803,7 +803,7 @@ class Model_XM_Cart_Order extends ORM {
 				'billing_address_1' => array(
 					array('not_empty'),
 				),
-				'billing_city' => array(
+				'billing_municipality' => array(
 					array('not_empty'),
 				),
 				'billing_state_id' => array(
@@ -850,7 +850,7 @@ class Model_XM_Cart_Order extends ORM {
 			'shipping_address_2' => array(
 				array('trim'),
 			),
-			'shipping_city' => array(
+			'shipping_municipality' => array(
 				array('trim'),
 			),
 			'shipping_state' => array(
@@ -874,7 +874,7 @@ class Model_XM_Cart_Order extends ORM {
 			'billing_address_2' => array(
 				array('trim'),
 			),
-			'billing_city' => array(
+			'billing_municipality' => array(
 				array('trim'),
 			),
 			'billing_state' => array(
@@ -934,7 +934,7 @@ class Model_XM_Cart_Order extends ORM {
 			$str .= $this->shipping_address_2 . PHP_EOL;
 		}
 
-		$str .= $this->shipping_city . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
+		$str .= $this->shipping_municipality . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
 			. $this->shipping_country->name;
 
 		return $str;
@@ -967,7 +967,7 @@ class Model_XM_Cart_Order extends ORM {
 			$str .= $this->billing_address_2 . PHP_EOL;
 		}
 
-		$str .= $this->billing_city . ', ' . $this->billing_state_select->name . '  ' . $this->billing_postal_code . PHP_EOL
+		$str .= $this->billing_municipality . ', ' . $this->billing_state_select->name . '  ' . $this->billing_postal_code . PHP_EOL
 			. $this->billing_country->name;
 
 		return $str;

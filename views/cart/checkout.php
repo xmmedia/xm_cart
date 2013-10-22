@@ -70,7 +70,7 @@
 					<?php echo $order->get_field_layout('shipping_address_2'); ?>
 				</div>
 				<div class="cart_field">
-					<?php echo $order->get_field_layout('shipping_city'); ?>
+					<?php echo $order->get_field_layout('shipping_municipality'); ?>
 				</div>
 				<div class="cart_field">
 					<?php echo $order->get_field_layout('shipping_state_id'); ?>
@@ -135,7 +135,7 @@
 							<?php echo $order->get_field_layout('billing_address_2'); ?>
 						</div>
 						<div class="cart_field">
-							<?php echo $order->get_field_layout('billing_city'); ?>
+							<?php echo $order->get_field_layout('billing_municipality'); ?>
 						</div>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_state_id'); ?>
