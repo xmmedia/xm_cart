@@ -9,7 +9,7 @@ return array(
 	'route_prefix' => 'cart',
 	'continue_shopping_url' => '/cart/product_list',
 	'routes' => array(
-		'product_list' => TRUE,
+		'product_list' => FALSE,
 		'public' => TRUE,
 		'admin' => TRUE,
 	),
