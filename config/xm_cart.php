@@ -6,7 +6,7 @@ return array(
 	// the prefix of all the cart routes
 	// can't be an empty string
 	// default: cart
-	'prefix' => 'cart',
+	'route_prefix' => 'cart',
 	'continue_shopping_url' => '/cart/product_list',
 	'routes' => array(
 		'product_list' => TRUE,

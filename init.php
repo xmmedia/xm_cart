@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
-$prefix = Kohana::$config->load('xm_cart.prefix');
+$route_prefix = Kohana::$config->load('xm_cart.route_prefix');
 $routes = (array) Kohana::$config->load('xm_cart.routes');
 $order_status_ids = (array) Kohana::$config->load('xm_cart.order_status_ids');
 $payment_status_ids = (array) Kohana::$config->load('xm_cart.payment_status_ids');
@@ -131,7 +131,7 @@ if ( ! defined('CART_PAYMENT_STATUS_REFUNDED')) {
 
 // now setup the routes
 if ($routes['product_list']) {
-	Route::set('cart_product', $prefix . '/product_list')
+	Route::set('cart_product', $route_prefix . '/product_list')
 		->defaults(array(
 			'controller' => 'Cart_Product_List',
 			'action' => 'index',
@@ -139,7 +139,7 @@ if ($routes['product_list']) {
 }
 
 if ($routes['admin']) {
-	Route::set('cart_admin', $prefix . '/admin(/<action>(/<id>))')
+	Route::set('cart_admin', $route_prefix . '/admin(/<action>(/<id>))')
 		->defaults(array(
 			'controller' => 'Cart_Admin',
 			'action' => 'index',
@@ -147,7 +147,7 @@ if ($routes['admin']) {
 }
 
 if ($routes['public']) {
-	Route::set('cart_public', $prefix . '(/<action>(/<id>))')
+	Route::set('cart_public', $route_prefix . '(/<action>(/<id>))')
 		->defaults(array(
 			'controller' => 'Cart',
 	));
