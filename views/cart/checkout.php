@@ -1,13 +1,14 @@
+<?php $step_count = 1; ?>
 <div class="grid">
 	<div class="col cart js_cart_checkout">
 		<h1>Checkout</h1>
 
-		<div class="cart_checkout_box cart_checkout_box_cart js_cart_checkout_step" data-cart_checkout_step="1" data-cart_checkout_step_type="cart">
+		<div class="cart_checkout_box cart_checkout_box_cart js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="cart">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2>1. Your Cart</h2>
+			<h2><?php echo $step_count; ?>. Your Cart</h2>
 
 			<div class="cart_checkout_box_open js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -27,15 +28,16 @@
 				<?php echo $cart_html; ?>
 			</div>
 		</div>
+		<?php ++ $step_count; ?>
 
 
-
-		<div class="cart_checkout_box cart_checkout_box_shipping js_cart_checkout_step" data-cart_checkout_step="2" data-cart_checkout_step_type="shipping">
+		<?php if ($enable_shipping) { ?>
+		<div class="cart_checkout_box cart_checkout_box_shipping js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="shipping">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2>2. Shipping Address</h2>
+			<h2><?php echo $step_count; ?>. Shipping Address</h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -92,20 +94,26 @@
 
 			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
 		</div>
+		<?php ++ $step_count; ?>
+		<?php } // if enable shipping ?>
 
 
 
-		<div class="cart_checkout_box cart_checkout_box_payment js_cart_checkout_step" data-cart_checkout_step="3" data-cart_checkout_step_type="payment">
+		<div class="cart_checkout_box cart_checkout_box_payment js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="payment">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2>3. Payment</h2>
+			<h2><?php echo $step_count; ?>. Payment</h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="cart_billing_container">
 					<div class="js_cart_checkout_box_messages"></div>
+					<?php if ($enable_shipping) { ?>
 					<p><a href="" class="js_cart_checkout_copy_shipping">Copy shipping contact &amp; address</a></p>
+					<?php } else if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
+					<p><a href="" class="js_cart_add_billing_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+					<?php } ?>
 
 					<div class="cart_billing_address">
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_billing')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_billing')),
@@ -183,15 +191,16 @@
 
 			<div class="cart_checkout_box_closed hidden cart_checkout_box_billing js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
 		</div>
+		<?php ++ $step_count; ?>
 
 
 
-		<div class="cart_checkout_box cart_checkout_box_final js_cart_checkout_step" data-cart_checkout_step="4" data-cart_checkout_step_type="final">
+		<div class="cart_checkout_box cart_checkout_box_final js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="final">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2>4. Notes</h2>
+			<h2><?php echo $step_count; ?>. Notes</h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -212,11 +221,12 @@
 
 			<div class="cart_checkout_box_closed hidden js_cart_checkout_box_closed js_cart_checkout_box_result"></div>
 		</div>
+		<?php ++ $step_count; ?>
 
 
 
-		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="4" data-cart_checkout_step_type="confirm">
-			<h2>5. Complete Your Order</h2>
+		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="confirm">
+			<h2><?php echo $step_count; ?>. Complete Your Order</h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -232,6 +242,7 @@
 				</div>
 			</div>
 		</div>
+		<?php ++ $step_count; ?>
 
 
 

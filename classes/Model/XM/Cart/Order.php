@@ -989,175 +989,182 @@ class Model_XM_Cart_Order extends ORM {
 			$sub_total += $order_product->unit_price * $order_product->quantity;
 		}
 
-		// ****************************************************************
-		// ****************************************************************
-		// Shipping
-		$possible_shipping_rates = array();
-		$shipping_total = 0;
+		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
+		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
 
-		$shipping_rates = ORM::factory('Cart_Shipping')
-			->where_active_dates()
-			->find_all();
-		// first want a list of all the possible shipping rates
-		foreach ($shipping_rates as $shipping_rate) {
-			if ( ! empty($shipping_rate->data['reasons']) && is_array($shipping_rate->data['reasons'])) {
-				foreach ($shipping_rate->data['reasons'] as $reason) {
-					switch ($reason['reason']) {
-						case 'flat_rate' :
-							$possible_shipping_rates[$shipping_rate->pk()]['model'] = $shipping_rate;
-							$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $sub_total);
-							break;
-					} // switch reasons
-				} // foreach reasons
-			} // if reasons
-		} // foreach shipping rates
+		if ($enable_shipping) {
+			// ****************************************************************
+			// ****************************************************************
+			// Shipping
+			$possible_shipping_rates = array();
+			$shipping_total = 0;
 
-		// now loop through the shipping rates to find the cheapest one
-		$lowest_shipping_rate = NULL;
-		$selected_shipping_rate = NULL;
-		foreach ($possible_shipping_rates as $shipping_rate) {
-			if ($lowest_shipping_rate === NULL || $shipping_rate['order_amount'] < $lowest_shipping_rate) {
-				$lowest_shipping_rate = $shipping_rate['order_amount'];
-				$selected_shipping_rate = $shipping_rate;
-			}
-		}
-
-		$existing_shipping_rate = $this->cart_order_shipping->find();
-		$add_shipping = FALSE;
-		$cart_order_shipping_data = array(
-			'cart_order_id' => $this->pk(),
-			'cart_shipping_id' => $selected_shipping_rate['model']->pk(),
-			'display_name' => $selected_shipping_rate['model']->display_name(),
-			'amount' => $selected_shipping_rate['order_amount'],
-			'manual_flag' => 0,
-			'data' => $selected_shipping_rate['model']->data(),
-		);
-		if ($existing_shipping_rate->loaded()) {
-			if ($existing_shipping_rate->cart_shipping_id == $selected_shipping_rate['model']->pk()) {
-				$existing_shipping_rate->values($cart_order_shipping_data)
-					->save();
-			} else {
-				$this->add_log('remove_shipping', array(
-					'cart_order_shipping_id' => $existing_shipping_rate->pk(),
-					'cart_shipping_id' => $existing_shipping_rate->cart_shipping_id,
-				));
-				$existing_shipping_rate->delete();
-				$add_shipping = TRUE;
-			}
-		} else {
-			$add_shipping = TRUE;
-		}
-		if ($add_shipping) {
-			$new_shipping_rate = ORM::factory('Cart_Order_Shipping')
-				->values($cart_order_shipping_data)
-				->save();
-			$this->add_log('add_shipping', array(
-				'cart_order_shipping_id' => $new_shipping_rate->pk(),
-				'cart_shipping_id' => $new_shipping_rate->cart_shipping_id,
-			));
-		}
-
-		$shipping_total = $selected_shipping_rate['order_amount'];
-		$sub_total += $shipping_total;
-
-		// ****************************************************************
-		// ****************************************************************
-		// Tax
-		$taxes = array();
-
-		// get the taxes that apply to all loctions/all orders
-		$all_location_taxes = ORM::factory('Cart_Tax')
-			->where('all_locations_flag', '=', 1)
-			->where('only_without_flag', '=', 0)
-			->where_active_dates()
-			->find_all();
-		foreach($all_location_taxes as $tax) {
-			$taxes[$tax->pk()] = $tax;
-		}
-
-		if ( ! empty($this->shipping_country_id)) {
-			// get the taxes that apply to a specific country
-			$country_taxes = ORM::factory('Cart_Tax')
-				->where('country_id', '=', $this->shipping_country_id)
-				->where('state_id', '=', 0)
-				->where('only_without_flag', '=', 0)
-				->where('all_locations_flag', '=', 0)
+			$shipping_rates = ORM::factory('Cart_Shipping')
 				->where_active_dates()
 				->find_all();
-			foreach ($country_taxes as $tax) {
+			// first want a list of all the possible shipping rates
+			foreach ($shipping_rates as $shipping_rate) {
+				if ( ! empty($shipping_rate->data['reasons']) && is_array($shipping_rate->data['reasons'])) {
+					foreach ($shipping_rate->data['reasons'] as $reason) {
+						switch ($reason['reason']) {
+							case 'flat_rate' :
+								$possible_shipping_rates[$shipping_rate->pk()]['model'] = $shipping_rate;
+								$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $sub_total);
+								break;
+						} // switch reasons
+					} // foreach reasons
+				} // if reasons
+			} // foreach shipping rates
+
+			// now loop through the shipping rates to find the cheapest one
+			$lowest_shipping_rate = NULL;
+			$selected_shipping_rate = NULL;
+			foreach ($possible_shipping_rates as $shipping_rate) {
+				if ($lowest_shipping_rate === NULL || $shipping_rate['order_amount'] < $lowest_shipping_rate) {
+					$lowest_shipping_rate = $shipping_rate['order_amount'];
+					$selected_shipping_rate = $shipping_rate;
+				}
+			}
+
+			$existing_shipping_rate = $this->cart_order_shipping->find();
+			$add_shipping = FALSE;
+			$cart_order_shipping_data = array(
+				'cart_order_id' => $this->pk(),
+				'cart_shipping_id' => $selected_shipping_rate['model']->pk(),
+				'display_name' => $selected_shipping_rate['model']->display_name(),
+				'amount' => $selected_shipping_rate['order_amount'],
+				'manual_flag' => 0,
+				'data' => $selected_shipping_rate['model']->data(),
+			);
+			if ($existing_shipping_rate->loaded()) {
+				if ($existing_shipping_rate->cart_shipping_id == $selected_shipping_rate['model']->pk()) {
+					$existing_shipping_rate->values($cart_order_shipping_data)
+						->save();
+				} else {
+					$this->add_log('remove_shipping', array(
+						'cart_order_shipping_id' => $existing_shipping_rate->pk(),
+						'cart_shipping_id' => $existing_shipping_rate->cart_shipping_id,
+					));
+					$existing_shipping_rate->delete();
+					$add_shipping = TRUE;
+				}
+			} else {
+				$add_shipping = TRUE;
+			}
+			if ($add_shipping) {
+				$new_shipping_rate = ORM::factory('Cart_Order_Shipping')
+					->values($cart_order_shipping_data)
+					->save();
+				$this->add_log('add_shipping', array(
+					'cart_order_shipping_id' => $new_shipping_rate->pk(),
+					'cart_shipping_id' => $new_shipping_rate->cart_shipping_id,
+				));
+			}
+
+			$shipping_total = $selected_shipping_rate['order_amount'];
+			$sub_total += $shipping_total;
+		}
+
+		$tax_total = 0;
+		if ($enable_tax) {
+			// ****************************************************************
+			// ****************************************************************
+			// Tax
+			$taxes = array();
+
+			// get the taxes that apply to all loctions/all orders
+			$all_location_taxes = ORM::factory('Cart_Tax')
+				->where('all_locations_flag', '=', 1)
+				->where('only_without_flag', '=', 0)
+				->where_active_dates()
+				->find_all();
+			foreach($all_location_taxes as $tax) {
 				$taxes[$tax->pk()] = $tax;
 			}
 
-			if ( ! empty($this->shipping_state_id)) {
-				// get the taxes that apply to a specific state/province
-				$state_taxes = ORM::factory('Cart_Tax')
+			if ( ! empty($this->shipping_country_id)) {
+				// get the taxes that apply to a specific country
+				$country_taxes = ORM::factory('Cart_Tax')
 					->where('country_id', '=', $this->shipping_country_id)
-					->where('state_id', '=', $this->shipping_state_id)
+					->where('state_id', '=', 0)
 					->where('only_without_flag', '=', 0)
 					->where('all_locations_flag', '=', 0)
 					->where_active_dates()
 					->find_all();
-				foreach ($state_taxes as $tax) {
+				foreach ($country_taxes as $tax) {
+					$taxes[$tax->pk()] = $tax;
+				}
+
+				if ( ! empty($this->shipping_state_id)) {
+					// get the taxes that apply to a specific state/province
+					$state_taxes = ORM::factory('Cart_Tax')
+						->where('country_id', '=', $this->shipping_country_id)
+						->where('state_id', '=', $this->shipping_state_id)
+						->where('only_without_flag', '=', 0)
+						->where('all_locations_flag', '=', 0)
+						->where_active_dates()
+						->find_all();
+					foreach ($state_taxes as $tax) {
+						$taxes[$tax->pk()] = $tax;
+					}
+				}
+			}
+
+			// if we haven't applied any other taxes, retrieve the taxes that are applied when no other taxes are applied
+			if (empty($taxes)) {
+				$only_without_taxes = ORM::factory('Cart_Tax')
+					->where('only_without_flag', '=', 1)
+					->where('all_locations_flag', '=', 0)
+					->where_active_dates()
+					->find_all();
+				foreach ($only_without_taxes as $tax) {
 					$taxes[$tax->pk()] = $tax;
 				}
 			}
-		}
 
-		// if we haven't applied any other taxes, retrieve the taxes that are applied when no other taxes are applied
-		if (empty($taxes)) {
-			$only_without_taxes = ORM::factory('Cart_Tax')
-				->where('only_without_flag', '=', 1)
-				->where('all_locations_flag', '=', 0)
-				->where_active_dates()
-				->find_all();
-			foreach ($only_without_taxes as $tax) {
-				$taxes[$tax->pk()] = $tax;
+			$applied_taxes = array();
+			foreach ($taxes as $tax) {
+				$amount = Cart::calc_method($tax->calculation_method, $tax->amount, $sub_total);
+
+				$applied_taxes[$tax->pk()] = array(
+					'cart_order_id' => $this->pk(),
+					'cart_tax_id' => $tax->pk(),
+					'display_name' => $tax->display_name(),
+					'amount' => $amount,
+					'display_order' => $tax->display_order,
+					'data' => $tax->data(),
+				);
+
+				$tax_total += $amount;
 			}
-		}
 
-		$tax_total = 0;
-		$applied_taxes = array();
-		foreach ($taxes as $tax) {
-			$amount = Cart::calc_method($tax->calculation_method, $tax->amount, $sub_total);
-
-			$applied_taxes[$tax->pk()] = array(
-				'cart_order_id' => $this->pk(),
-				'cart_tax_id' => $tax->pk(),
-				'display_name' => $tax->display_name(),
-				'amount' => $amount,
-				'display_order' => $tax->display_order,
-				'data' => $tax->data(),
-			);
-
-			$tax_total += $amount;
-		}
-
-		$existing_taxes = $this->cart_order_tax
-			->find_all()
-			->as_array('cart_tax_id');
-		$keep_of_existing = array();
-		foreach ($applied_taxes as $cart_tax_id => $tax_data) {
-			if (isset($existing_taxes[$cart_tax_id])) {
-				$existing_taxes[$cart_tax_id]->values($tax_data)
-					->save();
-				$keep_of_existing[] = $existing_taxes[$cart_tax_id]->pk();
-			} else {
-				$new_tax = ORM::factory('Cart_Order_Tax')
-					->values($tax_data)
-					->save();
-				$this->add_log('add_tax', array(
-					'cart_order_tax_id' => $new_tax->pk(),
-					'cart_tax_id' => $new_tax->cart_tax_id,
-				));
+			$existing_taxes = $this->cart_order_tax
+				->find_all()
+				->as_array('cart_tax_id');
+			$keep_of_existing = array();
+			foreach ($applied_taxes as $cart_tax_id => $tax_data) {
+				if (isset($existing_taxes[$cart_tax_id])) {
+					$existing_taxes[$cart_tax_id]->values($tax_data)
+						->save();
+					$keep_of_existing[] = $existing_taxes[$cart_tax_id]->pk();
+				} else {
+					$new_tax = ORM::factory('Cart_Order_Tax')
+						->values($tax_data)
+						->save();
+					$this->add_log('add_tax', array(
+						'cart_order_tax_id' => $new_tax->pk(),
+						'cart_tax_id' => $new_tax->cart_tax_id,
+					));
+				}
 			}
-		}
-		foreach ($existing_taxes as $tax) {
-			if ( ! in_array($tax->pk(), $keep_of_existing)) {
-				$this->add_log('remove_tax', array(
-					'cart_order_tax_id' => $tax->pk(),
-					'cart_tax_id' => $tax->cart_tax_id,
-				));
-				$tax->delete();
+			foreach ($existing_taxes as $tax) {
+				if ( ! in_array($tax->pk(), $keep_of_existing)) {
+					$this->add_log('remove_tax', array(
+						'cart_order_tax_id' => $tax->pk(),
+						'cart_tax_id' => $tax->cart_tax_id,
+					));
+					$tax->delete();
+				}
 			}
 		}
 

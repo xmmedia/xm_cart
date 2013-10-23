@@ -9,11 +9,15 @@ class Controller_XM_Cart extends Controller_Public {
 	);
 
 	protected $continue_shopping_url;
+	protected $enable_shipping;
+	protected $enable_tax;
 
 	public function before() {
 		parent::before();
 
 		$this->continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
+		$this->enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
+		$this->enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
@@ -80,12 +84,15 @@ class Controller_XM_Cart extends Controller_Public {
 				);
 			}
 
-			if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
-				$show_location_select = TRUE;
-			} else if ( ! empty($order->shipping_country_id) && empty($order->shipping_state_id) && Model_Cart_Tax::show_state_select($order->shipping_country_id)) {
-				$show_location_select = TRUE;
+			// either shipping or tax functionality needs to be enabled to show the locaiton select
+			if ($this->enable_shipping || $this->enable_tax) {
+				if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
+					$show_location_select = TRUE;
+				} else if ( ! empty($order->shipping_country_id) && empty($order->shipping_state_id) && Model_Cart_Tax::show_state_select($order->shipping_country_id)) {
+					$show_location_select = TRUE;
+				}
 			}
-			if ( ! $show_location_select) {
+			if ( ! $show_location_select && $this->enable_shipping) {
 				$shipping_country = $order->shipping_country->name;
 				$shipping_state = $order->shipping_state_select->name;
 			}
@@ -288,6 +295,11 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_set_shipping_country() {
+		if ( ! $this->enable_shipping) {
+			AJAX_Status::success();
+			return;
+		}
+
 		$show_state_select = FALSE;
 		$states = array();
 
@@ -356,6 +368,11 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_set_shipping_state() {
+		if ( ! $this->enable_shipping) {
+			AJAX_Status::success();
+			return;
+		}
+
 		// attempt to retrieve the order
 		$order = $this->retrieve_order(TRUE);
 
@@ -461,11 +478,18 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('continue_shopping_url', $this->continue_shopping_url)
+			->bind('enable_shipping', $this->enable_shipping)
+			->bind('enable_tax', $this->enable_tax)
 			// used in the cart config view
 			->set('countries', Cart::countries());
 	} // function action_checkout
 
 	public function action_save_shipping() {
+		if ( ! $this->enable_shipping) {
+			AJAX_Status::success();
+			return;
+		}
+
 		$order = $this->check_valid_order();
 		if ( ! $order) {
 			return;
@@ -744,21 +768,30 @@ class Controller_XM_Cart extends Controller_Public {
 			);
 
 			// create the customer email
+			$have_customer_email = FALSE;
 			$mail = new Mail();
-			$mail->AddAddress($order->shipping_email, $order->shipping_first_name . ' ' . $order->shipping_last_name);
-			if (UTF8::strtolower($order->shipping_email) != UTF8::strtolower($order->billing_email)) {
-				$mail->AddAddress($order->billing_email, $order->billing_first_name . ' ' . $order->billing_last_name);
+			if ($this->enable_shipping &&  ! empty($order->shipping_email) && Valid::email($order->shipping_email)) {
+				$mail->AddAddress($order->shipping_email, $order->shipping_first_name . ' ' . $order->shipping_last_name);
+				$have_customer_email = TRUE;
 			}
-			$mail->Subject = 'Your order from ' . LONG_NAME;
-			$mail->IsHTML(TRUE);
-			$email_body_html = View::factory('cart/email/customer_order')
-				->bind('order', $order)
-				->bind('order_product_array', $order_products)
-				->bind('total_rows', $total_rows)
-				->bind('paid_with', $paid_with);
-			$mail->Body = View::factory('cart/email/template')
-				->bind('body_html', $email_body_html);
-			$mail->Send();
+			if (( ! $this->enable_shipping || UTF8::strtolower($order->shipping_email) != UTF8::strtolower($order->billing_email)) && ! empty($order->billing_email) && Valid::email($order->billing_email)) {
+				$mail->AddAddress($order->billing_email, $order->billing_first_name . ' ' . $order->billing_last_name);
+				$have_customer_email = TRUE;
+			}
+			if ($have_customer_email) {
+				$mail->Subject = 'Your order from ' . LONG_NAME;
+				$mail->IsHTML(TRUE);
+				$email_body_html = View::factory('cart/email/customer_order')
+					->bind('order', $order)
+					->bind('order_product_array', $order_products)
+					->bind('total_rows', $total_rows)
+					->bind('paid_with', $paid_with)
+					->bind('enable_shipping', $enable_shipping)
+					->bind('enable_tax', $enable_tax);
+				$mail->Body = View::factory('cart/email/template')
+					->bind('body_html', $email_body_html);
+				$mail->Send();
+			}
 
 			// create the owner/administrator email
 			$administrator_email = Kohana::$config->load('xm_cart.administrator_email');
@@ -771,7 +804,9 @@ class Controller_XM_Cart extends Controller_Public {
 				->bind('order', $order)
 				->bind('order_product_array', $order_products)
 				->bind('total_rows', $total_rows)
-				->bind('paid_with', $paid_with);
+				->bind('paid_with', $paid_with)
+				->bind('enable_shipping', $enable_shipping)
+				->bind('enable_tax', $enable_tax);
 			$mail->Body = View::factory('cart/email/template')
 				->bind('body_html', $email_body_html);
 			$mail->Send();

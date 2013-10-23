@@ -18,6 +18,9 @@ return array(
 	'default_country_id' => 40,
 	'default_currency' => 'CAD',
 
+	'enable_shipping' => TRUE,
+	'enable_tax' => TRUE,
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(

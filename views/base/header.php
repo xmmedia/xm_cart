@@ -9,8 +9,12 @@
 					<ul class="sub_nav">
 						<?php /*<li class="cart_admin_index"><?php echo HTML::anchor(Route::get('cart_admin')->uri(), __('Main')); ?></li>*/ ?>
 						<li class="cart_admin_order"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order')), __('Orders')); ?></li>
+						<?php if (Kohana::$config->load('xm_cart.enable_shipping')) { ?>
 						<li class="cart_admin_shipping"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping')), __('Shipping Rates')); ?></li>
+						<?php } // if ?>
+						<?php if (Kohana::$config->load('xm_cart.enable_tax')) { ?>
 						<li class="cart_admin_tax"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax')), __('Taxes')); ?></li>
+						<?php } // if ?>
 					</ul>
 				</li>
 				<?php //} // if cart admin perm ?>
