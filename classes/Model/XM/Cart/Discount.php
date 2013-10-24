@@ -8,7 +8,7 @@
  * @author     XM Media Inc.
  * @copyright  (c) 2013 XM Media Inc.
  */
-class Model_XM_Cart_Discount extends ORM {
+class Model_XM_Cart_Discount extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_discount';
 	public $_table_name_display = 'Cart - Discount'; // cl4 specific

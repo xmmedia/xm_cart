@@ -8,7 +8,7 @@
  * @author     XM Media Inc.
  * @copyright  (c) 2013 XM Media Inc.
  */
-class Model_XM_Cart_Order_Discount extends ORM {
+class Model_XM_Cart_Order_Discount extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_order_discount';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)

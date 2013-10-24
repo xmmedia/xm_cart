@@ -8,7 +8,7 @@
  * @author     XM Media Inc.
  * @copyright  (c) 2013 XM Media Inc.
  */
-class Model_XM_Cart_Tax extends ORM {
+class Model_XM_Cart_Tax extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_tax';
 	public $_table_name_display = 'Cart - Tax'; // cl4 specific
@@ -296,28 +296,6 @@ class Model_XM_Cart_Tax extends ORM {
 				array('trim'),
 			),
 		);
-	}
-
-	public function where_active_dates() {
-		return $this
-			->where_open()
-				->or_where_open()
-					->where('start', '<=', DB::expr("NOW()"))
-					->where('end', '>=', DB::expr("NOW()"))
-				->or_where_close()
-				->or_where_open()
-					->where('start', '<=', DB::expr("NOW()"))
-					->where('end', '=', 0)
-				->or_where_close()
-				->or_where_open()
-					->where('start', '=', 0)
-					->where('end', '>=', DB::expr("NOW()"))
-				->or_where_close()
-				->or_where_open()
-					->where('start', '=', 0)
-					->where('end', '=', 0)
-				->or_where_close()
-			->where_close();
 	}
 
 	public static function show_country_select() {
