@@ -214,7 +214,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_change_quantity() {
-		if ( ! $this->donation_cart) {
+		if ($this->donation_cart) {
 			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
