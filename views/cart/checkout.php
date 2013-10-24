@@ -206,7 +206,7 @@
 				<div class="js_cart_checkout_box_messages"></div>
 				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_final')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_final')); ?>
 				<div class="cart_field">
-					<?php echo $order->get_field_layout('order_note'); ?>
+					<?php echo Form::label($order->get_field_id('order_note'), 'Enter any messages you\'d like us to know when processing your order (optional).'), $order->get_field('order_note'); ?>
 				</div>
 				<?php echo Form::close(); ?>
 
