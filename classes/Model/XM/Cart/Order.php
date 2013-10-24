@@ -301,6 +301,9 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'class' => 'order_textarea',
+			),
 		),
 		'user_address_loaded_flag' => array(
 			'field_type' => 'Checkbox',
