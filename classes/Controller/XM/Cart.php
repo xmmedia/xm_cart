@@ -388,12 +388,12 @@ class Controller_XM_Cart extends Controller_Public {
 	public function action_checkout() {
 		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			Message::add(Cart::message('empty_cart'), Message::$notice);
 			$this->redirect($this->continue_shopping_url);
 		}
 
 		if ( ! Cart::allow_order_edit($order)) {
-			Message::add('The order you\'ve submitted is already being processed.', Message::$error);
+			Message::add(Cart::message('checkout_already_processing'), Message::$error);
 			$this->redirect($this->continue_shopping_url);
 		}
 
@@ -416,7 +416,7 @@ class Controller_XM_Cart extends Controller_Public {
 		} // foreach
 
 		if (empty($order_product_array)) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			Message::add(Cart::message('empty_cart'), Message::$notice);
 			$this->redirect($this->continue_shopping_url);
 		}
 
@@ -448,7 +448,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$expiry_date_years[$y] = $y;
 		}
 
-		$this->template->page_title = 'Checkout' . $this->page_title_append;
+		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
 		$this->template->body_html = View::factory('cart/checkout')
 			->bind('order', $order)
 			->bind('cart_html', $cart_html)
@@ -562,22 +562,8 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_save_final() {
-		$order = Cart::retrieve_user_order();
-		if ( ! is_object($order) || ! $order->loaded()) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			AJAX_Status::echo_json(AJAX_Status::ajax(array(
-				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
-			)));
-			return;
-		}
-
-		if ( ! Cart::allow_order_edit($order)) {
-			Message::add('The order you\'ve submitted is already being processed.', Message::$notice);
-			AJAX_Status::echo_json(AJAX_Status::ajax(array(
-				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
-			)));
+		$order = $this->check_valid_order();
+		if ( ! $order) {
 			return;
 		}
 
@@ -618,22 +604,8 @@ class Controller_XM_Cart extends Controller_Public {
 	public function action_complete_order() {
 		$payment_status = NULL;
 
-		$order = Cart::retrieve_user_order();
-		if ( ! is_object($order) || ! $order->loaded()) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
-			AJAX_Status::echo_json(AJAX_Status::ajax(array(
-				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
-			)));
-			return;
-		}
-
-		if ( ! Cart::allow_order_edit($order)) {
-			Message::add('The order you\'ve submitted is already being processed.', Message::$notice);
-			AJAX_Status::echo_json(AJAX_Status::ajax(array(
-				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
-			)));
+		$order = $this->check_valid_order();
+		if ( ! $order) {
 			return;
 		}
 
@@ -757,10 +729,10 @@ class Controller_XM_Cart extends Controller_Public {
 
 			switch ($error['code']) {
 				case 'incorrect_zip' :
-					Message::add('The Postal/Zip Code you supplied failed validation. Please verify before trying again.', Message::$error);
+					Message::add(Cart::message('stripe.incorrect_zip'), Message::$error);
 					break;
 				case 'card_declined' :
-					Message::add('Your card was declined. Please check that you\'ve entered it correctly before trying again.', Message::$error);
+					Message::add(Cart::message('stripe.card_declined'), Message::$error);
 					break;
 				default :
 					Message::add($error['message'], Message::$error);
@@ -794,7 +766,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Kohana::$log->add(Kohana_Log::ERROR, 'Invalid parameters were supplied to Stripe\'s API')->write();
 			Kohana_Exception::log($e);
 			$payment_status = 'error';
-			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
+			Message::add(Cart::message('stripe.error'), Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
 			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
@@ -812,7 +784,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Kohana::$log->add(Kohana_Log::ERROR, 'Authentication with Stripe\'s API failed')->write();
 			Kohana_Exception::log($e);
 			$payment_status = 'error';
-			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
+			Message::add(Cart::message('stripe.error'), Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
 			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
@@ -829,7 +801,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Kohana::$log->add(Kohana_Log::ERROR, 'Network communication with Stripe failed')->write();
 			Kohana_Exception::log($e);
 			$payment_status = 'error';
-			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
+			Message::add(Cart::message('stripe.error'), Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
 			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
@@ -847,7 +819,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Kohana::$log->add(Kohana_Log::ERROR, 'General Stripe error')->write();
 			Kohana_Exception::log($e);
 			$payment_status = 'error';
-			Message::add('There was a problem processing your payment. Please try again or contact us to complete your payment.', Message::$error);
+			Message::add(Cart::message('stripe.error'), Message::$error);
 
 			// set the status back to submitted because there was a problem with the payment
 			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
@@ -862,7 +834,7 @@ class Controller_XM_Cart extends Controller_Public {
 		} catch (Kohana_Exception $e) {
 			Kohana_Exception::log($e);
 			$payment_status = 'fail';
-			Message::add('There was a problem processing your payment. Please contact us to complete your payment.', Message::$error);
+			Message::add(Cart::message('fail'), Message::$error);
 			// we don't set the order status as there was a problem and it should stay in payment so it can't be attempted again
 
 			$order->add_log('payment_error', (array) $e->getJsonBody());
@@ -891,7 +863,7 @@ class Controller_XM_Cart extends Controller_Public {
 	public function action_payment_failed() {
 		$order_id = Session::instance()->path('xm_cart.cart_order_id');
 		if (empty($order_id)) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			Message::add(Cart::message('empty_cart'), Message::$notice);
 			$this->redirect($this->continue_shopping_url);
 		}
 
@@ -904,11 +876,11 @@ class Controller_XM_Cart extends Controller_Public {
 
 		if ((int) $order->status != CART_ORDER_STATUS_PAYMENT) {
 			if (in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
-				Message::add('Your order has not been completed. Please checkout before continuing.', Message::$warning);
+				Message::add(Cart::message('please_checkout'), Message::$warning);
 				$this->redirect($this->continue_shopping_url);
 			} else {
 				Session::instance()->set_path('xm_cart.cart_order_id', NULL);
-				Message::add('Your order has already been completed.', Message::$warning);
+				Message::add(Cart::message('already_completed'), Message::$warning);
 				$this->redirect($this->continue_shopping_url);
 			}
 		}
@@ -919,7 +891,7 @@ class Controller_XM_Cart extends Controller_Public {
 	protected function check_valid_order() {
 		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
-			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
+			Message::add(Cart::message('empty_cart'), Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
 				'redirect' => $this->continue_shopping_url,
@@ -928,7 +900,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		if ( ! Cart::allow_order_edit($order)) {
-			Message::add('The order you\'ve submitted is already being processed.', Message::$error);
+			Message::add(Cart::message('already_processing'), Message::$error);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
 				'redirect' => $this->continue_shopping_url,
