@@ -738,71 +738,8 @@ class Controller_XM_Cart extends Controller_Public {
 				->add_log('paid', $charge->__toArray(TRUE));
 
 			// send emails
-			// first retrieve the necessary data
-			$order_products = $order->cart_order_product->find_all()->as_array();
-			$total_rows = Cart::total_rows($order);
-			$paid_with = array(
-				'type' => $order_payment->response['card']['type'],
-				'last_4' => $order_payment->response['card']['last4'],
-			);
-
-			$email_cart_view = ($this->donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
-
-			// create the customer email
-			$have_customer_email = FALSE;
-			$mail = new Mail();
-			if ($this->enable_shipping &&  ! empty($order->shipping_email) && Valid::email($order->shipping_email)) {
-				$mail->AddAddress($order->shipping_email, $order->shipping_first_name . ' ' . $order->shipping_last_name);
-				$have_customer_email = TRUE;
-			}
-			if (( ! $this->enable_shipping || UTF8::strtolower($order->shipping_email) != UTF8::strtolower($order->billing_email)) && ! empty($order->billing_email) && Valid::email($order->billing_email)) {
-				$mail->AddAddress($order->billing_email, $order->billing_first_name . ' ' . $order->billing_last_name);
-				$have_customer_email = TRUE;
-			}
-			if ($have_customer_email) {
-				if ($this->donation_cart) {
-					$mail->Subject = 'Your donation to ' . LONG_NAME;
-				} else {
-					$mail->Subject = 'Your order from ' . LONG_NAME;
-				}
-				$mail->IsHTML(TRUE);
-				$email_body_html = View::factory('cart/email/customer_order')
-					->bind('order', $order)
-					->bind('order_product_array', $order_products)
-					->bind('total_rows', $total_rows)
-					->bind('paid_with', $paid_with)
-					->bind('cart_view', $email_cart_view)
-					->bind('enable_shipping', $this->enable_shipping)
-					->bind('enable_tax', $this->enable_tax)
-					->bind('donation_cart', $this->donation_cart);
-				$mail->Body = View::factory('cart/email/template')
-					->bind('body_html', $email_body_html);
-				$mail->Send();
-			}
-
-			// create the owner/administrator email
-			$administrator_email = Kohana::$config->load('xm_cart.administrator_email');
-
-			$mail = new Mail();
-			$mail->AddAddress($administrator_email[0], $administrator_email[1]);
-			if ($this->donation_cart) {
-				$mail->Subject = 'Donation Received – ' . $order->order_num;
-			} else {
-				$mail->Subject = 'Order Received – ' . $order->order_num;
-			}
-			$mail->IsHTML(TRUE);
-			$email_body_html = View::factory('cart/email/admin_order')
-				->bind('order', $order)
-				->bind('order_product_array', $order_products)
-				->bind('total_rows', $total_rows)
-				->bind('paid_with', $paid_with)
-				->bind('cart_view', $email_cart_view)
-				->bind('enable_shipping', $this->enable_shipping)
-				->bind('enable_tax', $this->enable_tax)
-				->bind('donation_cart', $this->donation_cart);
-			$mail->Body = View::factory('cart/email/template')
-				->bind('body_html', $email_body_html);
-			$mail->Send();
+			Cart::send_customer_order_email($order, $order_payment);
+			Cart::send_admin_order_email($order, $order_payment);
 
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 
