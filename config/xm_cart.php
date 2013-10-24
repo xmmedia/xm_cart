@@ -21,6 +21,7 @@ return array(
 
 	'enable_shipping' => TRUE,
 	'enable_tax' => TRUE,
+	'enable_sub_total' => TRUE,
 
 	'donation_cart' => FALSE,
 	'donation_product_id' => NULL,

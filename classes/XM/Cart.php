@@ -66,11 +66,13 @@ class XM_Cart {
 			);
 		}
 
-		$total_rows[] = array(
-			'name' => 'Sub Total',
-			'value' => $order->sub_total,
-			'value_formatted' => Cart::cf($order->sub_total),
-		);
+		if (Kohana::$config->load('xm_cart.enable_sub_total')) {
+			$total_rows[] = array(
+				'name' => 'Sub Total',
+				'value' => $order->sub_total,
+				'value_formatted' => Cart::cf($order->sub_total),
+			);
+		}
 
 		foreach ($order->cart_order_tax->find_all() as $tax) {
 			$total_rows[] = array(
