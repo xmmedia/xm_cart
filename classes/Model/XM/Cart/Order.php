@@ -992,10 +992,10 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
 		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
 
+		// ****************************************************************
+		// ****************************************************************
+		// Shipping
 		if ($enable_shipping) {
-			// ****************************************************************
-			// ****************************************************************
-			// Shipping
 			$possible_shipping_rates = array();
 			$shipping_total = 0;
 
@@ -1065,11 +1065,62 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$sub_total += $shipping_total;
 		}
 
+		// ****************************************************************
+		// ****************************************************************
+		// Additional Charges
+		$additional_charge_total = 0;
+		$additional_charges = ORM::factory('Cart_Additional_Charge')
+			->where_active_dates()
+			->find_all();
+		$existing_additional_charges = $this->cart_order_additional_charge->find_all()
+			->as_array('cart_additional_charge_id');
+		foreach ($additional_charges as $additional_charge) {
+			// if the charge already exists on the order, make sure it's up to date
+			// if it doesn't exist, add the charge
+			if (isset($existing_additional_charges[$additional_charge->pk()])) {
+				$cart_order_additional_charge = $existing_additional_charges[$additional_charge->pk()];
+				unset($existing_additional_charges[$additional_charge->pk()]);
+				$add_additional_charge = FALSE;
+			} else {
+				$cart_order_additional_charge = ORM::factory('Cart_Order_Additional_Charge');
+				$add_additional_charge = TRUE;
+			}
+
+			$cart_order_additional_charge->values(array(
+					'cart_order_id' => $this->pk(),
+					'cart_additional_charge_id' => $additional_charge->pk(),
+					'display_name' => $additional_charge->display_name(),
+					'amount' => Cart::calc_method($additional_charge->calculation_method, $additional_charge->amount, $sub_total),
+					'data' => $additional_charge->data(),
+				))
+				->save();
+
+			$additional_charge_total += $cart_order_additional_charge->amount;
+
+			if ($add_additional_charge) {
+				$this->add_log('add_additional_charge', array(
+					'cart_order_additional_charge_id' => $cart_order_additional_charge->pk(),
+					'cart_additional_charge_id' => $cart_order_additional_charge->cart_additional_charge_id,
+				));
+			}
+		}
+
+		foreach ($existing_additional_charges as $cart_order_additional_charge) {
+			$this->add_log('remove_additional_charge', array(
+				'cart_order_additional_charge_id' => $cart_order_additional_charge->pk(),
+				'cart_additional_charge_id' => $cart_order_additional_charge->cart_additional_charge_id,
+			));
+
+			$cart_order_additional_charge->delete();
+		}
+
+		$sub_total += $additional_charge_total;
+
+		// ****************************************************************
+		// ****************************************************************
+		// Tax
 		$tax_total = 0;
 		if ($enable_tax) {
-			// ****************************************************************
-			// ****************************************************************
-			// Tax
 			$taxes = array();
 
 			// get the taxes that apply to all loctions/all orders

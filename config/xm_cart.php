@@ -132,5 +132,7 @@ return array(
 		'remove_shipping' => 'Remove Shipping Rate',
 		'add_tax' => 'Add Tax',
 		'remove_tax' => 'Remove Tax',
+		'add_additional_charge' => 'Add Additional Charge',
+		'remove_additional_charge' => 'Remove Additional Charge',
 	),
 );

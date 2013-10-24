@@ -53,7 +53,6 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 				'source' => array(
 					'source' => 'model',
 					'data' => 'Cart_Order',
-					'label' => 'invoice',
 				),
 			),
 		),
@@ -71,6 +70,17 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 				),
 			),
 		),
+		'display_name' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 50,
+			),
+		),
 		'amount' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -84,6 +94,14 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 				'class' => 'numeric',
 			),
 		),
+		'data' => array(
+			'field_type' => 'TextArea',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+		),
 	);
 
 	/**
@@ -94,6 +112,8 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 		'column' 	=> 'expiry_date',
 		'default'	=> 0,
 	);
+
+	protected $_serialize_columns = array('data');
 
 	/**
 	 * Labels for columns.
@@ -106,7 +126,9 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 			'expiry_date' => 'Expiry Date',
 			'cart_order_id' => 'Cart Order',
 			'cart_additional_charge_id' => 'Cart Additional Charge',
+			'display_name' => 'Display Name',
 			'amount' => 'Amount',
+			'data' => 'Data',
 		);
 	}
 
@@ -118,10 +140,10 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 	public function rules() {
 		return array(
 			'cart_order_id' => array(
-				array('not_empty'),
+				array('selected'),
 			),
 			'cart_additional_charge_id' => array(
-				array('not_empty'),
+				array('selected'),
 			),
 		);
 	}

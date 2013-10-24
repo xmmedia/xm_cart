@@ -15,6 +15,7 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 
 	// default sorting
 	protected $_sorting = array(
+		'display_order' => 'ASC',
 		'name' => 'ASC',
 	);
 
@@ -47,10 +48,21 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
-				'maxlength' => 150,
+				'maxlength' => 100,
 			),
 		),
-		'start_date' => array(
+		'display_name' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 50,
+			),
+		),
+		'start' => array(
 			'field_type' => 'DateTime',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -58,13 +70,31 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
-		'end_date' => array(
+		'end' => array(
 			'field_type' => 'DateTime',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+		),
+		'calculation_method' => array(
+			'field_type' => 'Radios',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_options' => array(
+				'source' => array(
+					'source' => 'array',
+					'data' => array(
+						'%' => 'Percentage (%)',
+						'$' => 'Dollar Value ($)'
+					),
+				),
+				'default_value' => '$',
+			),
 		),
 		'amount' => array(
 			'field_type' => 'Text',
@@ -74,9 +104,30 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
-				'maxlength' => 13,
-				'size' => 13,
+				'maxlength' => 9,
+				'size' => 9,
+				'class' => 'numeric',
 			),
+		),
+		'display_order' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 5,
+				'size' => 5,
+			),
+		),
+		'data' => array(
+			'field_type' => 'TextArea',
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
+			'is_nullable' => FALSE,
 		),
 	);
 
@@ -89,6 +140,8 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 		'default'	=> 0,
 	);
 
+	protected $_serialize_columns = array('data');
+
 	/**
 	 * Labels for columns.
 	 *
@@ -99,9 +152,13 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 			'id' => 'ID',
 			'expiry_date' => 'Expiry Date',
 			'name' => 'Name',
-			'start_date' => 'Start Date',
-			'end_date' => 'End Date',
+			'display_name' => 'Display Name',
+			'start' => 'Start',
+			'end' => 'End',
+			'calculation_method' => 'Calculation Method',
 			'amount' => 'Amount',
+			'display_order' => 'Display Order',
+			'data' => 'Data',
 		);
 	}
 
@@ -115,6 +172,17 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 			'name' => array(
 				array('not_empty'),
 			),
+			'display_name' => array(
+				array('not_empty'),
+			),
+			'calculation_method' => array(
+				array('not_empty'),
+			),
+			'amount' => array(
+				array('not_empty'),
+			),
+			// data probably shouldn't be empty either
+			// but we can't add that requirement till we've added the admin tool
 		);
 	}
 
@@ -128,6 +196,21 @@ class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 			'name' => array(
 				array('trim'),
 			),
+			'display_name' => array(
+				array('trim'),
+			),
 		);
+	}
+
+	public function display_name() {
+		if ($this->calculation_method == '%') {
+			return $this->display_name . ' ' . Num::format($this->amount, Cart::num_decimals($this->amount)) . '%';
+		} else if ($this->calculation_method == '$') {
+			return $this->display_name;
+		}
+	}
+
+	public function data() {
+		return Arr::extract($this->as_array(), array('name', 'display_name', 'start', 'end', 'display_order', 'calculation_method', 'amount', 'data'));
 	}
 } // class
