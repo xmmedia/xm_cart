@@ -30,15 +30,11 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_load_cart() {
-		$sub_total = $grand_total = 0;
 		$order_product_array = array();
-		$taxes = array();
 		$show_location_select = FALSE;
 		$shipping_country = '';
 		$shipping_state = '';
-		$shipping_added = FALSE;
-		$shipping_display_name = '';
-		$shipping_amount = 0;
+		$total_rows = array();
 
 		$order = Cart::retrieve_user_order();
 
@@ -59,31 +55,17 @@ class Controller_XM_Cart extends Controller_Public {
 				$order_product_array[] = array(
 					'id' => $order_product->id,
 					'cart_product_id' => $order_product->cart_product_id,
+					'name' => $order_product->cart_product->name,
 					'quantity' => $order_product->quantity,
 					'unit_price' => $order_product->unit_price,
-					'name' => $order_product->cart_product->name,
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
+					'amount' => $amount,
 					'amount_formatted' => Cart::cf($amount),
 				);
 			} // foreach
 
 			if ($deleted_product) {
 				$order->calculate_totals();
-			}
-
-			$shipping = $order->cart_order_shipping->find();
-			if ($shipping->loaded()) {
-				$shipping_added = TRUE;
-				$shipping_display_name = $shipping->display_name;
-				$shipping_amount = $shipping->amount;
-			}
-
-			foreach ($order->cart_order_tax->find_all() as $tax) {
-				$taxes[] = array(
-					'name' => $tax->display_name,
-					'amount', $tax->amount,
-					'amount_formatted' => Cart::cf($tax->amount),
-				);
 			}
 
 			// either shipping or tax functionality needs to be enabled to show the locaiton select
@@ -99,8 +81,7 @@ class Controller_XM_Cart extends Controller_Public {
 				$shipping_state = $order->shipping_state_select->name;
 			}
 
-			$sub_total = $order->sub_total;
-			$grand_total = $order->grand_total;
+			$total_rows = Cart::total_rows($order);
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -109,19 +90,8 @@ class Controller_XM_Cart extends Controller_Public {
 				'show_location_select' => (int) $show_location_select,
 				'shipping_country' => $shipping_country,
 				'shipping_state' => $shipping_state,
-
-				'shipping' => array(
-					'added' => (int) $shipping_added,
-					'display_name' => $shipping_display_name,
-					'amount' => $shipping_amount,
-					'amount_formatted' => Cart::cf($shipping_amount),
-				),
-				'taxes' => $taxes,
-				'sub_total' => $sub_total,
-				'sub_total_formatted' => Cart::cf($sub_total),
-				'grand_total' => $grand_total,
-				'grand_total_formatted' => Cart::cf($grand_total),
-			)
+			),
+			'total_rows' => $total_rows,
 		)));
 	}
 
