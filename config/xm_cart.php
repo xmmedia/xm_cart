@@ -10,6 +10,7 @@ return array(
 	'continue_shopping_url' => '/cart/product_list',
 	'routes' => array(
 		'product_list' => FALSE,
+		'donate' => FALSE,
 		'public' => TRUE,
 		'admin' => TRUE,
 	),
@@ -20,6 +21,10 @@ return array(
 
 	'enable_shipping' => TRUE,
 	'enable_tax' => TRUE,
+
+	'donation_cart' => FALSE,
+	'donation_product_id' => NULL,
+	'donation_minimum' => 25,
 
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site

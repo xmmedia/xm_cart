@@ -11,6 +11,7 @@ class Controller_XM_Cart extends Controller_Public {
 	protected $continue_shopping_url;
 	protected $enable_shipping;
 	protected $enable_tax;
+	protected $donation_cart;
 
 	public function before() {
 		parent::before();
@@ -18,6 +19,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$this->continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
 		$this->enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
 		$this->enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
+		$this->donation_cart = (bool) Kohana::$config->load('xm_cart.donation_cart');
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
@@ -38,7 +40,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$shipping_display_name = '';
 		$shipping_amount = 0;
 
-		$order = $this->retrieve_order();
+		$order = Cart::retrieve_user_order();
 
 		if ( ! empty($order) && is_object($order)) {
 			$order_products = $order->cart_order_product->find_all();
@@ -133,7 +135,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		// attempt to retrieve or create a new order
-		$order = $this->retrieve_order(TRUE);
+		$order = Cart::retrieve_user_order(TRUE);
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$order_product = ORM::factory('Cart_Order_Product', array(
@@ -190,7 +192,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		// attempt to retrieve the order
-		$order = $this->retrieve_order(FALSE);
+		$order = Cart::retrieve_user_order(FALSE);
 		// if no order was found, just get out since we can't really do anything anyway
 		if ( ! is_object($order) || ! $order->loaded()) {
 			AJAX_Status::echo_json(AJAX_Status::success());
@@ -212,6 +214,11 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_change_quantity() {
+		if ( ! $this->donation_cart) {
+			AJAX_Status::echo_json(AJAX_Status::success());
+			return;
+		}
+
 		// retrieve the values out of the model array
 		$cart_order_product_id = (int) $this->request->post('cart_order_product_id');
 		$quantity = (int) $this->request->post('quantity');
@@ -221,7 +228,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		// attempt to retrieve or create a new order
-		$order = $this->retrieve_order(TRUE);
+		$order = Cart::retrieve_user_order(TRUE);
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$order_product = ORM::factory('Cart_Order_Product', $cart_order_product_id);
@@ -283,7 +290,7 @@ class Controller_XM_Cart extends Controller_Public {
 	} // function action_change_quantity
 
 	public function action_cart_empty() {
-		$order = $this->retrieve_order();
+		$order = Cart::retrieve_user_order();
 
 		if (is_object($order) && $order->loaded()) {
 			$order->add_log('empty_cart')
@@ -296,7 +303,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 	public function action_set_shipping_country() {
 		if ( ! $this->enable_shipping) {
-			AJAX_Status::success();
+			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
 
@@ -304,7 +311,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$states = array();
 
 		// attempt to retrieve the order
-		$order = $this->retrieve_order(TRUE);
+		$order = Cart::retrieve_user_order(TRUE);
 
 		$country_id = $this->request->post('country_id');
 		if (empty($country_id)) {
@@ -369,12 +376,12 @@ class Controller_XM_Cart extends Controller_Public {
 
 	public function action_set_shipping_state() {
 		if ( ! $this->enable_shipping) {
-			AJAX_Status::success();
+			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
 
 		// attempt to retrieve the order
-		$order = $this->retrieve_order(TRUE);
+		$order = Cart::retrieve_user_order(TRUE);
 
 		$state_id = $this->request->post('state_id');
 		if (empty($state_id)) {
@@ -409,13 +416,13 @@ class Controller_XM_Cart extends Controller_Public {
 
 	// not ajax!!
 	public function action_checkout() {
-		$order = $this->retrieve_order();
+		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
 			$this->redirect($this->continue_shopping_url);
 		}
 
-		if ( ! $this->allow_order_status($order)) {
+		if ( ! Cart::allow_order_edit($order)) {
 			Message::add('The order you\'ve submitted is already being processed.', Message::$error);
 			$this->redirect($this->continue_shopping_url);
 		}
@@ -443,7 +450,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect($this->continue_shopping_url);
 		}
 
-		$cart_html = View::factory('cart/cart')
+		$cart_view = ($this->donation_cart ? 'cart/cart_donation' : 'cart/cart');
+		$cart_html = View::factory($cart_view)
 			->bind('order_product_array', $order_product_array)
 			// the total rows are sent through JSON and rendered in JS
 			->set('total_rows', array());
@@ -480,13 +488,14 @@ class Controller_XM_Cart extends Controller_Public {
 			->set('continue_shopping_url', $this->continue_shopping_url)
 			->bind('enable_shipping', $this->enable_shipping)
 			->bind('enable_tax', $this->enable_tax)
+			->bind('donation_cart', $this->donation_cart)
 			// used in the cart config view
 			->set('countries', Cart::countries());
 	} // function action_checkout
 
 	public function action_save_shipping() {
 		if ( ! $this->enable_shipping) {
-			AJAX_Status::success();
+			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
 
@@ -583,7 +592,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_save_final() {
-		$order = $this->retrieve_order();
+		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -593,7 +602,7 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 
-		if ( ! $this->allow_order_status($order)) {
+		if ( ! Cart::allow_order_edit($order)) {
 			Message::add('The order you\'ve submitted is already being processed.', Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
@@ -639,7 +648,7 @@ class Controller_XM_Cart extends Controller_Public {
 	public function action_complete_order() {
 		$payment_status = NULL;
 
-		$order = $this->retrieve_order();
+		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -649,7 +658,7 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 
-		if ( ! $this->allow_order_status($order)) {
+		if ( ! Cart::allow_order_edit($order)) {
 			Message::add('The order you\'ve submitted is already being processed.', Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
@@ -767,6 +776,8 @@ class Controller_XM_Cart extends Controller_Public {
 				'last_4' => $order_payment->response['card']['last4'],
 			);
 
+			$email_cart_view = ($this->donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
+
 			// create the customer email
 			$have_customer_email = FALSE;
 			$mail = new Mail();
@@ -779,15 +790,21 @@ class Controller_XM_Cart extends Controller_Public {
 				$have_customer_email = TRUE;
 			}
 			if ($have_customer_email) {
-				$mail->Subject = 'Your order from ' . LONG_NAME;
+				if ($this->donation_cart) {
+					$mail->Subject = 'Your donation to ' . LONG_NAME;
+				} else {
+					$mail->Subject = 'Your order from ' . LONG_NAME;
+				}
 				$mail->IsHTML(TRUE);
 				$email_body_html = View::factory('cart/email/customer_order')
 					->bind('order', $order)
 					->bind('order_product_array', $order_products)
 					->bind('total_rows', $total_rows)
 					->bind('paid_with', $paid_with)
-					->bind('enable_shipping', $enable_shipping)
-					->bind('enable_tax', $enable_tax);
+					->bind('cart_view', $email_cart_view)
+					->bind('enable_shipping', $this->enable_shipping)
+					->bind('enable_tax', $this->enable_tax)
+					->bind('donation_cart', $this->donation_cart);
 				$mail->Body = View::factory('cart/email/template')
 					->bind('body_html', $email_body_html);
 				$mail->Send();
@@ -798,15 +815,21 @@ class Controller_XM_Cart extends Controller_Public {
 
 			$mail = new Mail();
 			$mail->AddAddress($administrator_email[0], $administrator_email[1]);
-			$mail->Subject = 'Order Received – ' . $order->order_num;
+			if ($this->donation_cart) {
+				$mail->Subject = 'Donation Received – ' . $order->order_num;
+			} else {
+				$mail->Subject = 'Order Received – ' . $order->order_num;
+			}
 			$mail->IsHTML(TRUE);
 			$email_body_html = View::factory('cart/email/admin_order')
 				->bind('order', $order)
 				->bind('order_product_array', $order_products)
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with)
-				->bind('enable_shipping', $enable_shipping)
-				->bind('enable_tax', $enable_tax);
+				->bind('cart_view', $email_cart_view)
+				->bind('enable_shipping', $this->enable_shipping)
+				->bind('enable_tax', $this->enable_tax)
+				->bind('donation_cart', $this->donation_cart);
 			$mail->Body = View::factory('cart/email/template')
 				->bind('body_html', $email_body_html);
 			$mail->Send();
@@ -955,7 +978,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_completed() {
-		$this->template->body_html = View::factory('cart/completed');
+		$this->template->body_html = View::factory(($this->donation_cart ? 'cart/completed_donation' : 'cart/completed'));
 	}
 
 	public function action_payment_failed() {
@@ -986,59 +1009,8 @@ class Controller_XM_Cart extends Controller_Public {
 		$this->template->body_html = View::factory('cart/payment_failed');
 	}
 
-	protected function retrieve_order($create = FALSE) {
-		$order_id = Session::instance()->path('xm_cart.cart_order_id');
-
-		// if there is an order in the session, attempt to retrieve it
-		// if we can't, unset the $order var and we'll just create a new one
-		if ( ! empty($order_id)) {
-			$order = ORM::factory('Cart_Order', $order_id);
-			if ( ! $order->loaded()) {
-				unset($order);
-			}
-
-			// only allow access to new orders and those that have been submitted, but not paidec
-			if (isset($order) && ! $this->allow_order_status($order)) {
-				unset($order);
-			}
-
-			if (isset($order)) {
-				// make sure they own the order
-				// it's possible they weren't logged in, but then did login so the order user_id will 0/unset
-				if (Auth::instance()->logged_in() && ! empty($order->user_id) && Auth::instance()->get_user()->pk() != $order->user_id) {
-					unset($order);
-				// user is logged in and the current order is unassigned, so assign it to them
-				} else if (Auth::instance()->logged_in() && empty($order->user_id)) {
-					$order->set('user_id', Auth::instance()->get_user()->pk())
-						->save()
-						->add_log('set_user');
-				}
-			}
-		}
-
-		// no order found, just create a new one
-		if ( ! isset($order) && $create) {
-			$order = ORM::factory('Cart_Order')
-				->values(array(
-					'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
-					'country_id' => (int) Kohana::$config->load('xm_cart.default_country_id'),
-					'status' => CART_ORDER_STATUS_NEW,
-				))
-				->save()
-				->add_log('created');
-		}
-
-		if (isset($order) && $order->loaded()) {
-			Session::instance()->set_path('xm_cart.cart_order_id', $order->id);
-
-			return $order;
-		} else {
-			return NULL;
-		}
-	} // function retrieve_order
-
 	protected function check_valid_order() {
-		$order = $this->retrieve_order();
+		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add('You don\'t have any products in your cart. Please browse our available products before checking out.', Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
@@ -1048,7 +1020,7 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 
-		if ( ! $this->allow_order_status($order)) {
+		if ( ! Cart::allow_order_edit($order)) {
 			Message::add('The order you\'ve submitted is already being processed.', Message::$error);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
@@ -1058,9 +1030,5 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		return $order;
-	}
-
-	protected function allow_order_status($order) {
-		return in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED), TRUE);
 	}
 }

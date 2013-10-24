@@ -210,8 +210,6 @@
 				</div>
 				<?php echo Form::close(); ?>
 
-				<p><strong>Please review your order before clicking Complete Checkout.</strong></p>
-
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_right">
 						<?php echo Form::input_button(NULL, 'Continue', array('class' => 'js_cart_checkout_continue')); ?>
@@ -235,10 +233,10 @@
 
 					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
 						Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
-					<?php echo Form::submit(NULL, 'Complete My Order', array('class' => 'js_cart_checkout_complete_order_submit')); ?>
+					<?php echo Form::submit(NULL, ($donation_cart ? 'Complete My Donation' : 'Complete My Order'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
-					<p><strong>Please review your order.</strong></p>
+					<p><strong>Please review your <?php echo ($donation_cart ? 'transaction' : 'order'); ?> before continuing.</strong></p>
 				</div>
 			</div>
 		</div>

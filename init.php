@@ -138,6 +138,14 @@ if ($routes['product_list']) {
 	));
 }
 
+if ($routes['donate']) {
+	Route::set('cart_donate', $route_prefix . '/donate(/<action>)')
+		->defaults(array(
+			'controller' => 'Cart_Donate',
+			'action' => 'index',
+	));
+}
+
 if ($routes['admin']) {
 	Route::set('cart_admin', $route_prefix . '/admin(/<action>(/<id>))')
 		->defaults(array(

@@ -1,4 +1,4 @@
-<?php echo View::factory('cart/email/cart')
+<?php echo View::factory($cart_view)
 	->set($kohana_view_data); ?>
 
 <?php echo View::factory('cart/email/order_info')

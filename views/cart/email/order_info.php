@@ -19,17 +19,17 @@ if ($enable_shipping) {
 			<?php } // if ?>
 			<td valign="top" width="<?php echo $col_width; ?>">
 			<?php if ( ! $order->same_as_shipping_flag) { ?>
-				<strong>Billing Contact</strong><br>
+				<strong><?php echo ($donation_cart ? '' : 'Billing '); ?>Contact</strong><br>
 				<?php echo Cart::address_html($order->billing_contact_formatted()); ?><br><br>
-				<strong>Billing Address</strong><br>
+				<strong><?php echo ($donation_cart ? '' : 'Billing '); ?>Address</strong><br>
 				<?php echo Cart::address_html($order->billing_address_formatted()); ?>
 			<?php } else { ?>
-				<strong>Billing Information</strong><br>
+				<strong><?php echo ($donation_cart ? '' : 'Billing '); ?>Information</strong><br>
 				<em>Same as shipping</em>
 			<?php } // if ?>
 			</td>
 			<td valign="top" width="<?php echo $col_width; ?>">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?><br><br>
-				Order Number: <?php echo HTML::chars($order->order_num); ?></td>
+				<?php echo ($donation_cart ? 'Transaction' : 'Order'); ?> Number: <?php echo HTML::chars($order->order_num); ?></td>
 		</tr>
 	</tbody>
 </table>

@@ -28,7 +28,7 @@ class XM_Cart {
 	public static function countries() {
 		$countries = array();
 		foreach (ORM::factory('country')->find_all() as $country) {
-			$countries[] = array('id' => $country->id, 'name' => $country->name);
+			$countries[] = array('id' => $country->pk(), 'name' => $country->name);
 		}
 
 		return $countries;
@@ -80,5 +80,60 @@ class XM_Cart {
 		);
 
 		return $total_rows;
+	}
+
+	public static function retrieve_user_order($create = FALSE) {
+		$order_id = Session::instance()->path('xm_cart.cart_order_id');
+
+		// if there is an order in the session, attempt to retrieve it
+		// if we can't, unset the $order var and we'll just create a new one
+		if ( ! empty($order_id)) {
+			$order = ORM::factory('Cart_Order', $order_id);
+			if ( ! $order->loaded()) {
+				unset($order);
+			}
+
+			// only allow access to new orders and those that have been submitted, but not paidec
+			if (isset($order) && ! Cart::allow_order_edit($order)) {
+				unset($order);
+			}
+
+			if (isset($order)) {
+				// make sure they own the order
+				// it's possible they weren't logged in, but then did login so the order user_id will 0/unset
+				if (Auth::instance()->logged_in() && ! empty($order->user_id) && Auth::instance()->get_user()->pk() != $order->user_id) {
+					unset($order);
+				// user is logged in and the current order is unassigned, so assign it to them
+				} else if (Auth::instance()->logged_in() && empty($order->user_id)) {
+					$order->set('user_id', Auth::instance()->get_user()->pk())
+						->save()
+						->add_log('set_user');
+				}
+			}
+		}
+
+		// no order found, just create a new one
+		if ( ! isset($order) && $create) {
+			$order = ORM::factory('Cart_Order')
+				->values(array(
+					'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
+					'country_id' => (int) Kohana::$config->load('xm_cart.default_country_id'),
+					'status' => CART_ORDER_STATUS_NEW,
+				))
+				->save()
+				->add_log('created');
+		}
+
+		if (isset($order) && $order->loaded()) {
+			Session::instance()->set_path('xm_cart.cart_order_id', $order->pk());
+
+			return $order;
+		} else {
+			return NULL;
+		}
+	} // function retrieve_order
+
+	public static function allow_order_edit($order) {
+		return in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED), TRUE);
 	}
 }
