@@ -18,7 +18,8 @@ return array(
 	),
 
 	'page_titles' => array(
-		'checkout' => 'Checkout',
+		'checkout' => 'Checkout - ',
+		'completed' => 'Order Complete - ',
 	),
 
 	'checkout' => array(

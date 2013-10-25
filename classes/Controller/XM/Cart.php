@@ -857,6 +857,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_completed() {
+		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
 		$this->template->body_html = View::factory(($this->donation_cart ? 'cart/completed_donation' : 'cart/completed'));
 	}
 
