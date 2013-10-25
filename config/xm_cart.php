@@ -26,6 +26,7 @@ return array(
 	'donation_cart' => FALSE,
 	'donation_product_id' => NULL,
 	'donation_minimum' => 25,
+	'donation_maximum' => 10000,
 
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site

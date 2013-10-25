@@ -24,8 +24,12 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 		}
 
 		$donation_minimum = Kohana::$config->load('xm_cart.donation_minimum');
+		$donation_maximum = Kohana::$config->load('xm_cart.donation_maximum');
 		if ($donation < $donation_minimum) {
-			Message::add('We have a minimum donation amount of $' . $donation_minimum . ' to ensure we cover the fees in processing the donation.', Message::$error);
+			Message::add('We have a minimum donation amount of $' . Cart::cf($donation_minimum) . ' to ensure we cover the fees incured while processing the donation.', Message::$error);
+			$this->redirect(Route::get('cart_donate')->uri());
+		} else if ($donation > $donation_maximum) {
+			Message::add('It looks like your donation is higher than our maximum online donation of ' . Cart::cf($donation_maximum) . '. We have this maximum because of the fees that are charged when using a credit card. Please contact us to discuss other options.', Message::$error);
 			$this->redirect(Route::get('cart_donate')->uri());
 		}
 
