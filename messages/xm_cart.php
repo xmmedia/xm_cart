@@ -1,10 +1,6 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 return array(
-	'customer_email_subject' => 'Your order from :company',
-	'customer_email_subject_donation' => 'Your donation to :company',
-	'admin_email_subject' => 'Order Received - :order_num',
-	'admin_email_subject_donation' => 'Donation Received - :order_num',
 	'empty_cart' => 'You don\'t have any products in your cart. Please browse our available products before checking out.',
 	'already_processing' => 'The order you\'ve submitted is already being processed.',
 	'already_completed' => 'Your order has already been completed.',
@@ -43,8 +39,14 @@ return array(
 			'order_num_donation' => 'Transaction Number:',
 		),
 		'customer_order' => array(
+			'subject' => 'Your order from :company',
+			'subject_donation' => 'Your donation to :company',
 			'thank_you' => 'Thank you for your order. We have received your order and are currently processing it. Below are the details of your order.',
 			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. You will receive a tax deductable donation receipt at the end of the year.',
+		),
+		'admin_order' => array(
+			'subject' => 'Order Received - :order_num',
+			'subject_donation' => 'Donation Received - :order_num',
 		),
 	),
 );
