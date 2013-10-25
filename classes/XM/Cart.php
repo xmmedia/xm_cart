@@ -183,11 +183,7 @@ class XM_Cart {
 				->bind('enable_tax', $enable_tax)
 				->bind('donation_cart', $donation_cart);
 
-			if ($donation_cart) {
-				$mail->Subject = Cart::message('customer_email_subject_donation', array(':company' => LONG_NAME));
-			} else {
-				$mail->Subject = Cart::message('customer_email_subject', array(':company' => LONG_NAME));
-			}
+			$mail->Subject = Cart::message('email.customer_order.subject' . ($donation_cart ? '_donation' : ''), array(':order_num' => $order->order_num));
 			$mail->Body = View::factory('cart/email/template')
 				->bind('body_html', $email_body_html);
 			$mail->Send();
@@ -223,11 +219,7 @@ class XM_Cart {
 			->bind('enable_tax', $enable_tax)
 			->bind('donation_cart', $donation_cart);
 
-		if ($donation_cart) {
-			$mail->Subject = Cart::message('admin_email_subject_donation', array(':order_num' => $order->order_num));
-		} else {
-			$mail->Subject = Cart::message('admin_email_subject', array(':order_num' => $order->order_num));
-		}
+		$mail->Subject = Cart::message('email.admin_order.subject' . ($donation_cart ? '_donation' : ''), array(':order_num' => $order->order_num));
 		$mail->Body = View::factory('cart/email/template')
 			->bind('body_html', $email_body_html);
 		$mail->Send();
