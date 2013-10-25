@@ -1,8 +1,4 @@
-<?php if ($donation_cart) { ?>
-<p>Thank you for your donation. Below are the details of your donation. You will receive a tax deductable donation receipt at the end of the year.</p>
-<?php } else { ?>
-<p>Thank you for your order. We have received your order and are currently processing it. Below are the details of your order.</p>
-<?php } // if ?>
+<p><?php echo HTML::chars(Cart::message('email.customer_order.thank_you' . ($donation_cart ? '_donation' : ''))); ?></p>
 
 <?php echo View::factory($cart_view)
 	->set($kohana_view_data); ?>
