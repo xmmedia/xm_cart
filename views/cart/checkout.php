@@ -8,15 +8,15 @@
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2><?php echo $step_count; ?>. Your Cart</h2>
+			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.cart')); ?></h2>
 
 			<div class="cart_checkout_box_open js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
-				<p><strong>Please confirm your order.</strong></p>
+				<p><strong><?php echo HTML::chars(Cart::message('checkout.confirm_your_order')); ?></strong></p>
 				<?php echo $cart_html; ?>
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_left">
-						<?php echo HTML::anchor($continue_shopping_url, 'Back to Cart'); ?>
+						<?php echo HTML::anchor($continue_shopping_url, HTML::chars(Cart::message('checkout.back_to_cart'))); ?>
 					</div>
 					<div class="cart_checkout_box_actions_right">
 						<?php echo Form::input_button(NULL, 'Continue', array('class' => 'js_cart_checkout_continue')); ?>
@@ -37,7 +37,7 @@
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2><?php echo $step_count; ?>. Shipping Address</h2>
+			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.shipping')); ?></h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -104,7 +104,7 @@
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2><?php echo $step_count; ?>. Payment</h2>
+			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.payment')); ?></h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="cart_billing_container">
@@ -200,13 +200,13 @@
 				<a href="" class="js_cart_checkout_box_edit">Edit</a>
 			</div>
 
-			<h2><?php echo $step_count; ?>. Notes</h2>
+			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.final')); ?></h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
 				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_final')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_final')); ?>
 				<div class="cart_field">
-					<?php echo Form::label($order->get_field_id('order_note'), 'Enter any messages you\'d like us to know when processing your order (optional).'), $order->get_field('order_note'); ?>
+					<?php echo Form::label($order->get_field_id('order_note'), HTML::chars(Cart::message('checkout.notes_label'))), $order->get_field('order_note'); ?>
 				</div>
 				<?php echo Form::close(); ?>
 
@@ -224,7 +224,7 @@
 
 
 		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="confirm">
-			<h2><?php echo $step_count; ?>. Complete Your Order</h2>
+			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.confirm')); ?></h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -233,10 +233,10 @@
 
 					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
 						Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
-					<?php echo Form::submit(NULL, ($donation_cart ? 'Complete My Donation' : 'Complete My Order'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
+					<?php echo Form::submit(NULL, Cart::message('checkout.complete_order_button'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
-					<p><strong>Please review your <?php echo ($donation_cart ? 'transaction' : 'order'); ?> before continuing.</strong></p>
+					<p><strong><?php echo HTML::chars(Cart::message('checkout.review_order')); ?></strong></p>
 				</div>
 			</div>
 		</div>

@@ -20,4 +20,19 @@ return array(
 	'page_titles' => array(
 		'checkout' => 'Checkout',
 	),
+
+	'checkout' => array(
+		'headers' => array(
+			'cart' => 'Your Cart',
+			'shipping' => 'Shipping Address',
+			'payment' => 'Payment',
+			'final' => 'Notes',
+			'confirm' => 'Complete Your Order',
+		),
+		'confirm_your_order' => 'Please confirm your order.',
+		'back_to_cart' => 'Back to Cart',
+		'notes_label' => 'Enter any messages you\'d like us to know when processing your order (optional).',
+		'complete_order_button' => 'Complete My Order',
+		'review_order' => 'Please review your order before continuing.',
+	),
 );
