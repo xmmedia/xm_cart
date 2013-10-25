@@ -36,4 +36,15 @@ return array(
 		'complete_order_button' => 'Complete My Order',
 		'review_order' => 'Please review your order before continuing.',
 	),
+
+	'email' => array(
+		'order_info' => array(
+			'order_num' => 'Order Number:',
+			'order_num_donation' => 'Transaction Number:',
+		),
+		'customer_order' => array(
+			'thank_you' => 'Thank you for your order. We have received your order and are currently processing it. Below are the details of your order.',
+			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. You will receive a tax deductable donation receipt at the end of the year.',
+		),
+	),
 );

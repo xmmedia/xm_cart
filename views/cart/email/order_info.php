@@ -29,7 +29,7 @@ if ($enable_shipping) {
 			<?php } // if ?>
 			</td>
 			<td valign="top" width="<?php echo $col_width; ?>">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?><br><br>
-				<?php echo ($donation_cart ? 'Transaction' : 'Order'); ?> Number: <?php echo HTML::chars($order->order_num); ?></td>
+				<?php echo HTML::chars(Cart::message('email.order_info.order_num' . ($donation_cart ? '_donation' : ''))), ' ', HTML::chars($order->order_num); ?></td>
 		</tr>
 	</tbody>
 </table>
