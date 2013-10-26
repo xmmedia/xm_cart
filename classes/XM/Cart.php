@@ -207,7 +207,7 @@ class XM_Cart {
 		$mail = new Mail();
 		$mail->IsHTML(TRUE);
 
-		$mail->AddAddress($administrator_email[0], $administrator_email[1]);
+		$mail->AddAddress($administrator_email['email'], $administrator_email['name']);
 
 		$email_body_html = View::factory('cart/email/admin_order')
 			->bind('order', $order)
