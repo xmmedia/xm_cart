@@ -16,7 +16,7 @@
 
 			<div class="buttons"><?php
 				echo Form::submit(NULL, 'Save'),
-					Form::input_button(NULL, 'Cancel', array('class' => 'js_cl4_button_link', 'data-cl4_link' => $cancel_uri));
+					Form::input_button(NULL, 'Cancel', array('class' => 'js_xm_button_link', 'data-xm_link' => $cancel_uri));
 			?></div>
 		</form>
 	</div>

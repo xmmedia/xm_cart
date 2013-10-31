@@ -12,7 +12,7 @@ class Model_XM_Cart_Gift_Card_Log extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_gift_card_log';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Gift Card - Log'; // cl4 specific
+	public $_table_name_display = 'Cart - Gift Card - Log'; // xm specific
 
 	// default sorting
 	// protected $_sorting = array();

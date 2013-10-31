@@ -11,7 +11,7 @@
 class Model_XM_Cart_Tax extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_tax';
-	public $_table_name_display = 'Cart - Tax'; // cl4 specific
+	public $_table_name_display = 'Cart - Tax'; // xm specific
 
 	// default sorting
 	protected $_sorting = array(

@@ -495,7 +495,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 			// if there are still validation messages, display them
 			if ( ! empty($validation_msgs)) {
-				Message::message('cl4admin', 'values_not_valid', array(
+				Message::message('xm_db_admin', 'values_not_valid', array(
 					':validation_errors' => Message::add_validation_errors($e, 'Model_Cart_Order')
 				), Message::$error);
 			}
@@ -537,7 +537,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 			// if there are still validation messages, display them
 			if ( ! empty($validation_msgs)) {
-				Message::message('cl4admin', 'values_not_valid', array(
+				Message::message('xm_db_admin', 'values_not_valid', array(
 					':validation_errors' => Message::add_validation_errors($e, 'Model_Cart_Order')
 				), Message::$error);
 			}
@@ -587,7 +587,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 			// if there are still validation messages, display them
 			if ( ! empty($validation_msgs)) {
-				Message::message('cl4admin', 'values_not_valid', array(
+				Message::message('xm_db_admin', 'values_not_valid', array(
 					':validation_errors' => Message::add_validation_errors($e, 'Model_Cart_Order')
 				), Message::$error);
 			}

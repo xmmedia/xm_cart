@@ -12,7 +12,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_order_payment_log';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Order - Payment - Log'; // cl4 specific
+	public $_table_name_display = 'Cart - Order - Payment - Log'; // xm specific
 
 	// disable logging of the log table
 	protected $_log = FALSE;
