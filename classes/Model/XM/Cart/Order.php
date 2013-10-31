@@ -12,7 +12,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_order';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Order'; // cl4 specific
+	public $_table_name_display = 'Cart - Order'; // xm specific
 
 	// default sorting
 	protected $_sorting = array(
@@ -929,7 +929,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		}
 
 		$str .= $this->shipping_first_name . ' ' . $this->shipping_last_name . PHP_EOL
-			. CL4::format_phone($this->shipping_phone) . PHP_EOL
+			. XM::format_phone($this->shipping_phone) . PHP_EOL
 			. $this->shipping_email . PHP_EOL
 			. $this->shipping_address_1 . PHP_EOL;
 
@@ -949,7 +949,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		$this->set_mode('view');
 
 		$str .= $this->billing_first_name . ' ' . $this->billing_last_name . PHP_EOL
-			. CL4::format_phone($this->billing_phone) . PHP_EOL
+			. XM::format_phone($this->billing_phone) . PHP_EOL
 			. $this->billing_email;
 
 		return $str;

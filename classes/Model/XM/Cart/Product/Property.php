@@ -12,7 +12,7 @@ class Model_XM_Cart_Product_Property extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_product_property';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Product - Property'; // cl4 specific
+	public $_table_name_display = 'Cart - Product - Property'; // xm specific
 
 	// default sorting
 	protected $_sorting = array(

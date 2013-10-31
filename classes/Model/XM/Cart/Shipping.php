@@ -38,7 +38,7 @@
 class Model_XM_Cart_Shipping extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_shipping';
-	public $_table_name_display = 'Cart - Shipping'; // cl4 specific
+	public $_table_name_display = 'Cart - Shipping'; // xm specific
 
 	// default sorting
 	protected $_sorting = array(

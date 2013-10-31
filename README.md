@@ -1,6 +1,6 @@
 # XM Cart
 
-This is a simple open source cart built on top of [Kohana](http://kohanaframework.org/), [CL4](https://github.com/claerosystems/cl4), and [XM](https://github.com/xmmedia/kohana_module) and PHP. It's meant to be easy to use, configure and tweak, but still have a large feature set.
+This is a simple open source cart built on top of [Kohana](http://kohanaframework.org/) and [XM](https://github.com/xmmedia/kohana_module) and PHP. It's meant to be easy to use, configure and tweak, but still have a large feature set.
 
 ## Current Features
 

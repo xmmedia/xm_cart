@@ -12,7 +12,7 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_order_payment';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Order - Payment'; // cl4 specific
+	public $_table_name_display = 'Cart - Order - Payment'; // xm specific
 
 	// default sorting
 	// protected $_sorting = array();

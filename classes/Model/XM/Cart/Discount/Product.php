@@ -12,7 +12,7 @@ class Model_XM_Cart_Discount_Product extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_discount_product';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Discount - Product'; // cl4 specific
+	public $_table_name_display = 'Cart - Discount - Product'; // xm specific
 
 	// default sorting
 	// protected $_sorting = array();

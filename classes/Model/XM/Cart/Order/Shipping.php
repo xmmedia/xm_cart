@@ -12,7 +12,7 @@ class Model_XM_Cart_Order_Shipping extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
 	protected $_table_name = 'cart_order_shipping';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Order - Shipping'; // cl4 specific
+	public $_table_name_display = 'Cart - Order - Shipping'; // xm specific
 
 	// default sorting
 	// protected $_sorting = array();
