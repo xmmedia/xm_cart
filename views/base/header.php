@@ -5,7 +5,7 @@
 				<li class="home"><?php echo HTML::anchor('', __('Home')); ?></li>
 				<?php if ($logged_in) { ?>
 				<?php //if (Auth::instance()->allowed('cart_admin')) { ?>
-				<li class="cart_admin has_subnav"><?php echo HTML::anchor(Route::get('cl4admin')->uri(), __('Shopping Cart') . '<span class="more"></span>'); ?>
+				<li class="cart_admin has_subnav"><?php echo HTML::anchor(Route::get('cart_admin')->uri(), __('Shopping Cart') . '<span class="more"></span>'); ?>
 					<ul class="sub_nav">
 						<?php /*<li class="cart_admin_index"><?php echo HTML::anchor(Route::get('cart_admin')->uri(), __('Main')); ?></li>*/ ?>
 						<li class="cart_admin_order"><?php echo HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order')), __('Orders')); ?></li>
