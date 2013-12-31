@@ -4,6 +4,7 @@
 			<ul class="left">
 				<li class="home"><?php echo HTML::anchor('', __('Home')); ?></li>
 				<?php if ($logged_in) { ?>
+
 				<?php //if (Auth::instance()->allowed('cart_admin')) { ?>
 				<li class="cart_admin has_subnav"><?php echo HTML::anchor(Route::get('cart_admin')->uri(), __('Shopping Cart') . '<span class="more"></span>'); ?>
 					<ul class="sub_nav">
@@ -67,6 +68,6 @@
 	</div>
 
 	<div class="page_top">
-		<div class="page_top_logo"><a href="<?php echo URL::base(); ?>"><?php echo HTML::chars(SHORT_NAME . ' v' . APP_VERSION); if (isset($pageTitle) && trim($pageTitle) != '') echo ' - ' . HTML::chars($pageTitle); ?></a></div>
+		<div class="page_top_logo"><a href="<?php echo URL::base(); ?>"><?php echo HTML::chars(LONG_NAME); ?></a></div>
 	</div>
 </header>
