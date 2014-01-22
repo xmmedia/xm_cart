@@ -19,6 +19,28 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Cart Permissions
+--
+
+-- Note: these IDs are based on the template permission IDs
+
+INSERT INTO `permission` VALUES(31, 'cart/admin', 'Cart Admin', 'Allows the user to access the Shopping Cart Admin.');
+INSERT INTO `permission` VALUES(32, 'cart/admin/order', 'Cart Admin - Orders', 'Allows the user to access the Shopping Cart Orders.');
+INSERT INTO `permission` VALUES(33, 'cart/admin/shipping', 'Cart Admin - Shipping Rates', 'Allows the user to access the Shopping Cart Shipping Rates.');
+INSERT INTO `permission` VALUES(34, 'cart/admin/tax', 'Cart Admin - Taxes', 'Allows the user to access the Shopping Cart Taxes.');
+
+INSERT INTO `group_permission` VALUES(NULL, 1, 31);
+INSERT INTO `group_permission` VALUES(NULL, 1, 32);
+INSERT INTO `group_permission` VALUES(NULL, 1, 33);
+INSERT INTO `group_permission` VALUES(NULL, 1, 34);
+INSERT INTO `group_permission` VALUES(NULL, 2, 31);
+INSERT INTO `group_permission` VALUES(NULL, 2, 32);
+INSERT INTO `group_permission` VALUES(NULL, 2, 33);
+INSERT INTO `group_permission` VALUES(NULL, 2, 34);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `cart_additional_charge`
 --
 
