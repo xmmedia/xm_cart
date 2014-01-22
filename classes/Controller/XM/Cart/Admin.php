@@ -3,6 +3,18 @@
 class Controller_XM_Cart_Admin extends Controller_Private {
 	public $page = 'cart_admin';
 
+	public $secure_actions = array(
+		'index' => 'cart/admin',
+		'order' => 'cart/admin/order',
+		'order_view' => 'cart/admin/order',
+		'shipping' => 'cart/admin/shipping',
+		'shipping_edit' => 'cart/admin/shipping',
+		'shipping_delete' => 'cart/admin/shipping',
+		'tax' => 'cart/admin/tax',
+		'tax_edit' => 'cart/admin/tax',
+		'tax_delete' => 'cart/admin/tax',
+	);
+
 	public function before() {
 		parent::before();
 
