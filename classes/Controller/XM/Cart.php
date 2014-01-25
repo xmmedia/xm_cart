@@ -3,7 +3,7 @@
 class Controller_XM_Cart extends Controller_Public {
 	public $no_auto_render_actions = array(
 		// other actions
-		'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty', 'set_shipping_country', 'set_shipping_state',
+		'load_summary', 'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty', 'set_shipping_country', 'set_shipping_state',
 		// checkout actions
 		'save_shipping', 'save_billing', 'validate_payment', 'save_final', 'complete_order',
 	);
@@ -29,6 +29,26 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 	}
 
+	public function action_load_summary() {
+		$product_count = 0;
+		$total = 0;
+		$total_formatted = '$0.00';
+
+		$order = Cart::retrieve_user_order();
+
+		if ( ! empty($order) && is_object($order)) {
+			$product_count = count($order->cart_order_product->find_all());
+			$total = $order->grand_total;
+			$total_formatted = Cart::cf($order->grand_total);
+		}
+
+		AJAX_Status::echo_json(AJAX_Status::ajax(array(
+			'product_count' => $product_count,
+			'total' => $total,
+			'total_formatted' => $total_formatted,
+		)));
+	}
+
 	public function action_load_cart() {
 		$order_product_array = array();
 		$show_location_select = FALSE;
@@ -41,7 +61,6 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! empty($order) && is_object($order)) {
 			$order_products = $order->cart_order_product->find_all();
 
-			$order_product_array = array();
 			$deleted_product = FALSE;
 			foreach ($order_products as $order_product) {
 				if ( ! $order_product->cart_product->loaded()) {
@@ -68,7 +87,7 @@ class Controller_XM_Cart extends Controller_Public {
 				$order->calculate_totals();
 			}
 
-			// either shipping or tax functionality needs to be enabled to show the locaiton select
+			// either shipping or tax functionality needs to be enabled to show the location select
 			if ($this->enable_shipping || $this->enable_tax) {
 				if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
 					$show_location_select = TRUE;
