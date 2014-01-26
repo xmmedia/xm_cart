@@ -21,7 +21,7 @@
 		<?php } else { ?>
 			<strong>Billing Information</strong><br>
 			<em>Same as shipping</em>
-		<?php } // if ?>
+		<?php } ?>
 	</div>
 	<div class="col-1-3 cart">
 		Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?><br><br>
@@ -36,6 +36,6 @@
 		<?php if ( ! empty($order->order_note)) { ?>
 		<p><strong>Notes</strong>
 			<br><?php echo nl2br(HTML::chars($order->order_note)); ?></p>
-		<?php } // if ?>
+		<?php } ?>
 	</div>
 </div>

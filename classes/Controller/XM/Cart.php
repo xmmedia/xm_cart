@@ -75,6 +75,7 @@ class Controller_XM_Cart extends Controller_Public {
 					'id' => $order_product->id,
 					'cart_product_id' => $order_product->cart_product_id,
 					'name' => $order_product->cart_product->name,
+					'description' => $order_product->cart_product->description,
 					'quantity' => $order_product->quantity,
 					'unit_price' => $order_product->unit_price,
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
