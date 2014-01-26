@@ -16,7 +16,7 @@ if ($enable_shipping) {
 				<strong>Shipping Address</strong><br>
 				<?php echo Cart::address_html($order->shipping_formatted()); ?>
 			</td>
-			<?php } // if ?>
+			<?php } ?>
 			<td valign="top" width="<?php echo $col_width; ?>">
 			<?php if ( ! $order->same_as_shipping_flag) { ?>
 				<strong><?php echo ($donation_cart ? '' : 'Billing '); ?>Contact</strong><br>
@@ -26,7 +26,7 @@ if ($enable_shipping) {
 			<?php } else { ?>
 				<strong><?php echo ($donation_cart ? '' : 'Billing '); ?>Information</strong><br>
 				<em>Same as shipping</em>
-			<?php } // if ?>
+			<?php } ?>
 			</td>
 			<td valign="top" width="<?php echo $col_width; ?>">Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?><br><br>
 				<?php echo HTML::chars(Cart::message('email.order_info.order_num' . ($donation_cart ? '_donation' : ''))), ' ', HTML::chars($order->order_num); ?></td>
@@ -37,4 +37,4 @@ if ($enable_shipping) {
 <?php if ( ! empty($order->order_note)) { ?>
 <p><strong>Notes</strong>
 	<br><?php echo nl2br(HTML::chars($order->order_note)); ?></p>
-<?php } // if ?>
+<?php } ?>

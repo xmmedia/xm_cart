@@ -12,7 +12,12 @@
 		foreach ($order_product_array as $order_product) {
 			?>
 			<tr>
-				<td class="col_name"><?php echo HTML::chars($order_product->cart_product->name); ?></td>
+				<td class="col_name">
+					<?php echo HTML::chars($order_product->cart_product->name); ?>
+					<?php if ( ! empty($order_product->cart_product->description)) { ?>
+					<div class="product_description"><?php echo HTML::chars($order_product->cart_product->description); ?></div>
+					<?php } ?>
+				</td>
 				<td class="col_quantity"><?php echo (int) $order_product->quantity; ?></td>
 				<td class="col_unit_price"><?php echo HTML::chars(Cart::cf($order_product->unit_price)); ?></td>
 				<td class="col_amount"><?php echo HTML::chars(Cart::cf($order_product->amount())); ?></td>
