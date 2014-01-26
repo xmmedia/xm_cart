@@ -729,9 +729,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$order->set_status(CART_ORDER_STATUS_PAID)
 				->add_log('paid', $charge->__toArray(TRUE));
 
-			// send emails
-			Cart::send_customer_order_email($order, $order_payment);
-			Cart::send_admin_order_email($order, $order_payment);
+			// sends emails and any additional processing
+			Cart::complete_order($order, $order_payment);
 
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 
