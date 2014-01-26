@@ -147,6 +147,23 @@ class XM_Cart {
 		return in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED), TRUE);
 	}
 
+	/**
+	 * Runs when an order is completed.
+	 * By default sends emails to the customer and admin.
+	 *
+	 * @param   Model_Cart_Order  $order  The order that was completed.
+	 * @param   Model_Cart_Order_Payment  $order_payment  The order payment model that completed the order.
+	 *
+	 * @return  void
+	 */
+	public static function complete_order($order, $order_payment) {
+		// send emails
+		Cart::send_customer_order_email($order, $order_payment);
+		Cart::send_admin_order_email($order, $order_payment);
+
+		return;
+	}
+
 	public static function send_customer_order_email($order, $order_payment) {
 		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
 		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
