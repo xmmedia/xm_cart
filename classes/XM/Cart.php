@@ -200,8 +200,11 @@ class XM_Cart {
 				->bind('enable_tax', $enable_tax)
 				->bind('donation_cart', $donation_cart);
 
-			$mail->Subject = Cart::message('email.customer_order.subject' . ($donation_cart ? '_donation' : ''), array(':order_num' => $order->order_num));
+			$subject_title_data = Cart::prefix_message_data($order->as_array());
+
+			$mail->Subject = Cart::message('email.customer_order.subject' . ($donation_cart ? '_donation' : ''), $subject_title_data);
 			$mail->Body = View::factory('cart/email/template')
+				->set('title', Cart::message('email.customer_order.email_title' . ($donation_cart ? '_donation' : ''), $subject_title_data))
 				->bind('body_html', $email_body_html);
 			$mail->Send();
 		}
@@ -236,13 +239,43 @@ class XM_Cart {
 			->bind('enable_tax', $enable_tax)
 			->bind('donation_cart', $donation_cart);
 
-		$mail->Subject = Cart::message('email.admin_order.subject' . ($donation_cart ? '_donation' : ''), array(':order_num' => $order->order_num));
+		$subject_title_data = Cart::prefix_message_data($order->as_array());
+
+		$mail->Subject = Cart::message('email.admin_order.subject' . ($donation_cart ? '_donation' : ''), $subject_title_data);
 		$mail->Body = View::factory('cart/email/template')
+			->set('title', Cart::message('email.admin_order.email_title' . ($donation_cart ? '_donation' : ''), $subject_title_data))
 			->bind('body_html', $email_body_html);
 		$mail->Send();
 	}
 
+	/**
+	 * Returns a translated Kohana message from within the xm_cart message file.
+	 * Essentially a shortcut.
+	 *
+	 * @param   string  $path    The path to the message inside the xm_cart message file.
+	 * @param   array   $params  The merge parameters.
+	 *
+	 * @return  string
+	 */
 	public static function message($path, array $params = array()) {
 		return __(Kohana::message('xm_cart', $path), $params);
+	}
+
+	/**
+	 * Adds a colon infront of each key so it can be used within messages.
+	 * Useful when attempting to send an entire object to Message.
+	 *
+	 * @param   array  $data  The array to prefix.
+	 *
+	 * @return  array
+	 */
+	protected static function prefix_message_data(array $data) {
+		$_data = array();
+
+		foreach ($data as $key => $value) {
+			$_data[':' . $key] = $value;
+		}
+
+		return $_data;
 	}
 }

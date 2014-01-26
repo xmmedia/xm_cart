@@ -43,10 +43,12 @@ return array(
 			'subject_donation' => 'Your donation to :company',
 			'thank_you' => 'Thank you for your order. We have received your order and are currently processing it. Below are the details of your order.',
 			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. You will receive a tax deductable donation receipt at the end of the year.',
+			'email_title' => 'Your order from :company',
 		),
 		'admin_order' => array(
 			'subject' => 'Order Received - :order_num',
 			'subject_donation' => 'Donation Received - :order_num',
+			'email_title' => 'Order Received - :order_num',
 		),
 	),
 );
