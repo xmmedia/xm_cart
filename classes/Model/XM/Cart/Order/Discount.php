@@ -53,7 +53,7 @@ class Model_XM_Cart_Order_Discount extends Cart_ORM {
 				'source' => array(
 					'source' => 'model',
 					'data' => 'Cart_Order',
-					'label' => 'invoice',
+					'label' => 'order_num',
 				),
 			),
 		),

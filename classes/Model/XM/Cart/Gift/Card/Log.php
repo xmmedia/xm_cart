@@ -57,6 +57,7 @@ class Model_XM_Cart_Gift_Card_Log extends Cart_ORM {
 				'source' => array(
 					'source' => 'model',
 					'data' => 'Cart_Order',
+					'label' => 'order_num',
 				),
 			),
 		),
