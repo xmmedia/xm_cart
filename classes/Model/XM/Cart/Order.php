@@ -707,6 +707,15 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		if ( ! Kohana::$config->load('xm_cart.show_billing_company')) {
 			$this->_table_columns['billing_company']['edit_flag'] = FALSE;
 		}
+
+		if ( ! Kohana::$config->load('xm_cart.show_phone_country_codes')) {
+			$this->_table_columns['shipping_phone']['field_options']['show_country_code'] = FALSE;
+			$this->_table_columns['billing_phone']['field_options']['show_country_code'] = FALSE;
+		}
+		if ( ! Kohana::$config->load('xm_cart.show_phone_extensions')) {
+			$this->_table_columns['shipping_phone']['field_options']['show_extension'] = FALSE;
+			$this->_table_columns['billing_phone']['field_options']['show_extension'] = FALSE;
+		}
 	}
 
 	/**
