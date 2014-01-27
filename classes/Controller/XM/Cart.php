@@ -450,6 +450,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect($this->continue_shopping_url);
 		}
 
+		$show_billing_company = (bool) Kohana::$config->load('xm_cart.show_billing_company');
+
 		$cart_view = ($this->donation_cart ? 'cart/cart_donation' : 'cart/cart');
 		$cart_html = View::factory($cart_view)
 			->bind('order_product_array', $order_product_array)
@@ -491,6 +493,7 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('continue_shopping_url', $this->continue_shopping_url)
 			->bind('enable_shipping', $this->enable_shipping)
+			->bind('show_billing_company', $show_billing_company)
 			->bind('enable_tax', $this->enable_tax)
 			->bind('donation_cart', $this->donation_cart)
 			->bind('card_testing_select', $card_testing_select)

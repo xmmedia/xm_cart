@@ -31,6 +31,9 @@ return array(
 	'donation_minimum' => 25,
 	'donation_maximum' => 10000,
 
+	// enables/disables the company field on the billing information
+	'show_billing_company' => TRUE,
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(
