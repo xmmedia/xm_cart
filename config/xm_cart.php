@@ -34,6 +34,11 @@ return array(
 	// enables/disables the company field on the billing information
 	'show_billing_company' => TRUE,
 
+	// by default, hide the phone country codes (both shipping & billing)
+	'show_phone_country_codes' => FALSE,
+	// by default, show the phone extensions (both shipping & billing)
+	'show_phone_extensions' => TRUE,
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(
