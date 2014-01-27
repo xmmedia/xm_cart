@@ -86,10 +86,10 @@ class Model_XM_Cart_Order_Discount extends Cart_ORM {
 		),
 		'data' => array(
 			'field_type' => 'TextArea',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
+			// 'list_flag' => TRUE,
+			// 'edit_flag' => TRUE,
+			// 'search_flag' => TRUE,
+			// 'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
