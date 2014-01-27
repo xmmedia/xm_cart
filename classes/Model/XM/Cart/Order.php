@@ -696,6 +696,9 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		'order_note',
 	);
 
+	protected $_sub_total = 0;
+	protected $_tax_total = 0;
+
 	protected function _initialize() {
 		parent::_initialize();
 
@@ -982,22 +985,13 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			->save();
 	}
 
-	public function calculate_totals() {
+	public function calculate_shipping() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
 
-		$sub_total = 0;
-		foreach ($this->cart_order_product->find_all() as $order_product) {
-			$sub_total += $order_product->unit_price * $order_product->quantity;
-		}
-
 		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
-		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
 
-		// ****************************************************************
-		// ****************************************************************
-		// Shipping
 		if ($enable_shipping) {
 			$possible_shipping_rates = array();
 			$shipping_total = 0;
@@ -1012,7 +1006,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 						switch ($reason['reason']) {
 							case 'flat_rate' :
 								$possible_shipping_rates[$shipping_rate->pk()]['model'] = $shipping_rate;
-								$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $sub_total);
+								$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $this->_sub_total);
 								break;
 						} // switch reasons
 					} // foreach reasons
@@ -1064,13 +1058,20 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				));
 			}
 
-			$shipping_total = $selected_shipping_rate['order_amount'];
-			$sub_total += $shipping_total;
+			if ( ! empty($selected_shipping_rate)) {
+				$shipping_total = $selected_shipping_rate['order_amount'];
+				$this->_sub_total += $shipping_total;
+			}
 		}
 
-		// ****************************************************************
-		// ****************************************************************
-		// Additional Charges
+		return $this;
+	}
+
+	public function calculate_additional_charges() {
+		if ( ! $this->loaded()) {
+			return $this;
+		}
+
 		$additional_charge_total = 0;
 		$additional_charges = ORM::factory('Cart_Additional_Charge')
 			->where_active_dates()
@@ -1078,6 +1079,17 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		$existing_additional_charges = $this->cart_order_additional_charge->find_all()
 			->as_array('cart_additional_charge_id');
 		foreach ($additional_charges as $additional_charge) {
+			// if it's a manual charge, we don't want to make any changes to the charge
+			// but we do want to include it's total in the total
+			if ($additional_charge->data['manual']) {
+				$cart_order_additional_charge = $existing_additional_charges[$additional_charge->pk()];
+				unset($existing_additional_charges[$additional_charge->pk()]);
+
+				$additional_charge_total += $cart_order_additional_charge->quantity * $cart_order_additional_charge->amount;
+
+				continue;
+			}
+
 			// if the charge already exists on the order, make sure it's up to date
 			// if it doesn't exist, add the charge
 			if (isset($existing_additional_charges[$additional_charge->pk()])) {
@@ -1093,12 +1105,13 @@ class Model_XM_Cart_Order extends Cart_ORM {
 					'cart_order_id' => $this->pk(),
 					'cart_additional_charge_id' => $additional_charge->pk(),
 					'display_name' => $additional_charge->display_name(),
-					'amount' => Cart::calc_method($additional_charge->calculation_method, $additional_charge->amount, $sub_total),
+					'quantity' => 1,
+					'amount' => Cart::calc_method($additional_charge->calculation_method, $additional_charge->amount, $this->_sub_total),
 					'data' => $additional_charge->data(),
 				))
 				->save();
 
-			$additional_charge_total += $cart_order_additional_charge->amount;
+			$additional_charge_total += $cart_order_additional_charge->quantity * $cart_order_additional_charge->amount;
 
 			if ($add_additional_charge) {
 				$this->add_log('add_additional_charge', array(
@@ -1117,12 +1130,19 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$cart_order_additional_charge->delete();
 		}
 
-		$sub_total += $additional_charge_total;
+		$this->_sub_total += $additional_charge_total;
 
-		// ****************************************************************
-		// ****************************************************************
-		// Tax
-		$tax_total = 0;
+		return $this;
+	}
+
+	public function calculate_taxes() {
+		if ( ! $this->loaded()) {
+			return $this;
+		}
+
+		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
+
+		$this->_tax_total = 0;
 		if ($enable_tax) {
 			$taxes = array();
 
@@ -1178,7 +1198,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 
 			$applied_taxes = array();
 			foreach ($taxes as $tax) {
-				$amount = Cart::calc_method($tax->calculation_method, $tax->amount, $sub_total);
+				$amount = Cart::calc_method($tax->calculation_method, $tax->amount, $this->_sub_total);
 
 				$applied_taxes[$tax->pk()] = array(
 					'cart_order_id' => $this->pk(),
@@ -1189,7 +1209,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 					'data' => $tax->data(),
 				);
 
-				$tax_total += $amount;
+				$this->_tax_total += $amount;
 			}
 
 			$existing_taxes = $this->cart_order_tax
@@ -1221,11 +1241,26 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				}
 			}
 		}
+	}
 
-		$grand_total = $sub_total + $tax_total; // plus tax + shipping + +++
+	public function calculate_totals() {
+		if ( ! $this->loaded()) {
+			return $this;
+		}
+
+		$this->_sub_total = 0;
+		foreach ($this->cart_order_product->find_all() as $order_product) {
+			$this->_sub_total += $order_product->unit_price * $order_product->quantity;
+		}
+
+		$this->calculate_shipping();
+		$this->calculate_additional_charges();
+		$this->calculate_taxes();
+
+		$grand_total = $this->_sub_total + $this->_tax_total;
 
 		return $this->values(array(
-				'sub_total' => $sub_total,
+				'sub_total' => $this->_sub_total,
 				'grand_total' => $grand_total,
 			))
 			->is_valid()

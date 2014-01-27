@@ -82,6 +82,18 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 				'maxlength' => 50,
 			),
 		),
+		'quantity' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 5,
+				'size' => 5,
+			),
+		),
 		'amount' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -128,6 +140,7 @@ class Model_XM_Cart_Order_Additional_Charge extends Cart_ORM {
 			'cart_order_id' => 'Cart Order',
 			'cart_additional_charge_id' => 'Cart Additional Charge',
 			'display_name' => 'Display Name',
+			'quantity' => 'Quantity',
 			'amount' => 'Amount',
 			'data' => 'Data',
 		);
