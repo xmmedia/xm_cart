@@ -124,6 +124,11 @@ class Controller_XM_Cart extends Controller_Public {
 			throw new Kohana_Exception('No cart_product_id was received');
 		}
 
+		// don't allow adding products with quantity 0
+		if ($quantity < 1) {
+			$quantity = 1;
+		}
+
 		// attempt to retrieve or create a new order
 		$order = Cart::retrieve_user_order(TRUE);
 
