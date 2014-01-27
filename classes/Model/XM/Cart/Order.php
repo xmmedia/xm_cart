@@ -703,6 +703,10 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		parent::_initialize();
 
 		$this->_table_columns['status']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.order_status_labels');
+
+		if ( ! Kohana::$config->load('xm_cart.show_billing_company')) {
+			$this->_table_columns['billing_company']['edit_flag'] = FALSE;
+		}
 	}
 
 	/**
@@ -742,7 +746,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'same_as_shipping_flag' => 'Same As Shipping',
 			'billing_first_name' => ( ! $this->user_labels ? 'Billing ' : '') . 'First Name',
 			'billing_last_name' => ( ! $this->user_labels ? 'Billing ' : '') . 'Last Name',
-			'billing_company' => ( ! $this->user_labels ? 'Billing ' : '') . 'Company',
+			'billing_company' => ( ! $this->user_labels ? 'Billing ' : '') . 'Company' . ($this->user_labels ? ' (optional)' : ''),
 			'billing_address_1' => ( ! $this->user_labels ? 'Billing ' : '') . 'Address Line 1',
 			'billing_address_2' => ( ! $this->user_labels ? 'Billing ' : '') . 'Address Line 2',
 			'billing_municipality' => ( ! $this->user_labels ? 'Billing ' : '') . 'City',

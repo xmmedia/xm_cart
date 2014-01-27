@@ -134,9 +134,11 @@
 						</div>
 
 						<p><strong>Billing Address</strong></p>
+						<?php if ($show_billing_company) { ?>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_company'); ?>
 						</div>
+						<?php } ?>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_address_1'); ?>
 						</div>
