@@ -29,7 +29,7 @@ return array(
 		'confirm_your_order' => 'Please confirm your order.',
 		'back_to_cart' => 'Back to Cart',
 		'empty_cart' => 'Empty Cart',
-		'notes_label' => 'Enter any messages you\'d like us to know when processing your order (optional).',
+		'notes_label' => 'Optional: Enter any messages you\'d like us to know when processing your order.',
 		'complete_order_button' => 'Complete My Order',
 		'review_order' => 'Please review your order before continuing.',
 	),
