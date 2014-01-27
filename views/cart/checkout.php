@@ -42,11 +42,10 @@
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
 
+				<p><strong>Shipping Contact</strong></p>
 				<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
 				<p><a href="" class="js_cart_add_shipping_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
 				<?php } ?>
-
-				<p><strong>Shipping Contact</strong></p>
 				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_shipping')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_shipping')); ?>
 				<div class="cart_field">
 					<?php echo $order->get_field_layout('shipping_first_name'); ?>
@@ -111,14 +110,15 @@
 					<div class="js_cart_checkout_box_messages"></div>
 					<?php if ($enable_shipping) { ?>
 					<p><a href="" class="js_cart_checkout_copy_shipping">Copy shipping contact &amp; address</a></p>
-					<?php } else if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
-					<p><a href="" class="js_cart_add_billing_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
 					<?php } ?>
 
 					<div class="cart_billing_address">
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_billing')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_billing')),
 							$order->get_field('same_as_shipping_flag'); ?>
 						<p><strong>Billing Contact</strong></p>
+						<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
+						<p><a href="" class="js_cart_add_billing_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+						<?php } ?>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_first_name'); ?>
 						</div>
