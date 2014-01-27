@@ -473,6 +473,10 @@ class Controller_XM_Cart extends Controller_Public {
 			$expiry_date_years[$y] = $y;
 		}
 
+		if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) {
+			$card_testing_select = Form::select('card_testing', Cart_Testing::card_testing_options(), NULL, array('class' => 'js_cart_add_credit_card_test_values'), array('add_values' => array('' => '-- Select Testing Value --')));
+		}
+
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
 		$this->template->body_html = View::factory('cart/checkout')
 			->bind('order', $order)
@@ -484,6 +488,7 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('enable_shipping', $this->enable_shipping)
 			->bind('enable_tax', $this->enable_tax)
 			->bind('donation_cart', $this->donation_cart)
+			->bind('card_testing_select', $card_testing_select)
 			// used in the cart config view
 			->set('countries', Cart::countries());
 	} // function action_checkout

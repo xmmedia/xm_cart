@@ -163,7 +163,7 @@
 						<p><strong>Payment Method</strong></p>
 
 						<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
-						<p><a href="" class="js_cart_add_credit_card_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+						<p><?php echo $card_testing_select; ?></p>
 						<?php } ?>
 
 						<div class="cart_field">
