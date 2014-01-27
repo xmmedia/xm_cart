@@ -17,6 +17,7 @@
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_left">
 						<?php echo HTML::anchor($continue_shopping_url, HTML::chars(Cart::message('checkout.back_to_cart'))); ?>
+						<?php echo HTML::anchor(Route::get('cart_public')->uri(array('action' => 'cart_empty')), HTML::chars(Cart::message('checkout.empty_cart'))); ?>
 					</div>
 					<div class="cart_checkout_box_actions_right">
 						<?php echo Form::input_button(NULL, 'Continue', array('class' => 'js_cart_checkout_continue')); ?>

@@ -293,7 +293,12 @@ class Controller_XM_Cart extends Controller_Public {
 			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 		}
 
-		AJAX_Status::echo_json(AJAX_Status::success());
+		$is_ajax = (bool) Arr::get($_REQUEST, 'c_ajax', FALSE);
+		if ($is_ajax) {
+			AJAX_Status::echo_json(AJAX_Status::success());
+		} else {
+			$this->redirect($this->continue_shopping_url);
+		}
 	}
 
 	public function action_set_shipping_country() {
