@@ -197,6 +197,7 @@ CREATE TABLE `cart_order_additional_charge` (
   `cart_order_id` int(10) unsigned NOT NULL,
   `cart_additional_charge_id` int(10) unsigned NOT NULL,
   `display_name` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `quantity` smallint(5) unsigned NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `data` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),

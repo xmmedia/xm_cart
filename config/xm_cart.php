@@ -139,5 +139,6 @@ return array(
 		'remove_tax' => 'Remove Tax',
 		'add_additional_charge' => 'Add Additional Charge',
 		'remove_additional_charge' => 'Remove Additional Charge',
+		'update_additional_charge' => 'Update Additional Charge',
 	),
 );

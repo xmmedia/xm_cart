@@ -61,8 +61,8 @@ class XM_Cart {
 		foreach ($order->cart_order_additional_charge->find_all() as $additional_charge) {
 			$total_rows[] = array(
 				'name' => $additional_charge->display_name,
-				'value' => $additional_charge->amount,
-				'value_formatted' => Cart::cf($additional_charge->amount),
+				'value' => ($additional_charge->quantity * $additional_charge->amount),
+				'value_formatted' => Cart::cf($additional_charge->quantity * $additional_charge->amount),
 			);
 		}
 
