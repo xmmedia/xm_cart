@@ -8,18 +8,8 @@ class Controller_XM_Cart extends Controller_Public {
 		'save_shipping', 'save_billing', 'validate_payment', 'save_final', 'complete_order',
 	);
 
-	protected $continue_shopping_url;
-	protected $enable_shipping;
-	protected $enable_tax;
-	protected $donation_cart;
-
 	public function before() {
 		parent::before();
-
-		$this->continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
-		$this->enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
-		$this->enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
-		$this->donation_cart = (bool) Kohana::$config->load('xm_cart.donation_cart');
 
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
@@ -89,14 +79,14 @@ class Controller_XM_Cart extends Controller_Public {
 			}
 
 			// either shipping or tax functionality needs to be enabled to show the location select
-			if ($this->enable_shipping || $this->enable_tax) {
+			if (Cart_Config::enable_shipping() || Cart_Config::enable_tax()) {
 				if (empty($order->shipping_country_id) && Model_Cart_Tax::show_country_select()) {
 					$show_location_select = TRUE;
 				} else if ( ! empty($order->shipping_country_id) && empty($order->shipping_state_id) && Model_Cart_Tax::show_state_select($order->shipping_country_id)) {
 					$show_location_select = TRUE;
 				}
 			}
-			if ( ! $show_location_select && $this->enable_shipping) {
+			if ( ! $show_location_select && Cart_Config::enable_shipping()) {
 				$shipping_country = $order->shipping_country->name;
 				$shipping_state = $order->shipping_state_select->name;
 			}
@@ -209,7 +199,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_change_quantity() {
-		if ($this->donation_cart) {
+		if (Cart_Config::donation_cart()) {
 			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
@@ -297,12 +287,12 @@ class Controller_XM_Cart extends Controller_Public {
 		if ($is_ajax) {
 			AJAX_Status::echo_json(AJAX_Status::success());
 		} else {
-			$this->redirect($this->continue_shopping_url);
+			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 	}
 
 	public function action_set_shipping_country() {
-		if ( ! $this->enable_shipping) {
+		if ( ! Cart_Config::enable_shipping()) {
 			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
@@ -375,7 +365,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_set_shipping_state() {
-		if ( ! $this->enable_shipping) {
+		if ( ! Cart_Config::enable_shipping()) {
 			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
@@ -419,12 +409,12 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = Cart::retrieve_user_order();
 		if ( ! is_object($order) || ! $order->loaded()) {
 			Message::add(Cart::message('empty_cart'), Message::$notice);
-			$this->redirect($this->continue_shopping_url);
+			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
 		if ( ! Cart::allow_order_edit($order)) {
 			Message::add(Cart::message('checkout_already_processing'), Message::$error);
-			$this->redirect($this->continue_shopping_url);
+			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
 		$order->calculate_totals()
@@ -447,12 +437,12 @@ class Controller_XM_Cart extends Controller_Public {
 
 		if (empty($order_product_array)) {
 			Message::add(Cart::message('empty_cart'), Message::$notice);
-			$this->redirect($this->continue_shopping_url);
+			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
 		$show_billing_company = (bool) Kohana::$config->load('xm_cart.show_billing_company');
 
-		$cart_view = ($this->donation_cart ? 'cart/cart_donation' : 'cart/cart');
+		$cart_view = (Cart_Config::donation_cart() ? 'cart/cart_donation' : 'cart/cart');
 		$cart_html = View::factory($cart_view)
 			->bind('order_product_array', $order_product_array)
 			// the total rows are sent through JSON and rendered in JS
@@ -491,18 +481,18 @@ class Controller_XM_Cart extends Controller_Public {
 			->set('total_rows', Cart::total_rows($order))
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
-			->set('continue_shopping_url', $this->continue_shopping_url)
-			->bind('enable_shipping', $this->enable_shipping)
+			->set('continue_shopping_url', Cart_Config::continue_shopping_url())
+			->set('enable_shipping', Cart_Config::enable_shipping())
 			->bind('show_billing_company', $show_billing_company)
-			->bind('enable_tax', $this->enable_tax)
-			->bind('donation_cart', $this->donation_cart)
+			->set('enable_tax', Cart_Config::enable_tax())
+			->set('donation_cart', Cart_Config::donation_cart())
 			->bind('card_testing_select', $card_testing_select)
 			// used in the cart config view
 			->set('countries', Cart::countries());
 	} // function action_checkout
 
 	public function action_save_shipping() {
-		if ( ! $this->enable_shipping) {
+		if ( ! Cart_Config::enable_shipping()) {
 			AJAX_Status::echo_json(AJAX_Status::success());
 			return;
 		}
@@ -895,14 +885,14 @@ class Controller_XM_Cart extends Controller_Public {
 
 	public function action_completed() {
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
-		$this->template->body_html = View::factory(($this->donation_cart ? 'cart/completed_donation' : 'cart/completed'));
+		$this->template->body_html = View::factory((Cart_Config::donation_cart() ? 'cart/completed_donation' : 'cart/completed'));
 	}
 
 	public function action_payment_failed() {
 		$order_id = Session::instance()->path('xm_cart.cart_order_id');
 		if (empty($order_id)) {
 			Message::add(Cart::message('empty_cart'), Message::$notice);
-			$this->redirect($this->continue_shopping_url);
+			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
 		$order = ORM::factory('Cart_Order', $order_id);
@@ -915,11 +905,11 @@ class Controller_XM_Cart extends Controller_Public {
 		if ((int) $order->status != CART_ORDER_STATUS_PAYMENT) {
 			if (in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED, TRUE))) {
 				Message::add(Cart::message('please_checkout'), Message::$warning);
-				$this->redirect($this->continue_shopping_url);
+				$this->redirect(Cart_Config::continue_shopping_url());
 			} else {
 				Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 				Message::add(Cart::message('already_completed'), Message::$warning);
-				$this->redirect($this->continue_shopping_url);
+				$this->redirect(Cart_Config::continue_shopping_url());
 			}
 		}
 
@@ -932,7 +922,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add(Cart::message('empty_cart'), Message::$notice);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
+				'redirect' => Cart_Config::continue_shopping_url(),
 			)));
 			return;
 		}
@@ -941,7 +931,7 @@ class Controller_XM_Cart extends Controller_Public {
 			Message::add(Cart::message('already_processing'), Message::$error);
 			AJAX_Status::echo_json(AJAX_Status::ajax(array(
 				'status' => AJAX_Status::VALIDATION_ERROR,
-				'redirect' => $this->continue_shopping_url,
+				'redirect' => Cart_Config::continue_shopping_url(),
 			)));
 			return;
 		}

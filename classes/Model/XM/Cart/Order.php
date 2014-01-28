@@ -1003,9 +1003,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			return $this;
 		}
 
-		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
-
-		if ($enable_shipping) {
+		if (Cart_Config::enable_shipping()) {
 			$possible_shipping_rates = array();
 			$shipping_total = 0;
 
@@ -1153,10 +1151,8 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			return $this;
 		}
 
-		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
-
 		$this->_tax_total = 0;
-		if ($enable_tax) {
+		if (Cart_Config::enable_tax()) {
 			$taxes = array();
 
 			// get the taxes that apply to all loctions/all orders

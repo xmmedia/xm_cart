@@ -18,9 +18,6 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	public function before() {
 		parent::before();
 
-		$this->enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
-		$this->enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
-
 		$this->page_title_append = 'Cart Admin - ' . $this->page_title_append;
 
 		if ($this->auto_render) {
@@ -164,7 +161,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_shipping() {
-		if ( ! $this->enable_shipping) {
+		if ( ! Cart_Config::enable_shipping()) {
 			Message::add('Shipping is not enabled on your cart.', Message::$error);
 			$this->redirect($this->order_uri());
 		}
@@ -212,7 +209,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_shipping_edit() {
-		if ( ! $this->enable_shipping) {
+		if ( ! Cart_Config::enable_shipping()) {
 			Message::add('Shipping is not enabled on your cart.', Message::$error);
 			$this->redirect($this->order_uri());
 		}
@@ -257,7 +254,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_shipping_delete() {
-		if ( ! $this->enable_shipping) {
+		if ( ! Cart_Config::enable_shipping()) {
 			Message::add('Shipping is not enabled on your cart.', Message::$error);
 			$this->redirect($this->order_uri());
 		}
@@ -277,7 +274,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 
 	public function action_tax() {
-		if ( ! $this->enable_tax) {
+		if ( ! Cart_Config::enable_tax()) {
 			Message::add('Taxes are not enabled on your cart.', Message::$error);
 			$this->redirect($this->order_uri());
 		}
@@ -315,7 +312,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_tax_edit() {
-		if ( ! $this->enable_tax) {
+		if ( ! Cart_Config::enable_tax()) {
 			Message::add('Taxes are not enabled on your cart.', Message::$error);
 			$this->redirect($this->order_uri());
 		}
@@ -354,7 +351,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_tax_delete() {
-		if ( ! $this->enable_tax) {
+		if ( ! Cart_Config::enable_tax()) {
 			Message::add('Taxes are not enabled on your cart.', Message::$error);
 			$this->redirect($this->order_uri());
 		}
