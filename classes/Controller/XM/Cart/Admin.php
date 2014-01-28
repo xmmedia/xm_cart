@@ -18,6 +18,9 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	public function before() {
 		parent::before();
 
+		$this->enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
+		$this->enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
+
 		$this->page_title_append = 'Cart Admin - ' . $this->page_title_append;
 
 		if ($this->auto_render) {
@@ -161,6 +164,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_shipping() {
+		if ( ! $this->enable_shipping) {
+			Message::add('Shipping is not enabled on your cart.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
 		$shipping_rates = ORM::factory('Cart_Shipping')
 			->where_active_dates()
 			->find_all();
@@ -204,6 +212,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_shipping_edit() {
+		if ( ! $this->enable_shipping) {
+			Message::add('Shipping is not enabled on your cart.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
 		$add = (bool) $this->request->query('add');
 		if ($add) {
 			$shipping_rate = ORM::factory('Cart_Shipping');
@@ -244,6 +257,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_shipping_delete() {
+		if ( ! $this->enable_shipping) {
+			Message::add('Shipping is not enabled on your cart.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
 		$shipping_rate = ORM::factory('Cart_Shipping', (int) $this->request->param('id'));
 		if ( ! $shipping_rate->loaded()) {
 			Message::add('The shipping rate could not be found.', Message::$error);
@@ -259,6 +277,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 
 
 	public function action_tax() {
+		if ( ! $this->enable_tax) {
+			Message::add('Taxes are not enabled on your cart.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
 		$taxes = ORM::factory('Cart_Tax')
 			->where_active_dates()
 			->find_all();
@@ -292,6 +315,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_tax_edit() {
+		if ( ! $this->enable_tax) {
+			Message::add('Taxes are not enabled on your cart.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
 		$add = (bool) $this->request->query('add');
 		if ($add) {
 			$tax = ORM::factory('Cart_Tax');
@@ -326,6 +354,11 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	public function action_tax_delete() {
+		if ( ! $this->enable_tax) {
+			Message::add('Taxes are not enabled on your cart.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
 		$tax = ORM::factory('Cart_Tax', (int) $this->request->param('id'));
 		if ( ! $tax->loaded()) {
 			Message::add('The tax could not be found.', Message::$error);
