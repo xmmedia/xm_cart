@@ -165,10 +165,7 @@ class XM_Cart {
 	}
 
 	public static function send_customer_order_email($order, $order_payment) {
-		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
-		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
-		$donation_cart = (bool) Kohana::$config->load('xm_cart.donation_cart');
-		$email_cart_view = ($donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
+		$email_cart_view = (Cart_Config::donation_cart() ? 'cart/email/cart_donation' : 'cart/email/cart');
 
 		$order_products = $order->cart_order_product->find_all()->as_array();
 		$total_rows = Cart::total_rows($order);
@@ -181,11 +178,11 @@ class XM_Cart {
 		$mail->IsHTML(TRUE);
 
 		$have_customer_email = FALSE;
-		if ($enable_shipping &&  ! empty($order->shipping_email) && Valid::email($order->shipping_email)) {
+		if (Cart_Config::enable_shipping() &&  ! empty($order->shipping_email) && Valid::email($order->shipping_email)) {
 			$mail->AddAddress($order->shipping_email, $order->shipping_first_name . ' ' . $order->shipping_last_name);
 			$have_customer_email = TRUE;
 		}
-		if (( ! $enable_shipping || UTF8::strtolower($order->shipping_email) != UTF8::strtolower($order->billing_email)) && ! empty($order->billing_email) && Valid::email($order->billing_email)) {
+		if (( ! Cart_Config::enable_shipping() || UTF8::strtolower($order->shipping_email) != UTF8::strtolower($order->billing_email)) && ! empty($order->billing_email) && Valid::email($order->billing_email)) {
 			$mail->AddAddress($order->billing_email, $order->billing_first_name . ' ' . $order->billing_last_name);
 			$have_customer_email = TRUE;
 		}
@@ -196,25 +193,22 @@ class XM_Cart {
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with)
 				->bind('cart_view', $email_cart_view)
-				->bind('enable_shipping', $enable_shipping)
-				->bind('enable_tax', $enable_tax)
-				->bind('donation_cart', $donation_cart);
+				->set('enable_shipping', Cart_Config::enable_shipping())
+				->set('enable_tax', Cart_Config::enable_tax())
+				->set('donation_cart', Cart_Config::donation_cart());
 
 			$subject_title_data = Cart::prefix_message_data($order->as_array());
 
-			$mail->Subject = Cart::message('email.customer_order.subject' . ($donation_cart ? '_donation' : ''), $subject_title_data);
+			$mail->Subject = Cart::message('email.customer_order.subject' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data);
 			$mail->Body = View::factory('cart/email/template')
-				->set('title', Cart::message('email.customer_order.email_title' . ($donation_cart ? '_donation' : ''), $subject_title_data))
+				->set('title', Cart::message('email.customer_order.email_title' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data))
 				->bind('body_html', $email_body_html);
 			$mail->Send();
 		}
 	}
 
 	public static function send_admin_order_email($order, $order_payment) {
-		$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
-		$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
-		$donation_cart = (bool) Kohana::$config->load('xm_cart.donation_cart');
-		$email_cart_view = ($donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
+		$email_cart_view = (Cart_Config::donation_cart() ? 'cart/email/cart_donation' : 'cart/email/cart');
 		$administrator_email = Kohana::$config->load('xm_cart.administrator_email');
 
 		$order_products = $order->cart_order_product->find_all()->as_array();
@@ -235,15 +229,15 @@ class XM_Cart {
 			->bind('total_rows', $total_rows)
 			->bind('paid_with', $paid_with)
 			->bind('cart_view', $email_cart_view)
-			->bind('enable_shipping', $enable_shipping)
-			->bind('enable_tax', $enable_tax)
-			->bind('donation_cart', $donation_cart);
+			->set('enable_shipping', Cart_Config::enable_shipping())
+			->set('enable_tax', Cart_Config::enable_tax())
+			->set('donation_cart', Cart_Config::donation_cart());
 
 		$subject_title_data = Cart::prefix_message_data($order->as_array());
 
-		$mail->Subject = Cart::message('email.admin_order.subject' . ($donation_cart ? '_donation' : ''), $subject_title_data);
+		$mail->Subject = Cart::message('email.admin_order.subject' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data);
 		$mail->Body = View::factory('cart/email/template')
-			->set('title', Cart::message('email.admin_order.email_title' . ($donation_cart ? '_donation' : ''), $subject_title_data))
+			->set('title', Cart::message('email.admin_order.email_title' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data))
 			->bind('body_html', $email_body_html);
 		$mail->Send();
 	}
