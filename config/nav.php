@@ -22,14 +22,14 @@ return array(
 						'Shipping Rates' => array(
 							'route' => 'cart_admin',
 							'params' => array('action' => 'shipping'),
-							'perm' => 'cart/admin/shipping',
+							'perm' => (Kohana::$config->load('xm_cart.enable_shipping') && Auth::instance()->allowed('cart/admin/shipping')),
 							'class' => 'cart_admin_shipping',
 							'order' => 200,
 						),
 						'Taxes' => array(
 							'route' => 'cart_admin',
 							'params' => array('action' => 'tax'),
-							'perm' => 'cart/admin/tax',
+							'perm' => (Kohana::$config->load('xm_cart.enable_shipping') && Auth::instance()->allowed('cart/admin/tax')),
 							'class' => 'cart_admin_tax',
 							'order' => 300,
 						),
