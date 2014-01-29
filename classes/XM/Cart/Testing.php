@@ -1,5 +1,13 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
+/**
+ *
+ *
+ * @package    XM Cart
+ * @category   Helpers
+ * @author     XM Media Inc.
+ * @copyright  (c) 2014 XM Media Inc.
+ */
 class XM_Cart_Testing {
 	/**
 	 * Generates the array for the select to quicken testing of different credit card numbers/statuses.
