@@ -4,6 +4,11 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 	public function before() {
 		parent::before();
 
+		// make sure donations are enabled before continuing
+		if ( ! Cart_Config::donation_cart()) {
+			throw new HTTP_Exception_404('Donations have not been enabled');
+		}
+
 		if ($this->auto_render) {
 			$this->add_style('cart_public', 'xm_cart/css/public.css')
 				// ->add_script('stripe_v2', 'https://js.stripe.com/v2/')
@@ -13,7 +18,17 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 	}
 
 	public function action_index() {
-		$this->template->body_html = View::factory('cart_donate/index');
+		$order = Cart::retrieve_user_order();
+		if (empty($order) || ! is_object($order)) {
+			unset($order);
+		} else {
+			$order_product_count = count($order->cart_product->find_all());
+			$order_has_other_products = ($order_product_count > 1 && Cart::has_donation_product($order));
+		}
+
+		$this->template->body_html = View::factory('cart_donate/index')
+			->bind('order', $order)
+			->bind('order_has_other_products', $order_has_other_products);
 	}
 
 	public function action_submit_donation() {
@@ -38,7 +53,15 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 			throw new Kohana_Exception('The donation product could not be found');
 		}
 
-		$order = Cart::retrieve_user_order(TRUE);
+		$order = Cart::retrieve_user_order(TRUE, array('donation_cart_flag' => 1));
+
+		// if there are other products in the cart, create a new empty cart
+		$order_product_count = count($order->cart_product->find_all());
+		$has_donation_product = Cart::has_donation_product($order);
+		if (( ! empty($order_product_count) && $has_donation_product) || ($order_product_count > 1 && $has_donation_product)) {
+			Cart::delete_order($order);
+			$order = Cart::retrieve_user_order(TRUE);
+		}
 
 		$order_product = ORM::factory('Cart_Order_Product', array(
 				'cart_order_id' => $order->pk(),

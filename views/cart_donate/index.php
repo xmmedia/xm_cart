@@ -1,5 +1,5 @@
 <div class="grid">
-	<div class="col-1-3">
+	<div class="col">
 		<h1>Donate Now</h1>
 
 		<div class="cart">
@@ -10,6 +10,10 @@
 					Form::input('donation', Kohana::$config->load('xm_cart.donation_minimum'), array('size' => 8, 'maxlength' => 8, 'class' => 'text_right', 'id' => 'donation')); ?></div>
 			<div class="cart_field"><?php echo Form::submit(NULL, 'Submit'); ?></div>
 			<?php echo Form::close(); ?>
+
+			<?php if (isset($order) && $order_has_other_products) { ?>
+			<p>Note: Starting a donation will remove all existing products from your cart.</p>
+			<?php } ?>
 		</div>
 	</div>
 </div>

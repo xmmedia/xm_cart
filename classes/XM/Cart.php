@@ -92,7 +92,18 @@ class XM_Cart {
 		return $total_rows;
 	}
 
-	public static function retrieve_user_order($create = FALSE) {
+	/**
+	 * Retrieves a users order based on the session order ID.
+	 * Will create an order if $create is TRUE.
+	 * The $new_order_defaults array will override the other default values set: user_id, country_id, and status.
+	 * Will return NULL if there is order and not creating an order.
+	 *
+	 * @param   boolean  $create              If TRUE, a new cart will be created.
+	 * @param   array    $new_order_defaults  Array of defaults to set on the order.
+	 *
+	 * @return  Model_Cart_Order
+	 */
+	public static function retrieve_user_order($create = FALSE, array $new_order_defaults = array()) {
 		$order_id = Session::instance()->path('xm_cart.cart_order_id');
 
 		// if there is an order in the session, attempt to retrieve it
@@ -130,6 +141,7 @@ class XM_Cart {
 					'country_id' => (int) Kohana::$config->load('xm_cart.default_country_id'),
 					'status' => CART_ORDER_STATUS_NEW,
 				))
+				->values($new_order_defaults)
 				->save()
 				->add_log('created');
 		}
@@ -141,7 +153,21 @@ class XM_Cart {
 		} else {
 			return NULL;
 		}
-	} // function retrieve_order
+	}
+
+	/**
+	 * Adds the log entry for "empty_cart", expires the cart and sets the key in the session to NULL;
+	 *
+	 * @param   Model_Cart_Order  $order  The order to delete.
+	 *
+	 * @return  void
+	 */
+	public static function delete_order($order) {
+		$order->add_log('empty_cart')
+			->delete();
+
+		Session::instance()->set_path('xm_cart.cart_order_id', NULL);
+	}
 
 	public static function allow_order_edit($order) {
 		return in_array((int) $order->status, array(CART_ORDER_STATUS_NEW, CART_ORDER_STATUS_SUBMITTED), TRUE);
@@ -165,7 +191,8 @@ class XM_Cart {
 	}
 
 	public static function send_customer_order_email($order, $order_payment) {
-		$email_cart_view = (Cart_Config::donation_cart() ? 'cart/email/cart_donation' : 'cart/email/cart');
+		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+		$email_cart_view = ($is_donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
 
 		$order_products = $order->cart_order_product->find_all()->as_array();
 		$total_rows = Cart::total_rows($order);
@@ -195,20 +222,21 @@ class XM_Cart {
 				->bind('cart_view', $email_cart_view)
 				->set('enable_shipping', Cart_Config::enable_shipping())
 				->set('enable_tax', Cart_Config::enable_tax())
-				->set('donation_cart', Cart_Config::donation_cart());
+				->set('donation_cart', $is_donation_cart);
 
 			$subject_title_data = Cart::prefix_message_data($order->as_array());
 
-			$mail->Subject = Cart::message('email.customer_order.subject' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data);
+			$mail->Subject = Cart::message('email.customer_order.subject' . ($is_donation_cart ? '_donation' : ''), $subject_title_data);
 			$mail->Body = View::factory('cart/email/template')
-				->set('title', Cart::message('email.customer_order.email_title' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data))
+				->set('title', Cart::message('email.customer_order.email_title' . ($is_donation_cart ? '_donation' : ''), $subject_title_data))
 				->bind('body_html', $email_body_html);
 			$mail->Send();
 		}
 	}
 
 	public static function send_admin_order_email($order, $order_payment) {
-		$email_cart_view = (Cart_Config::donation_cart() ? 'cart/email/cart_donation' : 'cart/email/cart');
+		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+		$email_cart_view = ($is_donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
 		$administrator_email = Kohana::$config->load('xm_cart.administrator_email');
 
 		$order_products = $order->cart_order_product->find_all()->as_array();
@@ -231,15 +259,30 @@ class XM_Cart {
 			->bind('cart_view', $email_cart_view)
 			->set('enable_shipping', Cart_Config::enable_shipping())
 			->set('enable_tax', Cart_Config::enable_tax())
-			->set('donation_cart', Cart_Config::donation_cart());
+			->set('donation_cart', $is_donation_cart);
 
 		$subject_title_data = Cart::prefix_message_data($order->as_array());
 
-		$mail->Subject = Cart::message('email.admin_order.subject' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data);
+		$mail->Subject = Cart::message('email.admin_order.subject' . ($is_donation_cart ? '_donation' : ''), $subject_title_data);
 		$mail->Body = View::factory('cart/email/template')
-			->set('title', Cart::message('email.admin_order.email_title' . (Cart_Config::donation_cart() ? '_donation' : ''), $subject_title_data))
+			->set('title', Cart::message('email.admin_order.email_title' . ($is_donation_cart ? '_donation' : ''), $subject_title_data))
 			->bind('body_html', $email_body_html);
 		$mail->Send();
+	}
+
+	public static function has_donation_product($order) {
+		if ( ! Cart_Config::donation_cart()) {
+			return FALSE;
+		}
+
+		$donation_order_product = $order->cart_order_product
+			->where('cart_product_id', '=', Cart_Config::load('donation_product_id'))
+			->find();
+		if ($donation_order_product->loaded()) {
+			return TRUE;
+		}
+
+		return FALSE;
 	}
 
 	/**
