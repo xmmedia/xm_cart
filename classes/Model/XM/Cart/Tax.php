@@ -185,11 +185,10 @@ class Model_XM_Cart_Tax extends Cart_ORM {
 		 * applies_to_shipping: if true, the tax will also be applied to shipping
 		 */
 		'data' => array(
-			'field_type' => 'TextArea',
-			// 'list_flag' => TRUE,
-			// 'edit_flag' => TRUE,
-			// 'search_flag' => TRUE,
-			// 'view_flag' => TRUE,
+			'field_type' => 'Serializable',
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
