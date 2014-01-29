@@ -8,12 +8,14 @@
 </div>
 
 <div class="grid">
+	<?php if (Cart_Config::enable_shipping()) { ?>
 	<div class="col-1-3 cart">
 		<strong>Shipping Address</strong><br>
 		<?php echo Cart::address_html($order->shipping_formatted()); ?>
 	</div>
+	<?php } ?>
 	<div class="col-1-3 cart">
-		<?php if ( ! $order->same_as_shipping_flag) { ?>
+		<?php if (Cart_Config::enable_shipping() && ! $order->same_as_shipping_flag) { ?>
 			<strong>Billing Contact</strong><br>
 			<?php echo Cart::address_html($order->billing_contact_formatted()); ?>
 			<strong>Billing Address</strong><br>
