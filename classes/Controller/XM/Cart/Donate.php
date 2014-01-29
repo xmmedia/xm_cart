@@ -26,6 +26,7 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 			$order_has_other_products = ($order_product_count > 1 && Cart::has_donation_product($order));
 		}
 
+		$this->template->page_title = 'Donate Now' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_donate/index')
 			->bind('order', $order)
 			->bind('order_has_other_products', $order_has_other_products);
