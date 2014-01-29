@@ -3,10 +3,10 @@
 /**
  * Model for `cart_additional_charge`.
  *
- * @package    XM
+ * @package    XM Cart
  * @category   Models
  * @author     XM Media Inc.
- * @copyright  (c) 2013 XM Media Inc.
+ * @copyright  (c) 2014 XM Media Inc.
  */
 class Model_XM_Cart_Additional_Charge extends Cart_ORM {
 	protected $_table_names_plural = FALSE;

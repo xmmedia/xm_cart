@@ -1,5 +1,13 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
+/**
+ *
+ *
+ * @package    XM Cart
+ * @category   Controllers
+ * @author     XM Media Inc.
+ * @copyright  (c) 2014 XM Media Inc.
+ */
 class Controller_XM_Cart extends Controller_Public {
 	public $no_auto_render_actions = array(
 		// other actions

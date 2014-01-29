@@ -1,5 +1,13 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
+/**
+ *
+ *
+ * @package    XM Cart
+ * @category   Helpers
+ * @author     XM Media Inc.
+ * @copyright  (c) 2014 XM Media Inc.
+ */
 class XM_Cart {
 	/**
 	 * Returns the formatted number, with currency symbole.

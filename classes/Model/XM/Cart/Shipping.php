@@ -30,10 +30,10 @@
  *     {"reasons":[{"reason":"shipping_location","locations":[{"country_id":40,"state_id":1},{"country_id":40,"state_id":7}]},{"reason":"order_total","min":100}]}
  *
  *
- * @package    XM
+ * @package    XM Cart
  * @category   Models
  * @author     XM Media Inc.
- * @copyright  (c) 2013 XM Media Inc.
+ * @copyright  (c) 2014 XM Media Inc.
  */
 class Model_XM_Cart_Shipping extends Cart_ORM {
 	protected $_table_names_plural = FALSE;

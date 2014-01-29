@@ -1,5 +1,13 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
 
+/**
+ *
+ *
+ * @package    XM Cart
+ * @category   Models
+ * @author     XM Media Inc.
+ * @copyright  (c) 2014 XM Media Inc.
+ */
 class XM_Cart_ORM extends ORM {
 	public function where_active_dates() {
 		return $this
