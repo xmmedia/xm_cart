@@ -109,11 +109,10 @@ class Model_XM_Cart_Order_Product extends Cart_ORM {
 			),
 		),
 		'data' => array(
-			'field_type' => 'TextArea',
-			// 'list_flag' => TRUE,
-			// 'edit_flag' => TRUE,
-			// 'search_flag' => TRUE,
-			// 'view_flag' => TRUE,
+			'field_type' => 'Serializable',
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
@@ -126,6 +125,8 @@ class Model_XM_Cart_Order_Product extends Cart_ORM {
 		'column' 	=> 'expiry_date',
 		'default'	=> 0,
 	);
+
+	protected $_serialize_columns = array('data');
 
 	/**
 	 * Labels for columns.

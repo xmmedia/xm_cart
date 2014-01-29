@@ -103,11 +103,10 @@ class Model_XM_Cart_Order_Shipping extends Cart_ORM {
 			'is_nullable' => FALSE,
 		),
 		'data' => array(
-			'field_type' => 'TextArea',
-			// 'list_flag' => TRUE,
-			// 'edit_flag' => TRUE,
-			// 'search_flag' => TRUE,
-			// 'view_flag' => TRUE,
+			'field_type' => 'Serializable',
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
 	);
