@@ -305,6 +305,14 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'class' => 'order_textarea',
 			),
 		),
+		'donation_cart_flag' => array(
+			'field_type' => 'Checkbox',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+		),
 		'user_address_loaded_flag' => array(
 			'field_type' => 'Checkbox',
 			'list_flag' => TRUE,
@@ -739,6 +747,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'status' => 'Status',
 			'po_number' => 'PO Number',
 			'order_note' => 'Notes',
+			'donation_cart_flag' => 'Donation Cart',
 			'user_address_loaded_flag' => 'User Address Loaded',
 			'shipping_first_name' => ( ! $this->user_labels ? 'Shipping ' : '') . 'First Name',
 			'shipping_last_name' => ( ! $this->user_labels ? 'Shipping ' : '') . 'Last Name',
@@ -1093,10 +1102,13 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			// if it's a manual charge, we don't want to make any changes to the charge
 			// but we do want to include it's total in the total
 			if ($additional_charge->data['manual']) {
-				$cart_order_additional_charge = $existing_additional_charges[$additional_charge->pk()];
-				unset($existing_additional_charges[$additional_charge->pk()]);
+				// because it's manual, it may not be on the cart
+				if (isset($existing_additional_charges[$additional_charge->pk()])) {
+					$cart_order_additional_charge = $existing_additional_charges[$additional_charge->pk()];
+					unset($existing_additional_charges[$additional_charge->pk()]);
 
-				$additional_charge_total += $cart_order_additional_charge->quantity * $cart_order_additional_charge->amount;
+					$additional_charge_total += $cart_order_additional_charge->quantity * $cart_order_additional_charge->amount;
+				}
 
 				continue;
 			}

@@ -21,6 +21,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 	public function action_load_summary() {
 		$product_count = 0;
+		$donation_cart = FALSE;
 		$total = 0;
 		$total_formatted = '$0.00';
 
@@ -30,10 +31,14 @@ class Controller_XM_Cart extends Controller_Public {
 			$product_count = count($order->cart_order_product->find_all());
 			$total = $order->grand_total;
 			$total_formatted = Cart::cf($order->grand_total);
+			$donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'product_count' => $product_count,
+			'order' => array(
+				'donation_cart' => $donation_cart,
+			),
 			'total' => $total,
 			'total_formatted' => $total_formatted,
 		)));
@@ -44,6 +49,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$show_location_select = FALSE;
 		$shipping_country = '';
 		$shipping_state = '';
+		$donation_cart = FALSE;
 		$total_rows = array();
 
 		$order = Cart::retrieve_user_order();
@@ -91,6 +97,8 @@ class Controller_XM_Cart extends Controller_Public {
 				$shipping_state = $order->shipping_state_select->name;
 			}
 
+			$donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+
 			$total_rows = Cart::total_rows($order);
 		}
 
@@ -100,6 +108,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'show_location_select' => (int) $show_location_select,
 				'shipping_country' => $shipping_country,
 				'shipping_state' => $shipping_state,
+				'donation_cart' => $donation_cart,
 			),
 			'total_rows' => $total_rows,
 		)));
@@ -121,6 +130,13 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// attempt to retrieve or create a new order
 		$order = Cart::retrieve_user_order(TRUE);
+
+		// if the order is a donation and the product being added is not
+		// then delete the order and create a new one
+		if ($order->donation_cart_flag && Cart_Config::load('donation_product_id') != $cart_product_id) {
+			Cart::delete_order($order);
+			$order = Cart::retrieve_user_order(TRUE);
+		}
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$order_product = ORM::factory('Cart_Order_Product', array(
@@ -199,11 +215,6 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_change_quantity() {
-		if (Cart_Config::donation_cart()) {
-			AJAX_Status::echo_json(AJAX_Status::success());
-			return;
-		}
-
 		// retrieve the values out of the model array
 		$cart_order_product_id = (int) $this->request->post('cart_order_product_id');
 		$quantity = (int) $this->request->post('quantity');
@@ -214,6 +225,13 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// attempt to retrieve or create a new order
 		$order = Cart::retrieve_user_order(TRUE);
+
+		// if donation carts have been enabled and this cart is a donation cart
+		// don't allow them to change the quantity (there is no quantity)
+		if (Cart_Config::donation_cart() && $order->donation_cart_flag) {
+			AJAX_Status::echo_json(AJAX_Status::success());
+			return;
+		}
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$order_product = ORM::factory('Cart_Order_Product', $cart_order_product_id);
@@ -278,9 +296,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = Cart::retrieve_user_order();
 
 		if (is_object($order) && $order->loaded()) {
-			$order->add_log('empty_cart')
-				->delete();
-			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
+			Cart::delete_order($order);
 		}
 
 		$is_ajax = (bool) Arr::get($_REQUEST, 'c_ajax', FALSE);
@@ -442,7 +458,9 @@ class Controller_XM_Cart extends Controller_Public {
 
 		$show_billing_company = (bool) Kohana::$config->load('xm_cart.show_billing_company');
 
-		$cart_view = (Cart_Config::donation_cart() ? 'cart/cart_donation' : 'cart/cart');
+		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+
+		$cart_view = ($is_donation_cart ? 'cart/cart_donation' : 'cart/cart');
 		$cart_html = View::factory($cart_view)
 			->bind('order_product_array', $order_product_array)
 			// the total rows are sent through JSON and rendered in JS
@@ -485,7 +503,7 @@ class Controller_XM_Cart extends Controller_Public {
 			->set('enable_shipping', Cart_Config::enable_shipping())
 			->bind('show_billing_company', $show_billing_company)
 			->set('enable_tax', Cart_Config::enable_tax())
-			->set('donation_cart', Cart_Config::donation_cart())
+			->set('donation_cart', $is_donation_cart)
 			->bind('card_testing_select', $card_testing_select)
 			// used in the cart config view
 			->set('countries', Cart::countries());
@@ -880,12 +898,15 @@ class Controller_XM_Cart extends Controller_Public {
 			// fail: there was a major problem and we don't know if the payment was already processed so don't allow them to try again
 			'payment_status' => $payment_status,
 			'error_field' => (isset($error_field) ? $error_field : NULL),
+			'is_donation_cart' => (Cart_Config::donation_cart() && $order->donation_cart_flag),
 		)));
 	}
 
 	public function action_completed() {
+		$is_donation_cart = (bool) $this->request->query('is_donation_cart');
+
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
-		$this->template->body_html = View::factory((Cart_Config::donation_cart() ? 'cart/completed_donation' : 'cart/completed'));
+		$this->template->body_html = View::factory((Cart_Config::donation_cart() && $is_donation_cart ? 'cart/completed_donation' : 'cart/completed'));
 	}
 
 	public function action_payment_failed() {

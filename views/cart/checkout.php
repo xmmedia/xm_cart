@@ -12,7 +12,7 @@
 
 			<div class="cart_checkout_box_open js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
-				<p><strong><?php echo HTML::chars(Cart::message('checkout.confirm_your_order')); ?></strong></p>
+				<p><strong><?php echo HTML::chars(Cart::message('checkout.confirm_your' . ($order->donation_cart_flag ? '_donation' : '_order'))); ?></strong></p>
 				<?php echo $cart_html; ?>
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_left">
@@ -209,7 +209,7 @@
 				<div class="js_cart_checkout_box_messages"></div>
 				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_final')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_final')); ?>
 				<div class="cart_field">
-					<?php echo Form::label($order->get_field_id('order_note'), HTML::chars(Cart::message('checkout.notes_label'))), $order->get_field('order_note'); ?>
+					<?php echo Form::label($order->get_field_id('order_note'), HTML::chars(Cart::message('checkout.notes_label' . ($order->donation_cart_flag ? '_donation' : '')))), $order->get_field('order_note'); ?>
 				</div>
 				<?php echo Form::close(); ?>
 
@@ -227,7 +227,7 @@
 
 
 		<div class="cart_checkout_box cart_checkout_box_confirm js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="confirm">
-			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.confirm')); ?></h2>
+			<h2><?php echo $step_count; ?>. <?php echo HTML::chars(Cart::message('checkout.headers.confirm' . ($order->donation_cart_flag ? '_donation' : ''))); ?></h2>
 
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
@@ -236,7 +236,7 @@
 
 					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
 						Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
-					<?php echo Form::submit(NULL, Cart::message('checkout.complete_order_button'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
+					<?php echo Form::submit(NULL, Cart::message('checkout.complete_' . ($order->donation_cart_flag ? 'donation' : 'order') . '_button'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
 					<p><strong><?php echo HTML::chars(Cart::message('checkout.review_order')); ?></strong></p>

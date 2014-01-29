@@ -6,9 +6,13 @@ class XM_Cart_Config {
 	public static $enable_tax;
 	public static $donation_cart;
 
+	public static function load($path) {
+		return Kohana::$config->load('xm_cart.' . $path);
+	}
+
 	public static function continue_shopping_url() {
 		if (Cart_Config::$continue_shopping_url === NULL) {
-			Cart_Config::$continue_shopping_url = (string) Kohana::$config->load('xm_cart.continue_shopping_url');
+			Cart_Config::$continue_shopping_url = (string) Cart_Config::load('continue_shopping_url');
 		}
 
 		return Cart_Config::$continue_shopping_url;
@@ -16,7 +20,7 @@ class XM_Cart_Config {
 
 	public static function enable_shipping() {
 		if (Cart_Config::$enable_shipping === NULL) {
-			Cart_Config::$enable_shipping = (bool) Kohana::$config->load('xm_cart.enable_shipping');
+			Cart_Config::$enable_shipping = (bool) Cart_Config::load('enable_shipping');
 		}
 
 		return Cart_Config::$enable_shipping;
@@ -24,15 +28,21 @@ class XM_Cart_Config {
 
 	public static function enable_tax() {
 		if (Cart_Config::$enable_tax === NULL) {
-			Cart_Config::$enable_tax = (bool) Kohana::$config->load('xm_cart.enable_tax');
+			Cart_Config::$enable_tax = (bool) Cart_Config::load('enable_tax');
 		}
 
 		return Cart_Config::$enable_tax;
 	}
 
+	/**
+	 * Checks if donations are enabled.
+	 * Either the full and only donation cart setting or the donation cart and product cart can be enabled for this to return TRUE.
+	 *
+	 * @return  boolean
+	 */
 	public static function donation_cart() {
 		if (Cart_Config::$donation_cart === NULL) {
-			Cart_Config::$donation_cart = (bool) Kohana::$config->load('xm_cart.donation_cart');
+			Cart_Config::$donation_cart = (bool) Cart_Config::load('donation_cart') || (bool) Cart_Config::load('donation_cart_or_product_cart');
 		}
 
 		return Cart_Config::$donation_cart;
