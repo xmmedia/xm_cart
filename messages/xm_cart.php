@@ -36,6 +36,7 @@ return array(
 		'complete_order_button' => 'Complete My Order',
 		'complete_donation_button' => 'Complete My Donation',
 		'review_order' => 'Please review your order before continuing.',
+		'review_donation' => 'Please review your donation before continuing.',
 	),
 
 	'email' => array(
@@ -49,6 +50,7 @@ return array(
 			'thank_you' => 'Thank you for your order. We have received your order and are currently processing it. Below are the details of your order.',
 			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. You will receive a tax deductable donation receipt at the end of the year.',
 			'email_title' => 'Your order from :company',
+			'email_title_donation' => 'Your donation to :company',
 		),
 		'admin_order' => array(
 			'subject' => 'Order Received - :order_num',

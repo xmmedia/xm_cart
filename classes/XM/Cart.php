@@ -232,7 +232,7 @@ class XM_Cart {
 				->set('enable_tax', Cart_Config::enable_tax())
 				->set('donation_cart', $is_donation_cart);
 
-			$subject_title_data = Cart::prefix_message_data($order->as_array());
+			$subject_title_data = Cart::prefix_message_data(array_merge(array('company' => LONG_NAME), $order->as_array()));
 
 			$mail->Subject = Cart::message('email.customer_order.subject' . ($is_donation_cart ? '_donation' : ''), $subject_title_data);
 			$mail->Body = View::factory('cart/email/template')
@@ -269,7 +269,7 @@ class XM_Cart {
 			->set('enable_tax', Cart_Config::enable_tax())
 			->set('donation_cart', $is_donation_cart);
 
-		$subject_title_data = Cart::prefix_message_data($order->as_array());
+		$subject_title_data = Cart::prefix_message_data(array_merge(array('company' => LONG_NAME), $order->as_array()));
 
 		$mail->Subject = Cart::message('email.admin_order.subject' . ($is_donation_cart ? '_donation' : ''), $subject_title_data);
 		$mail->Body = View::factory('cart/email/template')
