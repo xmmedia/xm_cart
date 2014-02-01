@@ -239,7 +239,7 @@
 					<?php echo Form::submit(NULL, Cart::message('checkout.complete_' . ($order->donation_cart_flag ? 'donation' : 'order') . '_button'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
 					<?php echo Form::close(); ?>
 
-					<p><strong><?php echo HTML::chars(Cart::message('checkout.review_order')); ?></strong></p>
+					<p><strong><?php echo HTML::chars(Cart::message('checkout.review_' . ($order->donation_cart_flag ? 'donation' : 'order'))); ?></strong></p>
 				</div>
 			</div>
 		</div>
