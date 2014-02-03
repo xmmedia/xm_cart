@@ -17,6 +17,8 @@ return array(
 		'public' => TRUE,
 		'admin' => TRUE,
 	),
+	// by default, we want to send the user HTTPS when they go to the checkout page
+	'checkout_https' => TRUE,
 	// the default country to use on orders which don't have their country set to something else
 	// default is Canada, ID 40
 	'default_country_id' => 40,
