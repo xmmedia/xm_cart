@@ -441,6 +441,8 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
+		$this->checkout_https();
+
 		$order->calculate_totals()
 			->for_user()
 			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden')
@@ -662,6 +664,8 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $order) {
 			return;
 		}
+
+		$this->checkout_https();
 
 		// set the status to submitted
 		$order->set_status(CART_ORDER_STATUS_SUBMITTED)
@@ -911,6 +915,7 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_completed() {
+
 		$is_donation_cart = (bool) $this->request->query('is_donation_cart');
 
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
@@ -928,6 +933,8 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $order->loaded()) {
 			throw new Kohana_Exception('The order in the session no longer exists');
 		}
+
+		$this->checkout_https();
 
 		$order->add_log('payment_failed');
 
@@ -966,5 +973,18 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		return $order;
+	}
+
+	/**
+	 * Redirect the user to https if checkout https is enabled
+	 * and they are not already on https.
+	 *
+	 * @return  void
+	 */
+	protected function checkout_https() {
+		// redirect to https if they are not already
+		if (Cart_Config::load('checkout_https') && ! $this->request->secure()) {
+			$this->redirect('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		}
 	}
 }
