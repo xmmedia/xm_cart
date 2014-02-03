@@ -172,8 +172,8 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 	protected function _initialize() {
 		parent::_initialize();
 
-		$this->_table_columns['payment_processor']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_processors.' . PAYMENT_PROCESSOR_LIST);
-		$this->_table_columns['status']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_status_labels');
+		$this->_table_columns['payment_processor']['field_options']['source']['data'] = (array) Cart_Config::load('payment_processors.' . PAYMENT_PROCESSOR_LIST);
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Cart_Config::load('payment_status_labels');
 	}
 
 	/**

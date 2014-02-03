@@ -74,7 +74,7 @@ class XM_Cart {
 			);
 		}
 
-		if (Kohana::$config->load('xm_cart.enable_sub_total')) {
+		if (Cart_Config::load('enable_sub_total')) {
 			$total_rows[] = array(
 				'name' => 'Sub Total',
 				'value' => $order->sub_total,
@@ -146,7 +146,7 @@ class XM_Cart {
 			$order = ORM::factory('Cart_Order')
 				->values(array(
 					'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
-					'country_id' => (int) Kohana::$config->load('xm_cart.default_country_id'),
+					'country_id' => (int) Cart_Config::load('default_country_id'),
 					'status' => CART_ORDER_STATUS_NEW,
 				))
 				->values($new_order_defaults)
@@ -245,7 +245,7 @@ class XM_Cart {
 	public static function send_admin_order_email($order, $order_payment) {
 		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
 		$email_cart_view = ($is_donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
-		$administrator_email = Kohana::$config->load('xm_cart.administrator_email');
+		$administrator_email = Cart_Config::load('administrator_email');
 
 		$order_products = $order->cart_order_product->find_all()->as_array();
 		$total_rows = Cart::total_rows($order);
