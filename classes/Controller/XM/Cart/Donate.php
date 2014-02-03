@@ -47,8 +47,8 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 			$this->redirect(Route::get('cart_donate')->uri());
 		}
 
-		$donation_minimum = Kohana::$config->load('xm_cart.donation_minimum');
-		$donation_maximum = Kohana::$config->load('xm_cart.donation_maximum');
+		$donation_minimum = Cart_Config::load('donation_minimum');
+		$donation_maximum = Cart_Config::load('donation_maximum');
 		if ($donation < $donation_minimum) {
 			Message::add('We have a minimum donation amount of $' . Cart::cf($donation_minimum) . ' to ensure we cover the fees incured while processing the donation.', Message::$error);
 			$this->redirect(Route::get('cart_donate')->uri());
@@ -57,7 +57,7 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 			$this->redirect(Route::get('cart_donate')->uri());
 		}
 
-		$donation_product = ORM::factory('Cart_Product', Kohana::$config->load('xm_cart.donation_product_id'));
+		$donation_product = ORM::factory('Cart_Product', Cart_Config::load('donation_product_id'));
 		if ( ! $donation_product->loaded()) {
 			throw new Kohana_Exception('The donation product could not be found');
 		}

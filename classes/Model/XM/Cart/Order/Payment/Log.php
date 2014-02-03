@@ -99,7 +99,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 	protected function _initialize() {
 		parent::_initialize();
 
-		$this->_table_columns['status']['field_options']['source']['data'] = (array) Kohana::$config->load('xm_cart.payment_status_labels');
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Cart_Config::load('payment_status_labels');
 	}
 
 	/**

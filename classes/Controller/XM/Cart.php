@@ -466,7 +466,7 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
-		$show_billing_company = (bool) Kohana::$config->load('xm_cart.show_billing_company');
+		$show_billing_company = (bool) Cart_Config::load('show_billing_company');
 
 		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
 
@@ -674,9 +674,9 @@ class Controller_XM_Cart extends Controller_Public {
 			->calculate_totals()
 			->add_log('complete_order');
 
-		$currency = strtoupper((string) Kohana::$config->load('xm_cart.default_currency'));
+		$currency = strtoupper((string) Cart_Config::load('default_currency'));
 
-		$stripe_config = (array) Kohana::$config->load('xm_cart.payment_processor_config.stripe.' . STRIPE_CONFIG);
+		$stripe_config = (array) Cart_Config::load('payment_processor_config.stripe.' . STRIPE_CONFIG);
 		if (empty($stripe_config['secret_key']) || empty($stripe_config['publishable_key'])) {
 			throw new Kohana_Exception('Stripe has not been fully configured');
 		}
@@ -709,7 +709,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'cart_order_id' => $order->id,
 				'date_attempted' => Date::formatted_time(),
 				'ip_address' => (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : ''),
-				'payment_processor' => (int) Kohana::$config->load('xm_cart.payment_processor_ids.stripe'),
+				'payment_processor' => (int) Cart_Config::load('payment_processor_ids.stripe'),
 				'status' => CART_PAYMENT_STATUS_IN_PROGRESS,
 				'amount' => $order->grand_total,
 				'data' => $stripe_data,

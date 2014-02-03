@@ -7,7 +7,7 @@
 			<div class="cart_field"><?php
 				echo Form::label('donation', 'Donation Amount'),
 					'$',
-					Form::input('donation', Kohana::$config->load('xm_cart.donation_minimum'), array('size' => 8, 'maxlength' => 8, 'class' => 'text_right', 'id' => 'donation')); ?></div>
+					Form::input('donation', Cart_Config::load('donation_minimum'), array('size' => 8, 'maxlength' => 8, 'class' => 'text_right', 'id' => 'donation')); ?></div>
 			<div class="cart_field"><?php echo Form::submit(NULL, 'Submit'); ?></div>
 			<?php echo Form::close(); ?>
 

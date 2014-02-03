@@ -1,9 +1,9 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
-$route_prefix = Kohana::$config->load('xm_cart.route_prefix');
-$routes = (array) Kohana::$config->load('xm_cart.routes');
-$order_status_ids = (array) Kohana::$config->load('xm_cart.order_status_ids');
-$payment_status_ids = (array) Kohana::$config->load('xm_cart.payment_status_ids');
+$route_prefix = Cart_Config::load('route_prefix');
+$routes = (array) Cart_Config::load('routes');
+$order_status_ids = (array) Cart_Config::load('order_status_ids');
+$payment_status_ids = (array) Cart_Config::load('payment_status_ids');
 
 // define the order status constants
 if ( ! defined('CART_ORDER_STATUS_NEW')) {
