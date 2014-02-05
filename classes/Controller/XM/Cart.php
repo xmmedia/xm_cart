@@ -915,7 +915,6 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_completed() {
-
 		$is_donation_cart = (bool) $this->request->query('is_donation_cart');
 
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
