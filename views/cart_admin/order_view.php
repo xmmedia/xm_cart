@@ -15,11 +15,11 @@
 	</div>
 	<?php } ?>
 	<div class="col-1-3 cart">
-		<?php if (Cart_Config::enable_shipping() && ! $order->same_as_shipping_flag) { ?>
-			<strong>Billing Contact</strong><br>
-			<?php echo Cart::address_html($order->billing_contact_formatted()); ?>
-			<strong>Billing Address</strong><br>
-			<?php echo Cart::address_html($order->billing_address_formatted()); ?>
+		<?php if ( ! Cart_Config::enable_shipping() || ! $order->same_as_shipping_flag) { ?>
+			<p><strong>Billing Contact</strong><br>
+			<?php echo Cart::address_html($order->billing_contact_formatted()); ?></p>
+			<p><strong>Billing Address</strong><br>
+			<?php echo Cart::address_html($order->billing_address_formatted()); ?></p>
 		<?php } else { ?>
 			<strong>Billing Information</strong><br>
 			<em>Same as shipping</em>
