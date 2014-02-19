@@ -147,6 +147,17 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'field_type' => 'DateTime',
 			'is_nullable' => FALSE,
 		),
+		'unique_id' => array(
+			'field_type' => 'Text',
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'size' => 24,
+				'length' => 24,
+			),
+		),
 		'user_id' => array(
 			'field_type' => 'Select',
 			'list_flag' => TRUE,
@@ -279,6 +290,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 						CART_ORDER_STATUS_SHIPPED   => 'Shipped',
 						CART_ORDER_STATUS_REFUNDED  => 'Refunded',
 						CART_ORDER_STATUS_CANCELLED => 'Cancelled',
+						CART_ORDER_STATUS_EMPTIED   => 'Emptied',
 					),
 				),
 			),
@@ -735,6 +747,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		return array(
 			'id' => 'ID',
 			'expiry_date' => 'Expiry Date',
+			'unique_id' => 'Unique ID',
 			'user_id' => 'User',
 			'sub_total' => 'Sub Total',
 			'grand_total' => 'Grand Total',
