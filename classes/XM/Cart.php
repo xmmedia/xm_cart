@@ -101,7 +101,42 @@ class XM_Cart {
 	}
 
 	/**
-	 * Retrieves a users order based on the session order ID.
+	 * Retrieve the value of the cart order cookie.
+	 * If set, this will be the order unique ID.
+	 * Otherwise it will be `NULL`.
+	 *
+	 * @return  string
+	 */
+	public static function user_cookie_value_retrieve() {
+		return Cookie::get('xm_cart_order');
+	}
+
+	/**
+	 * Sets the user cookie with the unique ID.
+	 *
+	 * @param   string  $unique_id  The order unique ID.
+	 *
+	 * @return  boolean
+	 */
+	public static function user_cookie_value_set($unique_id) {
+		return Cookie::set('xm_cart_order', $unique_id, Cart_Config::load('user_cookie_expiration'));
+	}
+
+	/**
+	 * Loads the order based on the passed unique ID.
+	 *
+	 * @param   string  $unique_id  The order unique ID.
+	 *
+	 * @return  Model_Cart_Order
+	 */
+	public static function load_order($unique_id) {
+		return ORM::factory('Cart_Order')
+			->where('unique_id', '=', $unique_id)
+			->find();
+	}
+
+	/**
+	 * Retrieves a users order based on the cookie unique ID.
 	 * Will create an order if $create is TRUE.
 	 * The $new_order_defaults array will override the other default values set: user_id, country_id, and status.
 	 * Will return NULL if there is order and not creating an order.
@@ -112,12 +147,12 @@ class XM_Cart {
 	 * @return  Model_Cart_Order
 	 */
 	public static function retrieve_user_order($create = FALSE, array $new_order_defaults = array()) {
-		$order_id = Session::instance()->path('xm_cart.cart_order_id');
+		$unique_id = Cart::user_cookie_value_retrieve();
 
-		// if there is an order in the session, attempt to retrieve it
+		// if there is an order unique ID in the cookie, attempt to retrieve it
 		// if we can't, unset the $order var and we'll just create a new one
-		if ( ! empty($order_id)) {
-			$order = ORM::factory('Cart_Order', $order_id);
+		if ( ! empty($unique_id)) {
+			$order = Cart::load_order($unique_id);
 			if ( ! $order->loaded()) {
 				unset($order);
 			}
@@ -143,8 +178,23 @@ class XM_Cart {
 
 		// no order found, just create a new one
 		if ( ! isset($order) && $create) {
+			if (empty($unique_id)) {
+				$unique_query = DB::select('id')
+					->from('cart_order')
+					->where('unique_id', '=', ':unique_id')
+					->limit(1)
+					->bind(':unique_id', $unique_id);
+
+				do {
+					$unique_id = sha1(uniqid(NULL, TRUE) . Cart_Config::load('salt'));
+
+					$result = $unique_query->execute();
+				} while ($result->count());
+			}
+
 			$order = ORM::factory('Cart_Order')
 				->values(array(
+					'unique_id' => $unique_id,
 					'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
 					'country_id' => (int) Cart_Config::load('default_country_id'),
 					'status' => CART_ORDER_STATUS_NEW,
@@ -155,7 +205,7 @@ class XM_Cart {
 		}
 
 		if (isset($order) && $order->loaded()) {
-			Session::instance()->set_path('xm_cart.cart_order_id', $order->pk());
+			Cart::user_cookie_value_set($unique_id);
 
 			return $order;
 		} else {
@@ -164,17 +214,17 @@ class XM_Cart {
 	}
 
 	/**
-	 * Adds the log entry for "empty_cart", expires the cart and sets the key in the session to NULL;
+	 * Adds the log entry for "empty_cart" and sets the status of the cart to emptied.
+	 * The cart cookie will be kept as the unique ID maybe be used for a new cart.
 	 *
 	 * @param   Model_Cart_Order  $order  The order to delete.
 	 *
-	 * @return  void
+	 * @return  Model_Cart_Order
 	 */
-	public static function delete_order($order) {
-		$order->add_log('empty_cart')
-			->delete();
-
-		Session::instance()->set_path('xm_cart.cart_order_id', NULL);
+	public static function empty_cart($order) {
+		return $order->add_log('empty_cart')
+			->set('status', CART_ORDER_STATUS_EMPTIED)
+			->save();
 	}
 
 	public static function allow_order_edit($order) {

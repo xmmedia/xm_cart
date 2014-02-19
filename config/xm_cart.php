@@ -1,6 +1,9 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 return array(
+	'salt' => 'MH[i_9>4w<LuP8{J.Y#:N!Nim@-aSQJwzOrV#GI50{BY]&8tz/,|6=d"7&\'_4hz',
+	'user_cookie_expiration' => Date::MONTH * 6,
+
 	'administrator_email' => array(
 		'email' => 'webmaster@example.com',
 		'name' => 'Cart Admin',
@@ -52,6 +55,7 @@ return array(
 		6 => 'Shipped',
 		7 => 'Refunded',
 		8 => 'Cancelled',
+		9 => 'Emptied',
 	),
 	'order_status_ids' => array(
 		'new'       => 1,

@@ -73,6 +73,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			CART_ORDER_STATUS_SHIPPED   => 'Shipped',
 			CART_ORDER_STATUS_REFUNDED  => 'Refunded',
 			CART_ORDER_STATUS_CANCELLED => 'Cancelled',
+			CART_ORDER_STATUS_EMPTIED   => 'Emptied',
 		);
 		$order_filters_html['status'] = Form::select('order_filters[status]', $order_statuses, $order_filters['status']);
 

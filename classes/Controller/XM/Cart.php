@@ -304,7 +304,7 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = Cart::retrieve_user_order();
 
 		if (is_object($order) && $order->loaded()) {
-			Cart::delete_order($order);
+			Cart::empty_cart($order);
 		}
 
 		$is_ajax = (bool) Arr::get($_REQUEST, 'c_ajax', FALSE);
@@ -770,8 +770,6 @@ class Controller_XM_Cart extends Controller_Public {
 			// sends emails and any additional processing
 			Cart::complete_order($order, $order_payment);
 
-			Session::instance()->set_path('xm_cart.cart_order_id', NULL);
-
 		} catch(Stripe_CardError $e) {
 			// Since it's a decline, Stripe_CardError will be caught
 			Kohana::$log->add(Kohana_Log::ERROR, 'Stripe CardError')->write();
@@ -922,15 +920,15 @@ class Controller_XM_Cart extends Controller_Public {
 	}
 
 	public function action_payment_failed() {
-		$order_id = Session::instance()->path('xm_cart.cart_order_id');
-		if (empty($order_id)) {
+		$unique_id = Cart::user_cookie_value_retrieve();
+		if (empty($unique_id)) {
 			Message::add(Cart::message('empty_cart'), Message::$notice);
 			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
-		$order = ORM::factory('Cart_Order', $order_id);
+		$order = Cart::load_order($unique_id);
 		if ( ! $order->loaded()) {
-			throw new Kohana_Exception('The order in the session no longer exists');
+			throw new Kohana_Exception('The order in the cookie no longer exists');
 		}
 
 		$this->checkout_https();
@@ -942,7 +940,6 @@ class Controller_XM_Cart extends Controller_Public {
 				Message::add(Cart::message('please_checkout'), Message::$warning);
 				$this->redirect(Cart_Config::continue_shopping_url());
 			} else {
-				Session::instance()->set_path('xm_cart.cart_order_id', NULL);
 				Message::add(Cart::message('already_completed'), Message::$warning);
 				$this->redirect(Cart_Config::continue_shopping_url());
 			}

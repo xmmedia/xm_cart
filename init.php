@@ -62,6 +62,13 @@ if ( ! defined('CART_ORDER_STATUS_CANCELLED')) {
 	*/
 	define('CART_ORDER_STATUS_CANCELLED', $order_status_ids['cancelled']);
 }
+if ( ! defined('CART_ORDER_STATUS_EMPTIED')) {
+	/**
+	*   CONST :: Order Status - Emptied
+	*   @var    string
+	*/
+	define('CART_ORDER_STATUS_EMPTIED', $order_status_ids['cancelled']);
+}
 
 if ( ! defined('PAYMENT_PROCESSOR_LIST')) {
 	/**
