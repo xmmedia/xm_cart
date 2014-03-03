@@ -9,7 +9,7 @@
 	<div class="col-2-3">
 		<h2>Cart</h2>
 		<div class="js_cart">
-			<img src="/images/loading.gif" class="js_loading">
+			<span class="js_loading"><?php echo HTML::spinner(); ?></span>
 		</div>
 	</div>
 </div>
