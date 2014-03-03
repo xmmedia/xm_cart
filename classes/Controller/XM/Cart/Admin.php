@@ -113,7 +113,7 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 			}
 
 			$row = array(
-				HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order_view', 'id' => $order->id)), HTML::icon('view')),
+				HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order_view', 'id' => $order->id)), HTML::icon('search')),
 				$order->get_field('status') . '<br>' . $last_log->timestamp,
 				$name,
 				Cart::cf($order->grand_total),
