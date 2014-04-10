@@ -139,6 +139,7 @@ CREATE TABLE `cart_gift_card_log` (
 CREATE TABLE `cart_order` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `expiry_date` datetime NOT NULL,
+  `unique_id` char(40) COLLATE utf8_unicode_ci NOT NULL,
   `user_id` int(10) unsigned NOT NULL,
   `sub_total` decimal(10,2) NOT NULL,
   `grand_total` decimal(10,2) NOT NULL,
@@ -151,6 +152,7 @@ CREATE TABLE `cart_order` (
   `status` tinyint(2) unsigned NOT NULL,
   `po_number` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `order_note` text COLLATE utf8_unicode_ci NOT NULL,
+  `donation_cart_flag` tinyint(1) unsigned NOT NULL,
   `user_address_loaded_flag` tinyint(1) unsigned NOT NULL,
   `shipping_first_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
   `shipping_last_name` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
@@ -178,6 +180,7 @@ CREATE TABLE `cart_order` (
   `billing_phone` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `billing_email` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `unique` (`expiry_date`,`unique_id`),
   KEY `date_expired` (`expiry_date`),
   KEY `user_id` (`user_id`),
   KEY `country_id` (`country_id`),
