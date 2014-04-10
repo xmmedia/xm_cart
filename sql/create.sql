@@ -180,12 +180,12 @@ CREATE TABLE `cart_order` (
   `billing_phone` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `billing_email` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `unique` (`expiry_date`,`unique_id`),
   KEY `date_expired` (`expiry_date`),
   KEY `user_id` (`user_id`),
   KEY `country_id` (`country_id`),
   KEY `invoice` (`order_num`),
-  KEY `status_id` (`status`)
+  KEY `status_id` (`status`),
+  KEY `unique_id` (`expiry_date`,`unique_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
