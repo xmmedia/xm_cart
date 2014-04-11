@@ -142,7 +142,7 @@ class Controller_XM_Cart extends Controller_Public {
 		// if the order is a donation and the product being added is not
 		// then delete the order and create a new one
 		if ($order->donation_cart_flag && Cart_Config::load('donation_product_id') != $cart_product_id) {
-			Cart::delete_order($order);
+			Cart::empty_cart($order);
 			$order = Cart::retrieve_user_order(TRUE);
 		}
 

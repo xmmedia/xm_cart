@@ -65,10 +65,10 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 		$order = Cart::retrieve_user_order(TRUE, array('donation_cart_flag' => 1));
 
 		// if there are other products in the cart, create a new empty cart
-		$order_product_count = count($order->cart_product->find_all());
+		$order_product_count = $order->cart_product->find_all()->count();
 		$has_donation_product = Cart::has_donation_product($order);
-		if (( ! empty($order_product_count) && $has_donation_product) || ($order_product_count > 1 && $has_donation_product)) {
-			Cart::delete_order($order);
+		if (($order_product_count == 0 && $has_donation_product) || ($order_product_count > 1 && $has_donation_product)) {
+			Cart::empty_cart($order);
 			$order = Cart::retrieve_user_order(TRUE);
 		}
 
