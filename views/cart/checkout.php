@@ -234,10 +234,14 @@
 				<div style="text-align: right;">
 					<div class="cart_checkout_totals js_cart_totals"></div>
 
-					<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
-						Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
-					<?php echo Form::submit(NULL, Cart::message('checkout.complete_' . ($order->donation_cart_flag ? 'donation' : 'order') . '_button'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
-					<?php echo Form::close(); ?>
+					<div class="cart_checkout_box_actions">
+						<div class="cart_checkout_box_actions_right">
+							<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'complete_order')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_complete_order')),
+								Form::hidden('stripe_token', NULL, array('class' => 'js_cart_checkout_stripe_token')); ?>
+							<?php echo Form::submit(NULL, Cart::message('checkout.complete_' . ($order->donation_cart_flag ? 'donation' : 'order') . '_button'), array('class' => 'js_cart_checkout_complete_order_submit')); ?>
+							<?php echo Form::close(); ?>
+						</div>
+					</div>
 
 					<p><strong><?php echo HTML::chars(Cart::message('checkout.review_' . ($order->donation_cart_flag ? 'donation' : 'order'))); ?></strong></p>
 				</div>
