@@ -916,7 +916,9 @@ class Controller_XM_Cart extends Controller_Public {
 		$is_donation_cart = (bool) $this->request->query('is_donation_cart');
 
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
-		$this->template->body_html = View::factory((Cart_Config::donation_cart() && $is_donation_cart ? 'cart/completed_donation' : 'cart/completed'));
+		$this->template->body_html = View::factory((Cart_Config::donation_cart() && $is_donation_cart ? 'cart/completed_donation' : 'cart/completed'))
+			// used in the cart config view
+			->set('countries', Cart::countries());
 	}
 
 	public function action_payment_failed() {
