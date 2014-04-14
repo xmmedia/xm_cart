@@ -657,15 +657,8 @@ class Controller_XM_Cart extends Controller_Public {
 
 		$currency = strtoupper((string) Cart_Config::load('default_currency'));
 
-		$stripe_config = (array) Cart_Config::load('payment_processor_config.stripe.' . STRIPE_CONFIG);
-		if (empty($stripe_config['secret_key']) || empty($stripe_config['publishable_key'])) {
-			throw new Kohana_Exception('Stripe has not been fully configured');
-		}
-
-		// load stripe
-		if ( ! Kohana::load(Kohana::find_file('vendor', 'stripe/Stripe'))) {
-			throw new Kohana_Exception('Unable to load the Stripe libraries');
-		}
+		// load and configure stripe
+		$stripe_config = Cart::load_stripe();
 
 		$stripe_token = $this->request->post('stripe_token');
 		if (empty($stripe_token)) {
@@ -700,9 +693,6 @@ class Controller_XM_Cart extends Controller_Public {
 			->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $stripe_data);
 
 		try {
-			Stripe::setApiKey($stripe_config['secret_key']);
-			Stripe::setApiVersion($stripe_config['api_version']);
-
 			// first we want to do an uncaptured charge to verify the credit and address information
 			$charge_test = Stripe_Charge::create($stripe_data);
 			$charge_id = $charge_test->id;
