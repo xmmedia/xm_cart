@@ -9,6 +9,10 @@
  * @copyright  (c) 2014 XM Media Inc.
  */
 class XM_Cart_Testing {
+	public static function card_testing_select() {
+		return Form::select('card_testing', Cart_Testing::card_testing_options(), NULL, array('class' => 'js_cart_add_credit_card_test_values'), array('add_values' => array('' => '-- Select Testing Value --')));
+	}
+
 	/**
 	 * Generates the array for the select to quicken testing of different credit card numbers/statuses.
 	 *
