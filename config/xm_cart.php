@@ -117,13 +117,11 @@ return array(
 				'secret_key' => NULL,
 				'publishable_key' => NULL,
 				'api_version' => '2014-03-28',
-				'charge_description' => LONG_NAME . ' Payment ' . ADMIN_EMAIL,
 			),
 			'live' => array(
 				'secret_key' => NULL,
 				'publishable_key' => NULL,
 				'api_version' => '2014-03-28',
-				'charge_description' => LONG_NAME . ' Payment ' . ADMIN_EMAIL,
 			),
 		),
 	),

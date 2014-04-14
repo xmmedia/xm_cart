@@ -1337,4 +1337,13 @@ class Model_XM_Cart_Order extends Cart_ORM {
 
 		return $this;
 	}
+
+	/**
+	 * Returns the description of the order for the Stripe charge.
+	 *
+	 * @return  string
+	 */
+	public function stripe_charge_description() {
+		return LONG_NAME . ' Payment';
+	}
 } // class
