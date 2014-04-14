@@ -149,12 +149,15 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 			'is_nullable' => FALSE,
 		),
 		'transaction_id' => array(
-			'field_type' => 'TextArea',
+			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 255,
+			),
 		),
 	);
 
