@@ -676,7 +676,7 @@ class Controller_XM_Cart extends Controller_Public {
 			'amount' => $order->grand_total * 100, // charged in cents
 			'currency' => $currency,
 			'card' => $stripe_token, // obtained with Stripe.js
-			'description' => $stripe_config['charge_description'],
+			'description' => $order->stripe_charge_description(),
 			'capture' => FALSE,
 		);
 
