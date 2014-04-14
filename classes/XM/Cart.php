@@ -373,6 +373,29 @@ class XM_Cart {
 	}
 
 	/**
+	 * Loads the Stripe config and classes and sets the secret key and API version based on the config.
+	 * Returns the Stripe config.
+	 * Uses the constant `STRIPE_CONFIG`.
+	 *
+	 * @return  array
+	 */
+	public static function load_stripe() {
+		$stripe_config = (array) Cart_Config::load('payment_processor_config.stripe.' . STRIPE_CONFIG);
+		if (empty($stripe_config['secret_key']) || empty($stripe_config['publishable_key'])) {
+			throw new Kohana_Exception('Stripe has not been fully configured');
+		}
+
+		if ( ! Kohana::load(Kohana::find_file('vendor', 'stripe/Stripe'))) {
+			throw new Kohana_Exception('Unable to load the Stripe libraries');
+		}
+
+		Stripe::setApiKey($stripe_config['secret_key']);
+		Stripe::setApiVersion($stripe_config['api_version']);
+
+		return $stripe_config;
+	}
+
+	/**
 	 * Returns a translated Kohana message from within the xm_cart message file.
 	 * Essentially a shortcut.
 	 *
