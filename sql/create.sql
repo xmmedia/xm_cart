@@ -260,7 +260,7 @@ CREATE TABLE `cart_order_payment` (
   `amount` decimal(10,2) NOT NULL,
   `data` text COLLATE utf8_unicode_ci NOT NULL,
   `response` text COLLATE utf8_unicode_ci NOT NULL,
-  `transaction_id` varchar(150) COLLATE utf8_unicode_ci NOT NULL,
+  `transaction_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `expiry_date` (`expiry_date`,`cart_order_id`,`date_attempted`,`date_completed`,`date_refunded`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
