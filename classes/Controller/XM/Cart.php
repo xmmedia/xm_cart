@@ -476,30 +476,11 @@ class Controller_XM_Cart extends Controller_Public {
 			// the total rows are sent through JSON and rendered in JS
 			->set('total_rows', array());
 
-		$expiry_date_months = array(
-			'' => 'Month',
-			1 => '01',
-			2 => '02',
-			3 => '03',
-			4 => '04',
-			5 => '05',
-			6 => '06',
-			7 => '07',
-			8 => '08',
-			9 => '09',
-			10 => '10',
-			11 => '11',
-			12 => '12',
-		);
-		$expiry_date_years = array(
-			'' => 'Year',
-		);
-		for ($y = date('Y'); $y <= date('Y') + 10; $y ++) {
-			$expiry_date_years[$y] = $y;
-		}
+		$expiry_date_months = Cart::expiry_months();
+		$expiry_date_years = Cart::expiry_years();
 
 		if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) {
-			$card_testing_select = Form::select('card_testing', Cart_Testing::card_testing_options(), NULL, array('class' => 'js_cart_add_credit_card_test_values'), array('add_values' => array('' => '-- Select Testing Value --')));
+			$card_testing_select = Cart_Testing::card_testing_select();
 		}
 
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
@@ -681,6 +662,7 @@ class Controller_XM_Cart extends Controller_Public {
 			throw new Kohana_Exception('Stripe has not been fully configured');
 		}
 
+		// load stripe
 		if ( ! Kohana::load(Kohana::find_file('vendor', 'stripe/Stripe'))) {
 			throw new Kohana_Exception('Unable to load the Stripe libraries');
 		}

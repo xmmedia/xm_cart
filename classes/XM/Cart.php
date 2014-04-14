@@ -343,6 +343,35 @@ class XM_Cart {
 		return FALSE;
 	}
 
+	public static function expiry_months() {
+		return array(
+			'' => 'Month',
+			1 => '01',
+			2 => '02',
+			3 => '03',
+			4 => '04',
+			5 => '05',
+			6 => '06',
+			7 => '07',
+			8 => '08',
+			9 => '09',
+			10 => '10',
+			11 => '11',
+			12 => '12',
+		);
+	}
+
+	public static function expiry_years() {
+		$array = array(
+			'' => 'Year',
+		);
+		for ($y = date('Y'); $y <= date('Y') + 10; $y ++) {
+			$array[$y] = $y;
+		}
+
+		return $array;
+	}
+
 	/**
 	 * Returns a translated Kohana message from within the xm_cart message file.
 	 * Essentially a shortcut.
