@@ -741,136 +741,29 @@ class Controller_XM_Cart extends Controller_Public {
 
 			// sends emails and any additional processing
 			Cart::complete_order($order, $order_payment);
+		} catch (Exception $e) {
+			try {
+				$payment_status = 'error';
+				$error_data = Cart::handle_stripe_exception($e, $order, $order_payment);
 
-		} catch(Stripe_CardError $e) {
-			// Since it's a decline, Stripe_CardError will be caught
-			Kohana::$log->add(Kohana_Log::ERROR, 'Stripe CardError')->write();
-			Kohana_Exception::log($e);
-
-			$error_body = $e->getJsonBody();
-			$error  = $error_body['error'];
-			// error has type, code, param and message keys
-			// can also retrieve the HTTP status code: $e->getHttpStatus()
-
-			$payment_status = 'error';
-
-			switch ($error['code']) {
-				case 'incorrect_zip' :
-					Message::add(Cart::message('stripe.incorrect_zip'), Message::$error);
-					break;
-				case 'card_declined' :
-					Message::add(Cart::message('stripe.card_declined'), Message::$error);
-					break;
-				default :
-					Message::add($error['message'], Message::$error);
-					break;
+				if ($error_data['type'] == 'card_error') {
+					switch ($error_data['code']) {
+						case 'incorrect_zip' :
+							$error_field = 'billing_postal_code';
+							break;
+						case 'incorrect_cvc' :
+							$error_field = 'security_code';
+							break;
+						case 'card_declined' :
+							$error_field = 'credit_card_number';
+							break;
+					}
+				}
+			} catch (Exception $e) {
+				Kohana_Exception::log($e);
+				$payment_status = 'fail';
+				Message::add(Cart::message('fail'), Message::$error);
 			}
-
-			switch ($error['code']) {
-				case 'incorrect_zip' :
-					$error_field = 'billing_postal_code';
-					break;
-				case 'incorrect_cvc' :
-					$error_field = 'security_code';
-					break;
-				case 'card_declined' :
-					$error_field = 'credit_card_number';
-					break;
-			}
-
-			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
-				->add_log('payment_error', $error_body);
-			$order_payment->values(array(
-					'status' => CART_PAYMENT_STATUS_DENIED,
-					'response' => $error_body,
-				))
-				->save()
-				->add_log(CART_PAYMENT_STATUS_DENIED, $error_body);
-
-		} catch (Stripe_InvalidRequestError $e) {
-			// Invalid parameters were supplied to Stripe's API
-			Kohana::$log->add(Kohana_Log::ERROR, 'Invalid parameters were supplied to Stripe\'s API')->write();
-			Kohana_Exception::log($e);
-			$payment_status = 'error';
-			Message::add(Cart::message('stripe.error'), Message::$error);
-
-			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
-				->add_log('payment_error', (array) $e->getJsonBody());
-			$order_payment->values(array(
-					'status' => CART_PAYMENT_STATUS_ERROR,
-					'response' => (array) $e->getJsonBody(),
-				))
-				->save()
-				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
-
-		} catch (Stripe_AuthenticationError $e) {
-			// Authentication with Stripe's API failed
-			// (maybe you changed API keys recently)
-			Kohana::$log->add(Kohana_Log::ERROR, 'Authentication with Stripe\'s API failed')->write();
-			Kohana_Exception::log($e);
-			$payment_status = 'error';
-			Message::add(Cart::message('stripe.error'), Message::$error);
-
-			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
-				->add_log('payment_error', (array) $e->getJsonBody());
-			$order_payment->values(array(
-					'status' => CART_PAYMENT_STATUS_ERROR,
-					'response' => (array) $e->getJsonBody(),
-				))
-				->save()
-				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
-
-		} catch (Stripe_ApiConnectionError $e) {
-			// Network communication with Stripe failed
-			Kohana::$log->add(Kohana_Log::ERROR, 'Network communication with Stripe failed')->write();
-			Kohana_Exception::log($e);
-			$payment_status = 'error';
-			Message::add(Cart::message('stripe.error'), Message::$error);
-
-			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
-				->add_log('payment_error', (array) $e->getJsonBody());
-			$order_payment->values(array(
-					'status' => CART_PAYMENT_STATUS_ERROR,
-					'response' => (array) $e->getJsonBody(),
-				))
-				->save()
-				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
-
-		} catch (Stripe_Error $e) {
-			// Display a very generic error to the user, and maybe send
-			// yourself an email
-			Kohana::$log->add(Kohana_Log::ERROR, 'General Stripe error')->write();
-			Kohana_Exception::log($e);
-			$payment_status = 'error';
-			Message::add(Cart::message('stripe.error'), Message::$error);
-
-			// set the status back to submitted because there was a problem with the payment
-			$order->set_status(CART_ORDER_STATUS_SUBMITTED)
-				->add_log('payment_error', (array) $e->getJsonBody());
-			$order_payment->values(array(
-					'status' => CART_PAYMENT_STATUS_ERROR,
-					'response' => (array) $e->getJsonBody(),
-				))
-				->save()
-				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
-
-		} catch (Kohana_Exception $e) {
-			Kohana_Exception::log($e);
-			$payment_status = 'fail';
-			Message::add(Cart::message('fail'), Message::$error);
-			// we don't set the order status as there was a problem and it should stay in payment so it can't be attempted again
-
-			$order->add_log('payment_error', (array) $e->getJsonBody());
-			$order_payment->values(array(
-					'status' => CART_PAYMENT_STATUS_ERROR,
-					'response' => (isset($charge) ? $charge->__toArray(TRUE) : (isset($charge_test) ? $charge_test->__toArray(TRUE) : '')),
-				))
-				->save()
-				->add_log(CART_PAYMENT_STATUS_ERROR, (array) $e->getJsonBody());
 		}
 
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
