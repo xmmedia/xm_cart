@@ -158,7 +158,7 @@ class XM_Cart_Testing {
 			'expiry_date_month' => date('n', $random_future_date),
 			'expiry_date_year' => date('Y', $random_future_date),
 		);
-		$card_testing_options[json_encode($test_data)] = 'Declined: Expired Card';
+		$card_testing_options[json_encode($test_data)] = 'Declined: Incorrect Expiry Date/Expired Card';
 
 		$test_data = array(
 			'card_number' => '4000000000000119',

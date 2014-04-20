@@ -1344,6 +1344,6 @@ class Model_XM_Cart_Order extends Cart_ORM {
 	 * @return  string
 	 */
 	public function stripe_charge_description() {
-		return LONG_NAME . ' Payment';
+		return 'Payment for ' . $this->order_num;
 	}
 } // class
