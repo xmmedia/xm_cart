@@ -88,7 +88,7 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 				'cart_order_product_id' => $order_product->pk(),
 				'cart_product_id' => $order_product->cart_product_id,
 				'quantity' => $order_product->quantity,
-				'unit_price' => $donation_product->cost,
+				'unit_price' => $order_product->unit_price,
 				'name' => $donation_product->name,
 			));
 
