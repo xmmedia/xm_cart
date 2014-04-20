@@ -425,4 +425,170 @@ class XM_Cart {
 
 		return $_data;
 	}
+
+	/**
+	 * Processes a Stripe exception.
+	 * If the exception is not a Stripe exception, it will throw the error again, but will still add the payment error.
+	 * If `$order` is not passed, it will call `Cart::stripe_error_order_log()`.
+	 * If `$add_messages` is TRUE, messages specific to the error will be added to the session.
+	 * Returns the type of error (key `type`). In the case of a card error, additional data is returned:
+	 *
+	 * Key     | Type     | Value
+	 * --------|----------|---------------------
+	 * `type`  | `string` | The type of error, in this case "card_error".
+	 * `code`  | `string` | The error code from Stripe. They full list can be found here: https://stripe.com/docs/api#errors
+	 * `error` | `array`  | The full array or the error data.
+	 *
+	 * @param   Exception    $e             The exception.
+	 * @param   Model_Cart_Order  $order    The order model.
+	 * @param   Model_Cart_Order_ayment  $order_payment  The order payment model.
+	 * @param   boolean      $add_messages  If set to TRUE, it will add messages.
+	 *
+	 * @return  array
+	 */
+	public static function handle_stripe_exception($e, $order = NULL, $order_payment = NULL, $add_messages = TRUE) {
+		try {
+			throw $e;
+		} catch(Stripe_CardError $e) {
+			// Since it's a decline, Stripe_CardError will be caught
+			Kohana::$log->add(Kohana_Log::ERROR, 'Stripe CardError')->write();
+			Kohana_Exception::log($e);
+
+			$error_data = (array) $e->getJsonBody();
+			$error  = $error_data['error'];
+			Kohana::$log->add(Kohana_Log::ERROR, 'Stripe JSON Data: ' . print_r($error_data, TRUE))->write();
+			// error has type, code, param and message keys
+			// can also retrieve the HTTP status code: $e->getHttpStatus()
+
+			if ($add_messages) {
+				switch ($error['code']) {
+					case 'incorrect_zip' :
+						Message::add(Cart::message('stripe.incorrect_zip'), Message::$error);
+						break;
+					case 'card_declined' :
+						Message::add(Cart::message('stripe.card_declined'), Message::$error);
+						break;
+					default :
+						Message::add($error['message'], Message::$error);
+						break;
+				}
+			}
+
+			if ($order) {
+				Cart::stripe_error_order_log($order, $order_payment, $error_data, TRUE, CART_PAYMENT_STATUS_DENIED);
+			}
+
+			return array(
+				'type' => 'card_error',
+				'code' => $error['code'],
+				'error' => $error,
+			);
+
+		} catch (Stripe_InvalidRequestError $e) {
+			// Invalid parameters were supplied to Stripe's API
+			Kohana::$log->add(Kohana_Log::ERROR, 'Invalid parameters were supplied to Stripe\'s API')->write();
+			Kohana_Exception::log($e);
+			if ($add_messages) {
+				Message::add(Cart::message('stripe.error'), Message::$error);
+			}
+
+			if ($order) {
+				$error_data = (array) $e->getJsonBody();
+				Cart::stripe_error_order_log($order, $order_payment, $error_data);
+			}
+
+			return array(
+				'type' => 'invalid_request',
+			);
+
+		} catch (Stripe_AuthenticationError $e) {
+			// Authentication with Stripe's API failed
+			// (maybe you changed API keys recently)
+			Kohana::$log->add(Kohana_Log::ERROR, 'Authentication with Stripe\'s API failed')->write();
+			Kohana_Exception::log($e);
+			if ($add_messages) {
+				Message::add(Cart::message('stripe.error'), Message::$error);
+			}
+
+			if ($order) {
+				$error_data = (array) $e->getJsonBody();
+				Cart::stripe_error_order_log($order, $order_payment, $error_data);
+			}
+
+			return array(
+				'type' => 'authentication_error',
+			);
+
+		} catch (Stripe_ApiConnectionError $e) {
+			// Network communication with Stripe failed
+			Kohana::$log->add(Kohana_Log::ERROR, 'Network communication with Stripe failed')->write();
+			Kohana_Exception::log($e);
+			if ($add_messages) {
+				Message::add(Cart::message('stripe.error'), Message::$error);
+			}
+
+			if ($order) {
+				$error_data = (array) $e->getJsonBody();
+				Cart::stripe_error_order_log($order, $order_payment, $error_data);
+			}
+
+			return array(
+				'type' => 'api_connection_error',
+			);
+
+		} catch (Stripe_Error $e) {
+			// Display a very generic error to the user, and maybe send
+			// yourself an email
+			Kohana::$log->add(Kohana_Log::ERROR, 'General Stripe error')->write();
+			Kohana_Exception::log($e);
+			if ($add_messages) {
+				Message::add(Cart::message('stripe.error'), Message::$error);
+			}
+
+			if ($order) {
+				$error_data = (array) $e->getJsonBody();
+				Cart::stripe_error_order_log($order, $order_payment, $error_data);
+			}
+
+			return array(
+				'type' => 'stripe_error',
+			);
+
+		} catch (Exception $e) {
+			if ($add_messages) {
+				Message::add(Cart::message('fail'), Message::$error);
+			}
+
+			if ($order) {
+				$error_data = (array) $e->getJsonBody();
+				Cart::stripe_error_order_log($order, $order_payment, $error_data, FALSE);
+			}
+
+			throw $e;
+		}
+	}
+
+	/**
+	 * Sets the order status to "submitted" and payment status to "payment error" and add an order log and payment log record.
+	 *
+	 * @param   Model_Cart_Order  $order       The order model.
+	 * @param   Model_Cart_Order_ayment  $order_payment  The order payment model.
+	 * @param   array        $error_data  The data regarding the error, typically the JSON body from Stripe.
+	 *
+	 * @return  void
+	 */
+	public static function stripe_error_order_log(Model_Cart_Order $order, Model_Cart_Order_Payment $order_payment, $error_data, $set_order_status = TRUE, $payment_status = CART_PAYMENT_STATUS_ERROR) {
+		if ($set_order_status) {
+			// set the status back to submitted because there was a problem with the payment
+			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
+		}
+
+		$order->add_log('payment_error', $error_data);
+		$order_payment->values(array(
+				'status' => CART_PAYMENT_STATUS_ERROR,
+				'response' => $error_data,
+			))
+			->save()
+			->add_log(CART_PAYMENT_STATUS_ERROR, $error_data);
+	}
 }
