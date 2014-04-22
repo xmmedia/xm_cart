@@ -1346,4 +1346,17 @@ class Model_XM_Cart_Order extends Cart_ORM {
 	public function stripe_charge_description() {
 		return 'Payment for ' . $this->order_num;
 	}
+
+	/**
+	 * Retrieves a product on the order.
+	 *
+	 * @param   int  $cart_product_id  The `cart_product_id`.
+	 *
+	 * @return  Model_Order_Product
+	 */
+	public function product($cart_product_id) {
+		return $this->cart_order_product
+			->where('cart_order_product.cart_product_id', '=', $cart_product_id)
+			->find();
+	}
 } // class
