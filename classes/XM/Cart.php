@@ -333,9 +333,7 @@ class XM_Cart {
 			return FALSE;
 		}
 
-		$donation_order_product = $order->cart_order_product
-			->where('cart_product_id', '=', Cart_Config::load('donation_product_id'))
-			->find();
+		$donation_order_product = $order->product(Cart_Config::load('donation_product_id'));
 		if ($donation_order_product->loaded()) {
 			return TRUE;
 		}
