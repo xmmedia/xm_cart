@@ -172,23 +172,8 @@ class Controller_XM_Cart extends Controller_Public {
 			throw new Kohana_Exception('The selected product is no longer available');
 		}
 
-		// everything seems successful, so save the cart_order_product record
-		$order_product->values(array(
-				'cart_order_id' => $order->id,
-				'cart_product_id' => $cart_product_id,
-				'quantity' => ($order_product->loaded() ? $order_product->quantity + $quantity : $quantity),
-				'unit_price' => $product->cost,
-			))
-			->save();
-
-		$order->calculate_totals()
-			->add_log('add_product', array(
-				'cart_order_product_id' => $order_product->id,
-				'cart_product_id' => $order_product->cart_product_id,
-				'quantity' => $order_product->quantity,
-				'unit_price' => $product->cost,
-				'name' => $product->name,
-			));
+		$quantity = ($order_product->loaded() ? $order_product->quantity + $quantity : $quantity);
+		$order->add_product($product, $quantity, NULL, $order_product);
 
 		AJAX_Status::echo_json(AJAX_Status::success());
 	} // function action_add_product

@@ -72,25 +72,7 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 			$order = Cart::retrieve_user_order(TRUE);
 		}
 
-		$order_product = ORM::factory('Cart_Order_Product', array(
-				'cart_order_id' => $order->pk(),
-				'cart_product_id' => $donation_product->pk(),
-			))->values(array(
-				'cart_order_id' => $order->pk(),
-				'cart_product_id' => $donation_product->pk(),
-				'quantity' => 1,
-				'unit_price' => $donation,
-			))
-			->save();
-
-		$order->calculate_totals()
-			->add_log('add_product', array(
-				'cart_order_product_id' => $order_product->pk(),
-				'cart_product_id' => $order_product->cart_product_id,
-				'quantity' => $order_product->quantity,
-				'unit_price' => $order_product->unit_price,
-				'name' => $donation_product->name,
-			));
+		$order->add_product($donation_product, 1, $donation);
 
 		$this->redirect(Route::get('cart_public')->uri(array('action' => 'checkout')));
 	}

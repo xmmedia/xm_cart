@@ -1359,4 +1359,48 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			->where('cart_order_product.cart_product_id', '=', $cart_product_id)
 			->find();
 	}
+
+	/**
+	 * Adds a product to the order.
+	 * Should have already checked if the `cart_product` record still exists.
+	 * If the `unit_price` is not passed, the value from the `cart_product` will be used. This is likely only used on donations.
+	 * Returns the either created or updated `cart_order_product` record/model.
+	 * If the `Cart_Order_Product` model has already been created, it can be passed in.
+	 *
+	 * @param  Model_Cart_Product  $cart_product  The product to add.
+	 * @param  int     $quantity    The quantity to add.
+	 * @param  float   $unit_price  The unit price, if it needs to be customized (such as for donations).
+	 * @param  Model_Cart_Order_Product  $order_product  An existing `Cart_Order_Product` model.
+	 * @param  string  $log_action  The log action to use. Default `add_product`
+	 *
+	 * @return   The created or updated Model_Cart_Order_Product.
+	 */
+	public function add_product($cart_product, $quantity, $unit_price = NULL, $order_product = NULL, $log_action = 'add_product') {
+		if ($order_product === NULL) {
+			$order_product = ORM::factory('Cart_Order_Product');
+		}
+
+		if ($unit_price === NULL) {
+			$unit_price = $cart_product->cost;
+		}
+
+		$order_product->values(array(
+				'cart_order_id' => $this->pk(),
+				'cart_product_id' => $cart_product->pk(),
+				'quantity' => $quantity,
+				'unit_price' => $unit_price,
+			))
+			->save();
+
+		$this->calculate_totals()
+			->add_log($log_action, array(
+				'cart_order_product_id' => $order_product->pk(),
+				'cart_product_id' => $cart_product->pk(),
+				'quantity' => $order_product->quantity,
+				'unit_price' => $order_product->unit_price,
+				'name' => $cart_product->name,
+			));
+
+		return $order_product;
+	}
 } // class
