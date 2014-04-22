@@ -152,5 +152,6 @@ return array(
 		'add_additional_charge' => 'Add Additional Charge',
 		'remove_additional_charge' => 'Remove Additional Charge',
 		'update_additional_charge' => 'Update Additional Charge',
+		'donation_unit_price_change' => 'Donation Amount Changed',
 	),
 );
