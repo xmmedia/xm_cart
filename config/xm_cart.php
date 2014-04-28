@@ -36,6 +36,11 @@ return array(
 	'donation_minimum' => 25,
 	'donation_maximum' => 10000,
 
+	// controls the display of the country fields
+	// if disable, they will be set to the value of 'default_country_id'
+	'show_shipping_country' => TRUE,
+	'show_billing_country' => TRUE,
+
 	// enables/disables the company field on the billing information
 	'show_billing_company' => TRUE,
 

@@ -451,8 +451,6 @@ class Controller_XM_Cart extends Controller_Public {
 			$this->redirect(Cart_Config::continue_shopping_url());
 		}
 
-		$show_billing_company = (bool) Cart_Config::load('show_billing_company');
-
 		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
 
 		$cart_view = ($is_donation_cart ? 'cart/cart_donation' : 'cart/cart');
@@ -460,6 +458,17 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('order_product_array', $order_product_array)
 			// the total rows are sent through JSON and rendered in JS
 			->set('total_rows', array());
+
+		$show_shipping_country = (bool) Cart_Config::load('show_shipping_country');
+		$show_billing_country = (bool) Cart_Config::load('show_billing_country');
+		if ( ! $show_shipping_country) {
+			$shipping_country_name = ORM::factory('Country', Cart_Config::load('default_country_id'))
+				->name;
+		}
+		if ( ! $show_billing_country) {
+			$billing_country_name = ORM::factory('Country', Cart_Config::load('default_country_id'))
+				->name;
+		}
 
 		$expiry_date_months = Cart::expiry_months();
 		$expiry_date_years = Cart::expiry_years();
@@ -477,7 +486,11 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('continue_shopping_url', Cart_Config::continue_shopping_url())
 			->set('enable_shipping', Cart_Config::enable_shipping())
-			->bind('show_billing_company', $show_billing_company)
+			->set('show_shipping_country', $show_shipping_country)
+			->bind('shipping_country_name', $shipping_country_name)
+			->set('show_billing_country', $show_billing_country)
+			->bind('billing_country_name', $billing_country_name)
+			->set('show_billing_company', (bool) Cart_Config::load('show_billing_company'))
 			->set('enable_tax', Cart_Config::enable_tax())
 			->set('donation_cart', $is_donation_cart)
 			->bind('card_testing_select', $card_testing_select)
@@ -502,8 +515,13 @@ class Controller_XM_Cart extends Controller_Public {
 		try {
 			$order->for_user()
 				->only_allow_shipping()
-				->save_values()
-				->save()
+				->save_values();
+
+			if ( ! Cart_Config::load('show_shipping_country')) {
+				$order->shipping_country_id = Cart_Config::load('default_country_id');
+			}
+
+			$order->save()
 				->calculate_totals() // also saves
 				->add_log('save_shipping');
 
@@ -543,8 +561,13 @@ class Controller_XM_Cart extends Controller_Public {
 		try {
 			$order->for_user()
 				->only_allow_billing()
-				->save_values()
-				->save()
+				->save_values();
+
+			if ( ! Cart_Config::load('show_billing_country')) {
+				$order->billing_country_id = Cart_Config::load('default_country_id');
+			}
+
+			$order->save()
 				->calculate_totals() // also saves
 				->add_log('save_billing');
 
