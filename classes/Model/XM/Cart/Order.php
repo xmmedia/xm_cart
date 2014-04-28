@@ -465,6 +465,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'select_one' => TRUE,
 			),
 			'field_attributes' => array(
+				// also in checkout view
 				'data-cart_shipping_field' => 'country_id',
 			),
 		),
@@ -637,6 +638,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'select_one' => TRUE,
 			),
 			'field_attributes' => array(
+				// also in checkout view
 				'data-cart_billing_field' => 'country_id',
 			),
 		),
