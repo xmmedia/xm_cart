@@ -807,6 +807,13 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'shipping_last_name' => array(
 					array('not_empty'),
 				),
+				'shipping_phone' => array(
+					array('not_empty'),
+				),
+				'shipping_email' => array(
+					array('not_empty'),
+					array('email'),
+				),
 				'shipping_address_1' => array(
 					array('not_empty'),
 				),
@@ -822,13 +829,6 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'shipping_country_id' => array(
 					array('selected'),
 				),
-				'shipping_phone' => array(
-					array('not_empty'),
-				),
-				'shipping_email' => array(
-					array('not_empty'),
-					array('email'),
-				),
 			));
 		}
 
@@ -840,6 +840,13 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				),
 				'billing_last_name' => array(
 					array('not_empty'),
+				),
+				'billing_phone' => array(
+					array('not_empty'),
+				),
+				'billing_email' => array(
+					array('not_empty'),
+					array('email'),
 				),
 				'billing_address_1' => array(
 					array('not_empty'),
@@ -855,13 +862,6 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				),
 				'billing_country_id' => array(
 					array('selected'),
-				),
-				'billing_phone' => array(
-					array('not_empty'),
-				),
-				'billing_email' => array(
-					array('not_empty'),
-					array('email'),
 				),
 			));
 		}
