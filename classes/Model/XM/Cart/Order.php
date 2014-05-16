@@ -1060,16 +1060,19 @@ class Model_XM_Cart_Order extends Cart_ORM {
 
 			$existing_shipping_rate = $this->cart_order_shipping->find();
 			$add_shipping = FALSE;
-			$cart_order_shipping_data = array(
-				'cart_order_id' => $this->pk(),
-				'cart_shipping_id' => $selected_shipping_rate['model']->pk(),
-				'display_name' => $selected_shipping_rate['model']->display_name(),
-				'amount' => $selected_shipping_rate['order_amount'],
-				'manual_flag' => 0,
-				'data' => $selected_shipping_rate['model']->data(),
-			);
+			if ($selected_shipping_rate !== NULL) {
+				$cart_order_shipping_data = array(
+					'cart_order_id' => $this->pk(),
+					'cart_shipping_id' => $selected_shipping_rate['model']->pk(),
+					'display_name' => $selected_shipping_rate['model']->display_name(),
+					'amount' => $selected_shipping_rate['order_amount'],
+					'manual_flag' => 0,
+					'data' => $selected_shipping_rate['model']->data(),
+				);
+			}
 			if ($existing_shipping_rate->loaded()) {
-				if ($existing_shipping_rate->cart_shipping_id == $selected_shipping_rate['model']->pk()) {
+				// it's the same as the existing shipping rate, so just update the data (probably not much has changed)
+				if ($selected_shipping_rate !== NULL && $existing_shipping_rate->cart_shipping_id == $selected_shipping_rate['model']->pk()) {
 					$existing_shipping_rate->values($cart_order_shipping_data)
 						->save();
 				} else {
@@ -1083,7 +1086,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			} else {
 				$add_shipping = TRUE;
 			}
-			if ($add_shipping) {
+			if ($selected_shipping_rate !== NULL && $add_shipping) {
 				$new_shipping_rate = ORM::factory('Cart_Order_Shipping')
 					->values($cart_order_shipping_data)
 					->save();
