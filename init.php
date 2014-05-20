@@ -154,9 +154,27 @@ if ($routes['donate']) {
 }
 
 if ($routes['admin']) {
-	Route::set('cart_admin', $route_prefix . '/admin(/<action>(/<id>))')
+	Route::set('cart_admin', $route_prefix . '/admin')
 		->defaults(array(
 			'controller' => 'Cart_Admin',
+			'action' => 'index',
+	));
+
+	Route::set('cart_admin_order', $route_prefix . '/admin/order(/<action>(/<id>))')
+		->defaults(array(
+			'controller' => 'Cart_Admin_Order',
+			'action' => 'index',
+	));
+
+	Route::set('cart_admin_shipping', $route_prefix . '/admin/shipping(/<action>(/<id>))')
+		->defaults(array(
+			'controller' => 'Cart_Admin_Shipping',
+			'action' => 'index',
+	));
+
+	Route::set('cart_admin_tax', $route_prefix . '/admin/tax(/<action>(/<id>))')
+		->defaults(array(
+			'controller' => 'Cart_Admin_Tax',
 			'action' => 'index',
 	));
 }
