@@ -42,7 +42,7 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 
 	// default sorting
 	protected $_sorting = array(
-		'display_order' => 'ASC',
+		'amount' => 'ASC',
 		'name' => 'ASC',
 	);
 
@@ -142,18 +142,6 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 				'class' => 'numeric',
 			),
 		),
-		'display_order' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 6,
-				'size' => 6,
-			),
-		),
 		'data' => array(
 			'field_type' => 'Serializable',
 			'edit_flag' => TRUE,
@@ -189,7 +177,6 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 			'end' => 'End',
 			'calculation_method' => 'Calculation Method',
 			'amount' => 'Amount',
-			'display_order' => 'Display Order',
 			'data' => 'Data',
 		);
 	}
