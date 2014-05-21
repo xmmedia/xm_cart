@@ -207,7 +207,7 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 
 		$this->template->page_title = 'Shipping Rate Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping/edit')
-			->set('form_open', Form::open($uri, array('class' => 'cart_form cart_form_shipping js_cart_form_shipping')))
+			->set('form_open', Form::open($uri, array('class' => 'cart_form js_cart_form_shipping')))
 			->set('cancel_uri', URL::site($this->shipping_uri()))
 			->bind('shipping_rate', $shipping_rate)
 			->bind('reasons', $reasons)
