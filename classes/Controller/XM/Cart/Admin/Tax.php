@@ -48,13 +48,12 @@ class Controller_XM_Cart_Admin_Tax extends Controller_Cart_Admin {
 		$taxes_html = array();
 		foreach ($taxes as $tax) {
 			$html = '<strong>' . HTML::chars($tax->name) . '</strong>'
-				. ($tax->name != $tax->display_name ? ' (' . HTML::chars($tax->display_name) . ')' : '')
-				. '<br>';
+				. ($tax->name != $tax->display_name ? ' (' . HTML::chars($tax->display_name) . ')' : '');
 			if ( ! Form::check_date_empty_value($tax->start)) {
-				$html .= 'Starting ' . $tax->start;
+				$html .= '<br>Starting ' . $tax->start;
 			}
 			if ( ! Form::check_date_empty_value($tax->end)) {
-				$html .= ' Ending ' . $tax->end;
+				$html .= '<br>Ending ' . $tax->end;
 			}
 
 			$html .= '<br>' . Cart::calc_method_display($tax->calculation_method, $tax->amount);
@@ -81,7 +80,8 @@ class Controller_XM_Cart_Admin_Tax extends Controller_Cart_Admin {
 
 		$add = (bool) $this->request->query('add');
 		if ($add) {
-			$tax = ORM::factory('Cart_Tax');
+			$tax = ORM::factory('Cart_Tax')
+				->set_mode('add');
 		} else {
 			$tax = ORM::factory('Cart_Tax', (int) $this->request->param('id'));
 			if ( ! $tax->loaded()) {

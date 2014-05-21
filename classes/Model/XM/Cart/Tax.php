@@ -148,6 +148,9 @@ class Model_XM_Cart_Tax extends Cart_ORM {
 				'maxlength' => 6,
 				'size' => 6,
 			),
+			'field_options' => array(
+				'default_value' => 1,
+			),
 		),
 		'calculation_method' => array(
 			'field_type' => 'Radios',
