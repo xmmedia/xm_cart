@@ -77,6 +77,9 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 			'field_attributes' => array(
 				'maxlength' => 50,
 			),
+			'field_options' => array(
+				'default_value' => 'Shipping',
+			),
 		),
 		'display_name' => array(
 			'field_type' => 'Text',
@@ -87,6 +90,9 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 			'is_nullable' => FALSE,
 			'field_attributes' => array(
 				'maxlength' => 50,
+			),
+			'field_options' => array(
+				'default_value' => 'Shipping',
 			),
 		),
 		'start' => array(
