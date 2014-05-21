@@ -8,7 +8,7 @@
  * @author     XM Media Inc.
  * @copyright  (c) 2014 XM Media Inc.
  */
-class Controller_XM_Cart_Admin extends Controller_Cart_Admin {
+class Controller_XM_Cart_Admin_Tax extends Controller_Cart_Admin {
 	public $page = 'cart_admin';
 
 	public $secure_actions = array(
