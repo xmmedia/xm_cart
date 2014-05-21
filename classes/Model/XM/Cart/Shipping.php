@@ -3,31 +3,31 @@
 /**
  * Model for `cart_shipping`.
  *
- * Some sample JSON data for the data attribute:
+ * Some sample JSON data for the data attribute/field:
  *
  * Flat rate:
  *
  *     {"reasons":[{"reason":"flat_rate"}]}
  *
- * Order total between $0 and $100:
+ * Sub total between $0 and $100:
  *
- *     {"reasons":[{"reason":"order_total","min":0,"max":100}]}
+ *     {"reasons":[{"reason":"sub_total","min":0,"max":100}]}
  *
- * Order total above $100.01 (works along side the above one):
+ * Sub total above $100.01 (works along side the above one):
  *
- *     {"reasons":[{"reason":"order_total","min":100.01}]}
+ *     {"reasons":[{"reason":"sub_total","greater_than":100.01}]}
  *
- * Shipping location of Alberta, Canada:
+ * Shipping address of Alberta, Canada:
  *
- *     {"reasons":[{"reason":"shipping_location","locations":[{"country_id":40,"state_id":1}]}]}
+ *     {"reasons":[{"reason":"shipping_address","locations":[{"country_id":40,"state_id":1}]}]}
  *
  * No other rate (will be applied if no other rate applies):
  *
  *     {"reasons":[{"reason":"no_other_rate"}]}
  *
- * Shipping location of Alberta or BC, Canada and minimum order of $100:
+ * Shipping address of Alberta or BC, Canada and minimum sub total of $100:
  *
- *     {"reasons":[{"reason":"shipping_location","locations":[{"country_id":40,"state_id":1},{"country_id":40,"state_id":7}]},{"reason":"order_total","min":100}]}
+ *     {"reasons":[{"reason":"shipping_address","locations":[{"country_id":40,"state_id":1},{"country_id":40,"state_id":7}]},{"reason":"sub_total","greater_than":100}]}
  *
  *
  * @package    XM Cart
@@ -122,11 +122,13 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 				'source' => array(
 					'source' => 'array',
 					'data' => array(
+						'$' => 'Dollar Value ($)',
 						'%' => 'Percentage (%)',
-						'$' => 'Dollar Value ($)'
+						'f' => 'Free',
 					),
 				),
 				'default_value' => '$',
+				'orientation' => 'vertical',
 			),
 		),
 		'amount' => array(
@@ -173,10 +175,10 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 			'expiry_date' => 'Expiry Date',
 			'name' => 'Name',
 			'display_name' => 'Display Name',
-			'start' => 'Start',
-			'end' => 'End',
+			'start' => 'Start Date',
+			'end' => 'End Date',
 			'calculation_method' => 'Calculation Method',
-			'amount' => 'Amount',
+			'amount' => 'Shipping Rate',
 			'data' => 'Data',
 		);
 	}
@@ -198,10 +200,11 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 				array('not_empty'),
 			),
 			'amount' => array(
-				array('not_empty'),
+				array(array($this, 'validate_amount'), array(':validation')),
 			),
-			// data probably shouldn't be empty either
-			// but we can't add that requirement till we've added the admin tool
+			'data' => array(
+				array(array($this, 'validate_data'), array(':validation')),
+			),
 		);
 	}
 
@@ -230,6 +233,55 @@ class Model_XM_Cart_Shipping extends Cart_ORM {
 	}
 
 	public function data() {
-		return Arr::extract($this->as_array(), array('name', 'display_name', 'start', 'end', 'display_order', 'calculation_method', 'amount', 'data'));
+		return Arr::extract($this->as_array(), array('name', 'display_name', 'start', 'end', 'calculation_method', 'amount', 'data'));
+	}
+
+	/**
+	 * Checks the amount field based on the value of the calculation_method field.
+	 *
+	 * @param   Validation  $validate  The validation object.
+	 *
+	 * @return  void
+	 */
+	public function validate_amount(Validation $validate) {
+		if ($this->calculation_method != 'f' && empty($this->amount)) {
+			$validate->error('amount', 'empty');
+		}
+	}
+
+	/**
+	 * Checks the data field which includes the reasons.
+	 *
+	 * @param   Validation  $validate  The validation object.
+	 *
+	 * @return  void
+	 */
+	public function validate_data(Validation $validate) {
+		$reasons = (array) Arr::get($this->data, 'reasons');
+
+		if (empty($reasons)) {
+			$validate->error('data', 'one_reason');
+		} else {
+			foreach ($reasons as $reason) {
+				switch ($reason['reason']) {
+					case 'flat_rate' :
+						// no extra validation needed
+						break;
+
+					case 'sub_total' :
+						if (isset($reason['min']) || isset($reason['max'])) {
+							if ($reason['min'] >= $reason['max']) {
+								$validate->error('data', 'min_greater_max');
+							} else if (($reason['max'] - $reason['min']) <= 0.01) {
+								$validate->error('data', 'min_max_difference');
+							}
+						}
+						break;
+
+					case 'shipping_address' :
+						break;
+				}
+			}
+		}
 	}
 } // class

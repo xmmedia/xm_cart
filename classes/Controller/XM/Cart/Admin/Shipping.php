@@ -34,7 +34,6 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 		}
 
 		$shipping_rates = ORM::factory('Cart_Shipping')
-			->where_active_dates()
 			->find_all();
 
 		$shipping_rate_html = array();
@@ -124,7 +123,8 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 
 		$add = (bool) $this->request->query('add');
 		if ($add) {
-			$shipping_rate = ORM::factory('Cart_Shipping');
+			$shipping_rate = ORM::factory('Cart_Shipping')
+				->set_mode('add');
 		} else {
 			$shipping_rate = ORM::factory('Cart_Shipping', (int) $this->request->param('id'));
 			if ( ! $shipping_rate->loaded()) {
@@ -135,8 +135,37 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 
 		if ( ! empty($_POST)) {
 			try {
+				$reasons = (array) $this->request->post('reasons');
+				$save_reasons = array();
+				foreach ($reasons as $reason) {
+					switch ($reason['reason']) {
+						case 'flat_rate' :
+							$_save_reason = array(
+								'reason' => 'flat_rate',
+							);
+							break;
+
+						case 'sub_total' :
+							$_save_reason = array(
+								'reason' => 'sub_total',
+							);
+							if (isset($reason['greater_than'])) {
+								$_save_reason['greater_than'] = $reason['greater_than'];
+							} else {
+								$_save_reason['min'] = Arr::get($reason, 'min', 0);
+								$_save_reason['max'] = Arr::get($reason, 'max', 0);
+							}
+							break;
+
+						case 'shipping_address' :
+							break;
+					}
+
+					$save_reasons[] = $_save_reason;
+				}
+
 				$shipping_rate->save_values()
-					->set('data', array('reasons' => (array) $this->request->post('reasons')))
+					->set('data', array('reasons' => $save_reasons))
 					->save();
 
 				Message::add('The shipping rate has been saved.', Message::$notice);
@@ -147,20 +176,41 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 			}
 		}
 
-		$reasons = array(
+		$available_reasons = array(
 			'flat_rate' => 'Flat Rate',
 			'sub_total' => 'Order Sub Total',
-			'shipping_address' => 'Shipping Address',
+			// 'shipping_address' => 'Shipping Address',
 		);
+		$reasons = (array) Arr::get($shipping_rate->data, 'reasons', array());
+		if (empty($reasons)) {
+			$reasons = array(
+				array('reason' => 'flat_rate'),
+			);
+		}
+
+		$existing_shipping = ORM::factory('Cart_Shipping')
+			->find_all();
+		$sub_total_last = 0;
+		foreach ($existing_shipping as $_shipping_rate) {
+			if ( ! empty($_shipping_rate->data['reasons']) && is_array($_shipping_rate->data['reasons'])) {
+				foreach ($_shipping_rate->data['reasons'] as $reason) {
+					if ($reason['reason'] == 'sub_total' && isset($reason['max'])) {
+						$sub_total_last = $reason['max'];
+					}
+				}
+			}
+		}
 
 		$uri = Route::get('cart_admin_shipping')->uri(array('action' => 'edit', 'id' => $shipping_rate->pk())) . ($add ? '?add=1' : '');
 
 		$this->template->page_title = 'Shipping Rate Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping/edit')
-			->set('form_open', Form::open($uri, array('class' => 'cart_form')))
+			->set('form_open', Form::open($uri, array('class' => 'cart_form cart_form_shipping js_cart_form_shipping')))
 			->set('cancel_uri', URL::site($this->shipping_uri()))
 			->bind('shipping_rate', $shipping_rate)
-			->bind('reasons', $reasons);
+			->bind('reasons', $reasons)
+			->bind('available_reasons', $available_reasons)
+			->bind('sub_total_last', $sub_total_last);
 	}
 
 	public function action_delete() {

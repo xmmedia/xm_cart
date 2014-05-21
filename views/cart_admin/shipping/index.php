@@ -4,10 +4,10 @@
 
 		<?php echo HTML::anchor($add_uri, 'Add Shipping Rate'); ?>
 
-		<ul class="cart_rate_list">
-			<?php foreach ($shipping_rate_html as $rate) { ?>
+		<ul class="cart_rate_list js_cart_shipping_list">
+			<?php foreach ($shipping_rate_html as $rate) : ?>
 			<li><?php echo $rate; ?></li>
-			<?php } // foreach ?>
+			<?php endforeach ?>
 		</ul>
 	</div>
 </div>
