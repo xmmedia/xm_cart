@@ -101,8 +101,10 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 
 			$html .= '<br>' . Cart::calc_method_display($shipping_rate->calculation_method, $shipping_rate->amount);
 
-			$html .= '<br>' . HTML::anchor(Route::get('cart_admin_shipping')->uri(array('action' => 'edit', 'id' => $shipping_rate->pk())), 'Edit') . ' | '
-				. HTML::anchor(Route::get('cart_admin_shipping')->uri(array('action' => 'delete', 'id' => $shipping_rate->pk())), 'Delete', array('class' => 'js_delete_shipping', 'data-name' => $shipping_rate->name));;
+			$html .= '<div class="actions">'
+					. HTML::anchor(Route::get('cart_admin_shipping')->uri(array('action' => 'edit', 'id' => $shipping_rate->pk())), HTML::icon('pencil') . 'Edit')
+					. HTML::anchor(Route::get('cart_admin_shipping')->uri(array('action' => 'delete', 'id' => $shipping_rate->pk())), HTML::icon('remove_2') . 'Delete', array('class' => 'js_delete_shipping', 'data-name' => $shipping_rate->name))
+				. '</div>';
 
 			$shipping_rate_html[] = $html;
 		}
