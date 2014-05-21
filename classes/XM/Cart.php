@@ -43,11 +43,17 @@ class XM_Cart {
 	}
 
 	public static function calc_method($calculation_method, $amount, $total) {
-		if ($calculation_method == '%') {
+		switch ($calculation_method) {
+			case '%' :
 				return $total * ($amount / 100);
-			} else if ($calculation_method == '$') {
+				break;
+			case '$' :
 				return $amount;
-			}
+				break;
+			case 'f' :
+				return 0;
+				break;
+		}
 	}
 
 	public static function calc_method_display($calculation_method, $amount) {

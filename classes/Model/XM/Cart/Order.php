@@ -1037,16 +1037,55 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			// first want a list of all the possible shipping rates
 			foreach ($shipping_rates as $shipping_rate) {
 				if ( ! empty($shipping_rate->data['reasons']) && is_array($shipping_rate->data['reasons'])) {
+
+					// loop through the reasons
+					// we want to count how many of the reasons apply to the current order
+					// all the reasons fit the current order, then it's a possible shipping rate
+					$valid_reasons = 0;
 					foreach ($shipping_rate->data['reasons'] as $reason) {
 						switch ($reason['reason']) {
+							// {"reasons":[{"reason":"flat_rate"}]}
 							case 'flat_rate' :
-								$possible_shipping_rates[$shipping_rate->pk()]['model'] = $shipping_rate;
-								$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $this->_sub_total);
+								++ $valid_reasons;
 								break;
-						} // switch reasons
-					} // foreach reasons
-				} // if reasons
-			} // foreach shipping rates
+
+							case 'sub_total' :
+								// min/max
+								// {"reasons":[{"reason":"sub_total","min":50.01,"max":100}]}
+								if (isset($reason['min']) && isset($reason['max']) && $this->_sub_total >= $reason['min'] && $this->_sub_total <= $reason['max']) {
+									++ $valid_reasons;
+								// greater than
+								// {"reasons":[{"reason":"sub_total","greater_than":500.01}]}
+								} else if (isset($reason['greater_than']) && $this->_sub_total >= $reason['greater_than']) {
+									++ $valid_reasons;
+								}
+								break;
+
+							case 'shipping_address' :
+								// both country & state(s)
+								// country can only be a single ID
+								// state_id can be a single ID or an array
+								// {"reasons":[{"reason":"shipping_address","country_id":40,"state_id":1}]}
+								// {"reasons":[{"reason":"shipping_address","country_id":40,"state_id":[1,7]}]}
+								if (isset($reason['state_id']) && $this->shipping_country_id == $reason['country_id'] && in_array($this->shipping_state_id, (array) $reason['state_id'])) {
+									++ $valid_reasons;
+								// only country(ies)
+								// country can be a single ID or an array
+								// {"reasons":[{"reason":"shipping_address","country_id":[40,30]}]}
+								} else if (in_array($this->shipping_country_id, (array) $reason['country_id'])) {
+									++ $valid_reasons;
+								}
+								break;
+						}
+					}
+
+					// if all the reasons match, it's a possible shipping rate
+					if ($valid_reasons == count($shipping_rate->data['reasons'])) {
+						$possible_shipping_rates[$shipping_rate->pk()]['model'] = $shipping_rate;
+						$possible_shipping_rates[$shipping_rate->pk()]['order_amount'] = Cart::calc_method($shipping_rate->calculation_method, $shipping_rate->amount, $this->_sub_total);
+					}
+				}
+			}
 
 			// now loop through the shipping rates to find the cheapest one
 			$lowest_shipping_rate = NULL;

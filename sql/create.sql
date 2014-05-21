@@ -403,10 +403,9 @@ CREATE TABLE `cart_shipping` (
   `end` datetime NOT NULL,
   `calculation_method` char(1) COLLATE utf8_unicode_ci NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `display_order` smallint(6) unsigned NOT NULL,
   `data` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `main` (`expiry_date`,`start`,`end`,`calculation_method`,`display_order`)
+  KEY `main` (`expiry_date`,`start`,`end`,`calculation_method`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
