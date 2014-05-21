@@ -17,7 +17,8 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 		$this->page_title_append = 'Cart Admin - ' . $this->page_title_append;
 
 		if ($this->auto_render) {
-			$this->add_style('cart_private', 'xm_cart/css/private.css');
+			$this->add_style('cart_private', 'xm_cart/css/private.css')
+				->add_script('cart_base', 'xm_cart/js/base.min.js');
 		}
 	}
 
@@ -30,14 +31,14 @@ class Controller_XM_Cart_Admin extends Controller_Private {
 	}
 
 	protected function order_uri() {
-		return Route::get('cart_admin')->uri(array('action' => 'order'));
+		return Route::get('cart_admin_order')->uri();
 	}
 
 	protected function shipping_uri() {
-		return Route::get('cart_admin')->uri(array('action' => 'shipping'));
+		return Route::get('cart_admin_shipping')->uri();
 	}
 
 	protected function tax_uri() {
-		return Route::get('cart_admin')->uri(array('action' => 'tax'));
+		return Route::get('cart_admin_tax')->uri();
 	}
 }

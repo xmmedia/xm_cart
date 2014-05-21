@@ -97,7 +97,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			}
 
 			$row = array(
-				HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'order_view', 'id' => $order->id)), HTML::icon('search')),
+				HTML::anchor(Route::get('cart_admin_order')->uri(array('action' => 'view', 'id' => $order->id)), HTML::icon('search')),
 				$order->get_field('status') . '<br>' . $last_log->timestamp,
 				$name,
 				Cart::cf($order->grand_total),
@@ -106,7 +106,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			$order_table->add_row($row);
 		}
 
-		$uri = Route::get('cart_admin')->uri(array('action' => 'order'));
+		$uri = Route::get('cart_admin_order')->uri();
 
 		$this->template->page_title = 'Orders - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/index')

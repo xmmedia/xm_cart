@@ -59,13 +59,13 @@ class Controller_XM_Cart_Admin extends Controller_Cart_Admin {
 
 			$html .= '<br>' . Cart::calc_method_display($tax->calculation_method, $tax->amount);
 
-			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk())), 'Edit') . ' | '
-				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'tax_delete', 'id' => $tax->pk())), 'Delete', array('class' => 'js_delete_tax', 'data-name' => $tax->name));
+			$html .= '<br>' . HTML::anchor(Route::get('cart_admin_tax')->uri(array('action' => 'edit', 'id' => $tax->pk())), 'Edit') . ' | '
+				. HTML::anchor(Route::get('cart_admin_tax')->uri(array('action' => 'delete', 'id' => $tax->pk())), 'Delete', array('class' => 'js_delete_tax', 'data-name' => $tax->name));
 
 			$taxes_html[] = $html;
 		}
 
-		$add_uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit')) . '?add=1';
+		$add_uri = Route::get('cart_admin_tax')->uri(array('action' => 'edit')) . '?add=1';
 
 		$this->template->page_title = 'Taxes - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/tax/index')
@@ -103,7 +103,7 @@ class Controller_XM_Cart_Admin extends Controller_Cart_Admin {
 			}
 		}
 
-		$uri = Route::get('cart_admin')->uri(array('action' => 'tax_edit', 'id' => $tax->pk())) . ($add ? '?add=1' : '');
+		$uri = Route::get('cart_admin_tax')->uri(array('action' => 'edit', 'id' => $tax->pk())) . ($add ? '?add=1' : '');
 
 		$this->template->page_title = 'Tax Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/tax/edit')

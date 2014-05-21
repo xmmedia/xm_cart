@@ -102,13 +102,13 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 
 			$html .= '<br>' . Cart::calc_method_display($shipping_rate->calculation_method, $shipping_rate->amount);
 
-			$html .= '<br>' . HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk())), 'Edit') . ' | '
-				. HTML::anchor(Route::get('cart_admin')->uri(array('action' => 'shipping_delete', 'id' => $shipping_rate->pk())), 'Delete', array('class' => 'js_delete_shipping', 'data-name' => $shipping_rate->name));;
+			$html .= '<br>' . HTML::anchor(Route::get('cart_admin_shipping')->uri(array('action' => 'edit', 'id' => $shipping_rate->pk())), 'Edit') . ' | '
+				. HTML::anchor(Route::get('cart_admin_shipping')->uri(array('action' => 'delete', 'id' => $shipping_rate->pk())), 'Delete', array('class' => 'js_delete_shipping', 'data-name' => $shipping_rate->name));;
 
 			$shipping_rate_html[] = $html;
 		}
 
-		$add_uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit')) . '?add=1';
+		$add_uri = Route::get('cart_admin_shipping')->uri(array('action' => 'edit')) . '?add=1';
 
 		$this->template->page_title = 'Shipping Rates - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping/index')
@@ -153,7 +153,7 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 			'shipping_address' => 'Shipping Address',
 		);
 
-		$uri = Route::get('cart_admin')->uri(array('action' => 'shipping_edit', 'id' => $shipping_rate->pk())) . ($add ? '?add=1' : '');
+		$uri = Route::get('cart_admin_shipping')->uri(array('action' => 'edit', 'id' => $shipping_rate->pk())) . ($add ? '?add=1' : '');
 
 		$this->template->page_title = 'Shipping Rate Edit - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/shipping/edit')
@@ -179,9 +179,5 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 
 		Message::add('The shipping rate has been deleted.', Message::$notice);
 		$this->redirect($this->shipping_uri());
-	}
-
-	protected function uri() {
-		return Route::get('cart_admin')->uri(array('action' => 'shipping'));
 	}
 }
