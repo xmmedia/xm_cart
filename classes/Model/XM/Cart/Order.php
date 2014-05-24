@@ -1321,6 +1321,14 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		}
 	}
 
+	/**
+	 * Fully recalculates all the totals: sub total and grand total.
+	 * Recalculates the shipping, additional charges and taxes.
+	 * Updates the values in the DB and also reloads the model
+	 * (mainly to make sure we're displaying the values in the db, including the rounded totals).
+	 *
+	 * @return  Model_Cart_Order
+	 */
 	public function calculate_totals() {
 		if ( ! $this->loaded()) {
 			return $this;
@@ -1342,7 +1350,8 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'grand_total' => $grand_total,
 			))
 			->is_valid()
-			->save();
+			->save()
+			->reload();
 	}
 
 	public function clear_taxes() {

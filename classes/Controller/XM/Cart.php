@@ -669,7 +669,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		$stripe_data = array(
-			'amount' => $order->grand_total * 100, // charged in cents
+			'amount' => round($order->grand_total * 100), // charged in cents, can't have decimals
 			'currency' => $currency,
 			'card' => $stripe_token, // obtained with Stripe.js
 			'description' => $order->stripe_charge_description(),
