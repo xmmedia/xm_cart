@@ -68,6 +68,11 @@ class Controller_XM_Cart extends Controller_Public {
 			$deleted_product = FALSE;
 			foreach ($order_products as $order_product) {
 				if ( ! $order_product->cart_product->loaded()) {
+					$order->add_log('cleaned_product', array(
+							'cart_order_product_id' => $order_product->id,
+							'cart_product_id' => $order_product->cart_product_id,
+						));
+
 					$order_product->delete();
 					$deleted_product = TRUE;
 					continue;
@@ -157,11 +162,9 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $product->loaded()) {
 			// since the product has been expired, also remove the product from order (cart_order_product)
 			if ($order_product->loaded()) {
-				$order->add_log('remove_product', array(
+				$order->add_log('cleaned_product', array(
 						'cart_order_product_id' => $order_product->id,
 						'cart_product_id' => $order_product->cart_product_id,
-						'unit_price' => $product->cost,
-						'name' => $product->name,
 					));
 
 				$order_product->delete();
@@ -252,11 +255,9 @@ class Controller_XM_Cart extends Controller_Public {
 		if ( ! $product->loaded()) {
 			// since the product has been expired, also remove the product from order (cart_order_product)
 			if ($order_product->loaded()) {
-				$order->add_log('remove_product', array(
+				$order->add_log('cleaned_product', array(
 						'cart_order_product_id' => $order_product->id,
 						'cart_product_id' => $order_product->cart_product_id,
-						'unit_price' => $product->cost,
-						'name' => $product->name,
 					));
 
 				$order_product->delete();
