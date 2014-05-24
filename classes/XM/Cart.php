@@ -278,7 +278,8 @@ class XM_Cart {
 	}
 
 	/**
-	 * Loads the user's information into the order before the check process.
+	 * Loads the user's information into the order.
+	 * Called while loading the checkout page.
 	 * It should check if the fields are already filled out as it's possible the user has already started the checkout process.
 	 *
 	 * @param   Model_Cart_Order  $order  The order model.
