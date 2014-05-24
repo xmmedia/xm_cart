@@ -238,6 +238,19 @@ class XM_Cart {
 	}
 
 	/**
+	 * This is run after order is retrieved and verified that is can be edited in the checkout action.
+	 * The returned order will be used within the checkout action.
+	 * Examples of what should be done include making sure all the products are still active and their prices are still correct in the order.
+	 *
+	 * @param   Model_Cart_Order  $order  The order model.
+	 *
+	 * @return  Model_Cart_Order
+	 */
+	public static function pre_checkout($order) {
+		return $order;
+	}
+
+	/**
 	 * Runs when an order is completed.
 	 * By default sends emails to the customer and admin.
 	 *
