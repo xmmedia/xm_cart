@@ -14,6 +14,7 @@ return array(
 	),
 
 	'page_titles' => array(
+		'cart_view' => 'Cart - ',
 		'checkout' => 'Checkout - ',
 		'completed' => 'Order Complete - ',
 	),

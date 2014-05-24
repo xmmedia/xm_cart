@@ -127,6 +127,13 @@ class Controller_XM_Cart extends Controller_Public {
 		)));
 	}
 
+	// not ajax!!
+	public function action_view() {
+		$this->template->page_title = Cart::message('page_titles.cart_view') . $this->page_title_append;
+		$this->template->body_html = View::factory('cart/view')
+			->set('countries', Cart::countries());
+	}
+
 	public function action_add_product() {
 		// retrieve the values out of the model array
 		$cart_product_id = (int) $this->request->post('cart_product_id');
