@@ -437,18 +437,9 @@ class Controller_XM_Cart extends Controller_Public {
 			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden')
 			->add_log('checkout');
 
-		$order_products = $order->cart_order_product->find_all();
-
-		$order_product_array = array();
-		foreach ($order_products as $order_product) {
-			// make sure the product is still avaialble, otherwise remove it from the order
-			if ( ! $order_product->cart_product->loaded()) {
-				$order_product->delete();
-				continue;
-			}
-
-			$order_product_array[] = $order_product;
-		} // foreach
+		$order_product_array = $order->cart_order_product
+			->find_all()
+			->as_array();
 
 		if (empty($order_product_array)) {
 			Message::add(Cart::message('empty_cart'), Message::$notice);
