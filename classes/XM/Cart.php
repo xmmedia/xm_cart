@@ -278,6 +278,18 @@ class XM_Cart {
 	}
 
 	/**
+	 * Loads the user's information into the order before the check process.
+	 * It should check if the fields are already filled out as it's possible the user has already started the checkout process.
+	 *
+	 * @param   Model_Cart_Order  $order  The order model.
+	 *
+	 * @return  Model_Cart_Order
+	 */
+	public static function load_user_address($order) {
+		return $order;
+	}
+
+	/**
 	 * Runs when an order is completed.
 	 * By default sends emails to the customer and admin.
 	 *
