@@ -10,6 +10,7 @@
  */
 class XM_Cart_Config {
 	public static $continue_shopping_url;
+	public static $cart_view_url;
 	public static $enable_shipping;
 	public static $enable_tax;
 	public static $donation_cart;
@@ -24,6 +25,14 @@ class XM_Cart_Config {
 		}
 
 		return Cart_Config::$continue_shopping_url;
+	}
+
+	public static function cart_view_url() {
+		if (Cart_Config::$cart_view_url === NULL) {
+			Cart_Config::$cart_view_url = (string) Cart_Config::load('cart_view_url');
+		}
+
+		return Cart_Config::$cart_view_url;
 	}
 
 	public static function enable_shipping() {

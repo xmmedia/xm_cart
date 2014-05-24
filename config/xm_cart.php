@@ -13,6 +13,7 @@ return array(
 	// can't be an empty string
 	// default: cart
 	'route_prefix' => 'cart',
+	'cart_view_url' => '/cart/view',
 	'continue_shopping_url' => '/cart/product_list',
 	'routes' => array(
 		'product_list' => FALSE,
