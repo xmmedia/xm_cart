@@ -428,6 +428,9 @@ class Controller_XM_Cart extends Controller_Public {
 
 		$this->checkout_https();
 
+		// run any additional custom verification of the order before checking out
+		$order = Cart::pre_checkout($order);
+
 		$order->calculate_totals()
 			->for_user()
 			->set_table_columns('same_as_shipping_flag', 'field_type', 'Hidden')
