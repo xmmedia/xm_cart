@@ -240,13 +240,40 @@ class XM_Cart {
 	/**
 	 * This is run after order is retrieved and verified that is can be edited in the checkout action.
 	 * The returned order will be used within the checkout action.
-	 * Examples of what should be done include making sure all the products are still active and their prices are still correct in the order.
+	 * By default, it checks to make sure the cart_product still exists and the unit price is correct.
+	 * An example of what could be done include making sure all the products are still active.
 	 *
 	 * @param   Model_Cart_Order  $order  The order model.
 	 *
 	 * @return  Model_Cart_Order
 	 */
 	public static function pre_checkout($order) {
+		$order_products = $order->cart_order_product->find_all();
+		foreach ($order_products as $order_product) {
+			if ( ! $order_product->cart_product->loaded()) {
+				$order->add_log('cleaned_product', array(
+						'cart_order_product_id' => $order_product->id,
+						'cart_product_id' => $order_product->cart_product_id,
+					));
+
+				$order_product->delete();
+				continue;
+			}
+
+			if ($order_product->unit_price != $order_product->cart_product->cost) {
+				$order_product->set('unit_price', $order_product->cart_product->cost)
+					->save();
+
+				$order->add_log('change_unit_price', array(
+						'cart_order_product_id' => $order_product->pk(),
+						'cart_product_id' => $cart_product->pk(),
+						'quantity' => $order_product->quantity,
+						'unit_price' => $order_product->unit_price,
+						'name' => $cart_product->name,
+					));
+			}
+		}
+
 		return $order;
 	}
 

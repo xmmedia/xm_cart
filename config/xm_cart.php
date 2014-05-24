@@ -135,7 +135,11 @@ return array(
 		'created' => 'Order Created',
 		'add_product' => 'Add Product',
 		'remove_product' => 'Remove Product',
+		// product removed because it no longer exists or is inactive
+		'cleaned_product' => 'Cleaned Product',
 		'change_quantity' => 'Change Quantity',
+		// the unit price was changed, likely because it was changed by an admin
+		'change_unit_price' => 'Change Unit Price',
 		'empty_cart' => 'Empty Cart',
 		'checkout' => 'Checkout',
 		'save_shipping' => 'Save Shipping',
