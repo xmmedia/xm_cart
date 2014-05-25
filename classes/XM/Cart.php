@@ -493,6 +493,17 @@ class XM_Cart {
 	}
 
 	/**
+	 * Returns the page titles used in the cart (PHP) views.
+	 *
+	 * @param   string  $title  The page title.
+	 *
+	 * @return  string
+	 */
+	public static function page_header($title) {
+		return '<h1>' . $title . '</h1>';
+	}
+
+	/**
 	 * Processes a Stripe exception.
 	 * If the exception is not a Stripe exception, it will throw the error again, but will still add the payment error.
 	 * If `$order` is not passed, it will call `Cart::stripe_error_order_log()`.

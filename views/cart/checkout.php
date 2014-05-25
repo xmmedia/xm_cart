@@ -1,7 +1,7 @@
 <?php $step_count = 1; ?>
 <div class="grid">
 	<div class="col cart js_cart_checkout">
-		<h1>Checkout</h1>
+		<?php echo Cart::page_header('Checkout'); ?>
 
 		<div class="cart_checkout_box cart_checkout_box_cart js_cart_checkout_step" data-cart_checkout_step="<?php echo $step_count; ?>" data-cart_checkout_step_type="cart">
 			<div class="cart_checkout_box_closed cart_checkout_box_edit hidden js_cart_checkout_box_closed">
