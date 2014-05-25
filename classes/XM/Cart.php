@@ -129,6 +129,15 @@ class XM_Cart {
 	}
 
 	/**
+	 * Deletes the user cookie.
+	 *
+	 * @return  boolean
+	 */
+	public static function user_cookie_delete() {
+		return Cookie::delete('xm_cart_order');
+	}
+
+	/**
 	 * Loads the order based on the passed unique ID.
 	 *
 	 * @param   string  $unique_id  The order unique ID.
