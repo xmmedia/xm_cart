@@ -1,6 +1,6 @@
 <div class="grid">
 	<div class="col">
-		<h1>Cart</h1>
+		<?php echo Cart::page_header('Cart'); ?>
 		<div class="js_cart">
 			<span class="js_loading"><?php echo HTML::spinner(); ?></span>
 		</div>
