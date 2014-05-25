@@ -30,6 +30,7 @@ return array(
 		),
 		'confirm_your_order' => 'Please confirm your order.',
 		'confirm_your_donation' => 'Please confirm your donation.',
+		'continue_shopping' => 'Continue Shopping',
 		'back_to_cart' => 'Back to Cart',
 		'empty_cart' => 'Empty Cart',
 		'notes_label' => 'Optional: Enter any messages you\'d like us to know when processing your order.',

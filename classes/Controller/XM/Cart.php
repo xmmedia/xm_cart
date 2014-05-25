@@ -487,6 +487,7 @@ class Controller_XM_Cart extends Controller_Public {
 			->set('total_rows', Cart::total_rows($order))
 			->bind('expiry_date_months', $expiry_date_months)
 			->bind('expiry_date_years', $expiry_date_years)
+			->set('cart_view_url', Cart_Config::cart_view_url())
 			->set('continue_shopping_url', Cart_Config::continue_shopping_url())
 			->set('enable_shipping', Cart_Config::enable_shipping())
 			->set('show_shipping_country', $show_shipping_country)
