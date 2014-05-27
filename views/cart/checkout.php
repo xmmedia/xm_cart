@@ -87,8 +87,8 @@
 				<?php else : ?>
 					<div class="cart_field">
 						<label>Country</label>
-						<?php echo HTML::chars($shipping_country_name),
-							Form::hidden('c_record[order][0][shipping_country_id]', Cart_Config::load('default_country_id'), array('data-cart_shipping_field' => 'country_id')); ?>
+						<div class="static_value"><?php echo HTML::chars($shipping_country_name),
+							Form::hidden('c_record[order][0][shipping_country_id]', Cart_Config::load('default_country_id'), array('data-cart_shipping_field' => 'country_id')); ?></div>
 					</div>
 				<?php endif ?>
 				<?php echo Form::close(); ?>
@@ -169,8 +169,8 @@
 						<?php else : ?>
 							<div class="cart_field">
 								<label>Country</label>
-								<?php echo HTML::chars($billing_country_name),
-									Form::hidden('c_record[order][0][billing_country_id]', Cart_Config::load('default_country_id'), array('data-cart_billing_field' => 'country_id')); ?>
+								<div class="static_value"><?php echo HTML::chars($billing_country_name),
+									Form::hidden('c_record[order][0][billing_country_id]', Cart_Config::load('default_country_id'), array('data-cart_billing_field' => 'country_id')); ?></div>
 							</div>
 						<?php endif ?>
 						<?php echo Form::close(); ?>
