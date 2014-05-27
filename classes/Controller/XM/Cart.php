@@ -438,6 +438,7 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// run any additional custom verification of the order before checking out
 		$order = Cart::pre_checkout($order);
+		// will optionally load the address from the user's account
 		$order = Cart::load_user_address($order);
 
 		$order->calculate_totals()
