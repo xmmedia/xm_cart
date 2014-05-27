@@ -50,6 +50,14 @@ return array(
 	// by default, show the phone extensions (both shipping & billing)
 	'show_phone_extensions' => TRUE,
 
+	// if TRUE, the customer will be given the opportunity to login, register or checkout as guest
+	// before getting to the checkout page
+	'offer_login' => TRUE,
+	// the uri to the registration page
+	// used on the offer login page
+	// to disable, empty the value or set to false
+	'register_uri' => '/register',
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(

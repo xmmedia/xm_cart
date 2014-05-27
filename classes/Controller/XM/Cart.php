@@ -421,6 +421,29 @@ class Controller_XM_Cart extends Controller_Public {
 		AJAX_Status::echo_json(AJAX_Status::success());
 	}
 
+	/**
+	 * Displays a login form, register link/button & guest checkout link/button.
+	 * If the functionality is disabled or they are already logged in, it will redirect to the checkout page.
+	 *
+	 * [!!] Not AJAX.
+	 *
+	 * @return  void
+	 */
+	public function action_login() {
+		if ( ! Cart_Config::load('offer_login') || Auth::instance()->logged_in()) {
+			$this->redirect(Route::get('cart_public')->uri(array('action' => 'checkout')));
+		}
+
+		$this->template->page_title = Cart::message('page_titles.login') . $this->page_title_append;
+		$this->template->body_html = View::factory('cart/login')
+			// used both for the login redirect & continue as guest "link"
+			->set('checkout_uri', Route::get('cart_public')->uri(array('action' => 'checkout')))
+			->set('login_uri', Route::get('login')->uri())
+			->set('forgot_password_uri', Route::get('login')->uri(array('action' => 'forgot')))
+			->set('register_uri', Cart_Config::load('register_uri'))
+			->set('cart_view_url', Cart_Config::cart_view_url());
+	}
+
 	// not ajax!!
 	public function action_checkout() {
 		$order = Cart::retrieve_user_order();
@@ -438,6 +461,10 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// run any additional custom verification of the order before checking out
 		$order = Cart::pre_checkout($order);
+
+		// offers the customer the opportunity to login
+		$this->offer_login();
+
 		// will optionally load the address from the user's account
 		$order = Cart::load_user_address($order);
 
@@ -861,6 +888,20 @@ class Controller_XM_Cart extends Controller_Public {
 		// redirect to https if they are not already
 		if (Cart_Config::load('checkout_https') && ! $this->request->secure()) {
 			$this->redirect('https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+		}
+	}
+
+	/**
+	 * Determines if they should be offered the opportunity to login, register, or do a guest checkout.
+	 * Based on if it's enabled and if they aren't already logged in.
+	 * Also won't occur if they've already selected "checkout as guest".
+	 * Redirects the user to the cart login page.
+	 *
+	 * @return  void
+	 */
+	protected function offer_login() {
+		if ( ! $this->request->post('continue_as_guest') && Cart_Config::load('offer_login') && ! Auth::instance()->logged_in()) {
+			$this->redirect(Route::get('cart_public')->uri(array('action' => 'login')));
 		}
 	}
 }
