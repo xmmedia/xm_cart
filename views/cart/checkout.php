@@ -12,7 +12,7 @@
 
 			<div class="cart_checkout_box_open js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
-				<p><strong><?php echo HTML::chars(Cart::message('checkout.confirm_your' . ($order->donation_cart_flag ? '_donation' : '_order'))); ?></strong></p>
+				<h3><?php echo HTML::chars(Cart::message('checkout.confirm_your' . ($order->donation_cart_flag ? '_donation' : '_order'))); ?></h3>
 				<?php echo $cart_html; ?>
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_left">
@@ -43,9 +43,9 @@
 			<div class="cart_checkout_box_open hidden js_cart_checkout_box_open">
 				<div class="js_cart_checkout_box_messages"></div>
 
-				<p><strong>Shipping Contact</strong></p>
+				<h3>Shipping Contact</h3>
 				<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
-				<p><a href="" class="js_cart_add_shipping_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+				<div class="test_select_container"><a href="" class="js_cart_add_shipping_test_values" title="Only available on test sites">Add Valid Test Values</a></div>
 				<?php } ?>
 				<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_shipping')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_shipping')); ?>
 				<div class="cart_field">
@@ -61,7 +61,7 @@
 					<?php echo $order->get_field_layout('shipping_email'); ?>
 				</div>
 
-				<p><strong>Shipping Address</strong></p>
+				<h3>Shipping Address</h3>
 				<div class="cart_field">
 					<?php echo $order->get_field_layout('shipping_company'); ?>
 				</div>
@@ -118,15 +118,15 @@
 				<div class="cart_billing_container">
 					<div class="js_cart_checkout_box_messages"></div>
 					<?php if ($enable_shipping) { ?>
-					<p><a href="" class="js_cart_checkout_copy_shipping">Copy shipping contact &amp; address</a></p>
+					<div class="copy_shipping"><a href="" class="js_cart_checkout_copy_shipping">Copy shipping contact &amp; address</a></div>
 					<?php } ?>
 
 					<div class="cart_billing_address">
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'save_billing')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_billing')),
 							$order->get_field('same_as_shipping_flag'); ?>
-						<p><strong>Billing Contact</strong></p>
+						<h3>Billing Contact</h3>
 						<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
-						<p><a href="" class="js_cart_add_billing_test_values" title="Only available on test sites">Add Valid Test Values</a></p>
+						<div class="test_select_container"><a href="" class="js_cart_add_billing_test_values" title="Only available on test sites">Add Valid Test Values</a></div>
 						<?php } ?>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_first_name'); ?>
@@ -141,7 +141,7 @@
 							<?php echo $order->get_field_layout('billing_email'); ?>
 						</div>
 
-						<p><strong>Billing Address</strong></p>
+						<h3>Billing Address</h3>
 						<?php if ($show_billing_company) { ?>
 						<div class="cart_field">
 							<?php echo $order->get_field_layout('billing_company'); ?>
@@ -179,10 +179,10 @@
 
 					<div class="cart_credit_card">
 						<?php echo Form::open(Route::get('cart_public')->uri(array('action' => 'validate_payment')) . '?c_ajax=1', array('class' => 'js_cart_checkout_form_payment')); ?>
-						<p><strong>Payment Method</strong></p>
+						<h3>Payment Method</h3>
 
 						<?php if (KOHANA_ENVIRONMENT > Kohana::PRODUCTION) { ?>
-						<p><?php echo $card_testing_select; ?></p>
+						<div class="test_select_container"><?php echo $card_testing_select; ?></div>
 						<?php } ?>
 
 						<div class="cart_field">
@@ -259,7 +259,7 @@
 						</div>
 					</div>
 
-					<p><strong><?php echo HTML::chars(Cart::message('checkout.review_' . ($order->donation_cart_flag ? 'donation' : 'order'))); ?></strong></p>
+					<h3><?php echo HTML::chars(Cart::message('checkout.review_' . ($order->donation_cart_flag ? 'donation' : 'order'))); ?></h3>
 				</div>
 			</div>
 		</div>
