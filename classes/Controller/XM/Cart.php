@@ -819,11 +819,14 @@ class Controller_XM_Cart extends Controller_Public {
 
 	public function action_completed() {
 		$is_donation_cart = (bool) $this->request->query('is_donation_cart');
+		$offer_registration = ( ! Auth::instance()->logged_in() &&Cart_Config::load('offer_register_after_completed'));
 
 		$this->template->page_title = Cart::message('page_titles.checkout') . $this->page_title_append;
 		$this->template->body_html = View::factory((Cart_Config::donation_cart() && $is_donation_cart ? 'cart/completed_donation' : 'cart/completed'))
 			// used in the cart config view
-			->set('countries', Cart::countries());
+			->set('countries', Cart::countries())
+			->bind('offer_registration', $offer_registration)
+			->set('register_uri', Cart_Config::load('register_uri'));
 	}
 
 	public function action_payment_failed() {

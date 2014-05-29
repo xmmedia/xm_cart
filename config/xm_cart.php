@@ -53,6 +53,9 @@ return array(
 	// if TRUE, the customer will be given the opportunity to login, register or checkout as guest
 	// before getting to the checkout page
 	'offer_login' => TRUE,
+	// offer registration after the order is completed
+	// the last order ID will be stored in the session as 'xm_cart.last_order_id'
+	'offer_register_after_completed' => TRUE,
 	// the uri to the registration page
 	// used on the offer login page
 	// to disable, empty the value or set to false
