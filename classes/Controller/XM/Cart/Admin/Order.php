@@ -68,42 +68,24 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 		$orders = $order_query->find_all();
 
-		$order_table = new HTMLTable(array(
-			'heading' => array(
-				'',
-				'Status<br>Last Change',
-				'Name',
-				'Total',
-				'Order #',
-			),
-		));
+		$order_list = array(
+			(string) View::factory('cart_admin/order/list_headers'),
+		);
 
 		foreach ($orders as $order) {
 			$order->set_mode('view');
 
 			$last_log = $order->cart_order_log->find();
 
-			if ($order->shipping_first_name != $order->billing_first_name || $order->shipping_last_name != $order->billing_last_name || $order->shipping_email != $order->billing_email) {
-				$name = '<span title="Shipping">'
-						. HTML::chars($order->shipping_first_name . ' ' . $order->shipping_last_name) . ' '
-						. HTML::mailto($order->shipping_email)
-					. '</span><br>'
-					. '<span title="Billing">'
-						. HTML::chars($order->billing_first_name . ' ' . $order->billing_last_name)  . ' '
-						. HTML::mailto($order->shipping_email)
-					. '</span>';
-			} else {
-				$name = HTML::chars($order->shipping_first_name . ' ' . $order->shipping_last_name) . '<br>' . HTML::mailto($order->shipping_email);
-			}
+			$billing_shipping_diff = ($order->shipping_first_name != $order->billing_first_name || $order->shipping_last_name != $order->billing_last_name || $order->shipping_email != $order->billing_email);
 
-			$row = array(
-				HTML::anchor(Route::get('cart_admin_order')->uri(array('action' => 'view', 'id' => $order->id)), HTML::icon('search')),
-				$order->get_field('status') . '<br>' . $last_log->timestamp,
-				$name,
-				Cart::cf($order->grand_total),
-				HTML::chars($order->order_num),
-			);
-			$order_table->add_row($row);
+			$view_uri = Route::get('cart_admin_order')->uri(array('action' => 'view', 'id' => $order->pk()));
+
+			$order_list[] = (string) View::factory('cart_admin/order/item')
+				->bind('order', $order)
+				->bind('last_log', $last_log)
+				->bind('view_uri', $view_uri)
+				->bind('billing_shipping_diff', $billing_shipping_diff);
 		}
 
 		$uri = Route::get('cart_admin_order')->uri();
@@ -112,7 +94,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		$this->template->body_html = View::factory('cart_admin/order/index')
 			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form')))
 			->bind('order_filters_html', $order_filters_html)
-			->set('order_html', $order_table->get_html());
+			->set('order_html', implode(PHP_EOL, $order_list));
 	}
 
 	public function action_view() {
