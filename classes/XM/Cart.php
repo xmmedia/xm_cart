@@ -301,7 +301,8 @@ class XM_Cart {
 
 	/**
 	 * Runs when an order is completed.
-	 * By default sends emails to the customer and admin.
+	 * By default sends emails to the customer and admin
+	 * and sets the `xm_cart.last_order_id` in the session.
 	 *
 	 * @param   Model_Cart_Order  $order  The order that was completed.
 	 * @param   Model_Cart_Order_Payment  $order_payment  The order payment model that completed the order.
@@ -312,6 +313,8 @@ class XM_Cart {
 		// send emails
 		Cart::send_customer_order_email($order, $order_payment);
 		Cart::send_admin_order_email($order, $order_payment);
+
+		Session::instance()->set_path('xm_cart.last_order_id', $order->pk());
 
 		return;
 	}
@@ -667,5 +670,23 @@ class XM_Cart {
 			))
 			->save()
 			->add_log(CART_PAYMENT_STATUS_ERROR, $error_data);
+	}
+
+	/**
+	 * Retrieves the last order based on the session key: `xm_cart.last_order_id`.
+	 * Returns `NULL` if the order can't be loaded.
+	 *
+	 * @return  Model_Cart_Order
+	 */
+	public static function last_order() {
+		$last_order_id = Session::instance()->path('xm_cart.last_order_id');
+		if ( ! empty($last_order_id)) {
+			$order = ORM::factory('Cart_Order', $last_order_id);
+			if ($order->loaded()) {
+				return $order;
+			}
+		}
+
+		return NULL;
 	}
 }
