@@ -72,24 +72,6 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'foreign_key' => 'cart_order_id',
 			'far_key' => 'user_id',
 		),
-		'payment_type' => array(
-			'model' => 'Payment_Type',
-			'through' => 'cart_order_payment',
-			'foreign_key' => 'cart_order_id',
-			'far_key' => 'payment_type_id',
-		),
-		'payment_status' => array(
-			'model' => 'Payment_Status',
-			'through' => 'cart_order_payment',
-			'foreign_key' => 'cart_order_id',
-			'far_key' => 'payment_status_id',
-		),
-		'transaction' => array(
-			'model' => 'Transaction',
-			'through' => 'cart_order_payment',
-			'foreign_key' => 'cart_order_id',
-			'far_key' => 'transaction_id',
-		),
 		'cart_product' => array(
 			'model' => 'Cart_Product',
 			'through' => 'cart_order_product',
