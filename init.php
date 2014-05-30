@@ -3,7 +3,8 @@
 $route_prefix = Cart_Config::load('route_prefix');
 $routes = (array) Cart_Config::load('routes');
 $order_status_ids = (array) Cart_Config::load('order_status_ids');
-$payment_status_ids = (array) Cart_Config::load('payment_status_ids');
+$transaction_type_ids = (array) Cart_Config::load('transaction_type_ids');
+$transaction_status_ids = (array) Cart_Config::load('transaction_status_ids');
 
 // define the order status constants
 if ( ! defined('CART_ORDER_STATUS_NEW')) {
@@ -78,63 +79,28 @@ if ( ! defined('PAYMENT_PROCESSOR_LIST')) {
 	define('PAYMENT_PROCESSOR_LIST', 'default');
 }
 
-// define the order payment status constants
-if ( ! defined('CART_PAYMENT_STATUS_IN_PROGRESS')) {
-	/**
-	*   CONST :: Order Status - In Progress
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_IN_PROGRESS', $payment_status_ids['in_progress']);
+// define the order transaction type constants
+if ( ! defined('CART_TRANSACTION_TYPE_CHARGE')) {
+	define('CART_TRANSACTION_TYPE_CHARGE', $transaction_type_ids['charge']);
 }
-if ( ! defined('CART_PAYMENT_STATUS_SUCCESSFUL')) {
-	/**
-	*   CONST :: Order Status - Successful
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_SUCCESSFUL', $payment_status_ids['successful']);
+if ( ! defined('CART_TRANSACTION_TYPE_REFUND')) {
+	define('CART_TRANSACTION_TYPE_REFUND', $transaction_type_ids['refund']);
 }
-if ( ! defined('CART_PAYMENT_STATUS_DENIED')) {
-	/**
-	*   CONST :: Order Status - Denied
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_DENIED', $payment_status_ids['denied']);
+
+// define the order transaction status constants
+if ( ! defined('CART_TRANSACTION_STATUS_IN_PROGRESS')) {
+	define('CART_TRANSACTION_STATUS_IN_PROGRESS', $transaction_status_ids['in_progress']);
 }
-if ( ! defined('CART_PAYMENT_STATUS_ERROR')) {
-	/**
-	*   CONST :: Order Status - Error
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_ERROR', $payment_status_ids['error']);
+if ( ! defined('CART_TRANSACTION_STATUS_SUCCESSFUL')) {
+	define('CART_TRANSACTION_STATUS_SUCCESSFUL', $transaction_status_ids['successful']);
 }
-if ( ! defined('CART_PAYMENT_STATUS_INCOMPLETE')) {
-	/**
-	*   CONST :: Order Status - Incomplete
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_INCOMPLETE', $payment_status_ids['incomplete']);
+if ( ! defined('CART_TRANSACTION_STATUS_DENIED')) {
+	define('CART_TRANSACTION_STATUS_DENIED', $transaction_status_ids['denied']);
 }
-if ( ! defined('CART_PAYMENT_STATUS_CANCELLED')) {
-	/**
-	*   CONST :: Order Status - Cancelled
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_CANCELLED', $payment_status_ids['cancelled']);
+if ( ! defined('CART_TRANSACTION_STATUS_ERROR')) {
+	define('CART_TRANSACTION_STATUS_ERROR', $transaction_status_ids['error']);
 }
-if ( ! defined('CART_PAYMENT_STATUS_REVERSED')) {
-	/**
-	*   CONST :: Order Status - Reversed
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_REVERSED', $payment_status_ids['reversed']);
-}
-if ( ! defined('CART_PAYMENT_STATUS_REFUNDED')) {
-	/**
-	*   CONST :: Order Status - Refunded
-	*   @var    string
-	*/
-	define('CART_PAYMENT_STATUS_REFUNDED', $payment_status_ids['refunded']);
-}
+
 
 // now setup the routes
 if ($routes['product_list']) {

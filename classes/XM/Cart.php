@@ -96,10 +96,18 @@ class XM_Cart {
 			);
 		}
 
+		if ($order->refund_total > 0) {
+			$total_rows[] = array(
+				'name' => 'Refund',
+				'value' => ($order->refund_total * -1),
+				'value_formatted' => '− ' . Cart::cf($order->refund_total),
+			);
+		}
+
 		$total_rows[] = array(
 			'name' => 'Total',
-			'value' => $order->grand_total,
-			'value_formatted' => Cart::cf($order->grand_total),
+			'value' => $order->final_total(),
+			'value_formatted' => Cart::cf($order->final_total()),
 			'is_grand_total' => TRUE,
 		);
 
@@ -305,7 +313,7 @@ class XM_Cart {
 	 * and sets the `xm_cart.last_order_id` in the session.
 	 *
 	 * @param   Model_Cart_Order  $order  The order that was completed.
-	 * @param   Model_Cart_Order_Payment  $order_payment  The order payment model that completed the order.
+	 * @param   Model_Cart_Order_Transaction  $order_payment  The order transaction/payment model that completed the order.
 	 *
 	 * @return  void
 	 */
@@ -508,7 +516,7 @@ class XM_Cart {
 
 	/**
 	 * Processes a Stripe exception.
-	 * If the exception is not a Stripe exception, it will throw the error again, but will still add the payment error.
+	 * If the exception is not a Stripe exception, it will throw the error again, but will still add the transaction error.
 	 * If `$order` is not passed, it will call `Cart::stripe_error_order_log()`.
 	 * If `$add_messages` is TRUE, messages specific to the error will be added to the session.
 	 * Returns the type of error (key `type`). In the case of a card error, additional data is returned:
@@ -521,7 +529,7 @@ class XM_Cart {
 	 *
 	 * @param   Exception    $e             The exception.
 	 * @param   Model_Cart_Order  $order    The order model.
-	 * @param   Model_Cart_Order_ayment  $order_payment  The order payment model.
+	 * @param   Model_Cart_Order_Transaction  $order_payment  The order payment/transaction model.
 	 * @param   boolean      $add_messages  If set to TRUE, it will add messages.
 	 *
 	 * @return  array
@@ -555,7 +563,7 @@ class XM_Cart {
 			}
 
 			if ($order) {
-				Cart::stripe_error_order_log($order, $order_payment, $error_data, TRUE, CART_PAYMENT_STATUS_DENIED);
+				Cart::stripe_error_order_log($order, $order_payment, $error_data, TRUE, CART_TRANSACTION_STATUS_DENIED);
 			}
 
 			return array(
@@ -617,8 +625,7 @@ class XM_Cart {
 			);
 
 		} catch (Stripe_Error $e) {
-			// Display a very generic error to the user, and maybe send
-			// yourself an email
+			// Display a very generic error to the user
 			Kohana::$log->add(Kohana_Log::ERROR, 'General Stripe error')->write();
 			Kohana_Exception::log($e);
 			if ($add_messages) {
@@ -649,27 +656,27 @@ class XM_Cart {
 	}
 
 	/**
-	 * Sets the order status to "submitted" and payment status to "payment error" and add an order log and payment log record.
+	 * Sets the order status to "submitted", transaction status to error and add order log and transaction log records.
 	 *
 	 * @param   Model_Cart_Order  $order       The order model.
-	 * @param   Model_Cart_Order_ayment  $order_payment  The order payment model.
+	 * @param   Model_Cart_Order_Transaction  $order_payment  The order transaction model.
 	 * @param   array        $error_data  The data regarding the error, typically the JSON body from Stripe.
 	 *
 	 * @return  void
 	 */
-	public static function stripe_error_order_log(Model_Cart_Order $order, Model_Cart_Order_Payment $order_payment, $error_data, $set_order_status = TRUE, $payment_status = CART_PAYMENT_STATUS_ERROR) {
+	public static function stripe_error_order_log(Model_Cart_Order $order, Model_Cart_Order_Transaction $order_payment, $error_data, $set_order_status = TRUE, $transaction_status = CART_TRANSACTION_STATUS_ERROR) {
 		if ($set_order_status) {
-			// set the status back to submitted because there was a problem with the payment
+			// set the status back to submitted because there was a problem with the transaction
 			$order->set_status(CART_ORDER_STATUS_SUBMITTED);
 		}
 
 		$order->add_log('payment_error', $error_data);
 		$order_payment->values(array(
-				'status' => CART_PAYMENT_STATUS_ERROR,
+				'status' => CART_TRANSACTION_STATUS_ERROR,
 				'response' => $error_data,
 			))
 			->save()
-			->add_log(CART_PAYMENT_STATUS_ERROR, $error_data);
+			->add_log(CART_TRANSACTION_STATUS_ERROR, $error_data);
 	}
 
 	/**

@@ -143,8 +143,7 @@ CREATE TABLE `cart_order` (
   `user_id` int(10) unsigned NOT NULL,
   `sub_total` decimal(10,2) NOT NULL,
   `grand_total` decimal(10,2) NOT NULL,
-  `amount_paid` decimal(10,2) NOT NULL,
-  `payment_processor_fee` decimal(8,2) NOT NULL,
+  `refund_total` decimal(10,2) NOT NULL,
   `exchange_rate` decimal(11,5) NOT NULL,
   `country_id` int(10) unsigned NOT NULL,
   `order_num` varchar(10) COLLATE utf8_unicode_ci NOT NULL,
@@ -180,12 +179,11 @@ CREATE TABLE `cart_order` (
   `billing_phone` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `billing_email` varchar(200) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `date_expired` (`expiry_date`),
+  KEY `expiry_date` (`expiry_date`),
+  KEY `status` (`status`),
+  KEY `order_num` (`order_num`),
   KEY `user_id` (`user_id`),
-  KEY `country_id` (`country_id`),
-  KEY `invoice` (`order_num`),
-  KEY `status_id` (`status`),
-  KEY `unique_id` (`expiry_date`,`unique_id`)
+  KEY `country_id` (`country_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -244,46 +242,6 @@ CREATE TABLE `cart_order_log` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `cart_order_payment`
---
-
-CREATE TABLE `cart_order_payment` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `expiry_date` datetime NOT NULL,
-  `cart_order_id` int(10) unsigned NOT NULL,
-  `date_attempted` datetime NOT NULL,
-  `date_completed` datetime NOT NULL,
-  `date_refunded` datetime NOT NULL,
-  `ip_address` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
-  `payment_processor` int(10) unsigned NOT NULL,
-  `status` int(10) unsigned NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `data` text COLLATE utf8_unicode_ci NOT NULL,
-  `response` text COLLATE utf8_unicode_ci NOT NULL,
-  `transaction_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `expiry_date` (`expiry_date`,`cart_order_id`,`date_attempted`,`date_completed`,`date_refunded`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `cart_order_payment_log`
---
-
-CREATE TABLE `cart_order_payment_log` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `cart_order_payment_id` int(10) unsigned NOT NULL,
-  `timestamp` datetime NOT NULL,
-  `status` int(10) unsigned NOT NULL,
-  `status_string` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
-  `details` text COLLATE utf8_unicode_ci NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `cart_order_product`
 --
 
@@ -334,6 +292,50 @@ CREATE TABLE `cart_order_tax` (
   `data` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `expiry_date` (`expiry_date`,`cart_order_id`,`cart_tax_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart_order_transaction`
+--
+
+CREATE TABLE `cart_order_transaction` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `expiry_date` datetime NOT NULL,
+  `cart_order_id` int(10) unsigned NOT NULL,
+  `date_attempted` datetime NOT NULL,
+  `date_completed` datetime NOT NULL,
+  `user_id` int(10) unsigned NOT NULL,
+  `ip_address` varchar(15) COLLATE utf8_unicode_ci NOT NULL,
+  `payment_processor` int(10) unsigned NOT NULL,
+  `type` tinyint(2) unsigned NOT NULL COMMENT '1 = Charge, 2 = Refund',
+  `status` tinyint(2) unsigned NOT NULL COMMENT '1 = In Progress, 2 = Successful, 3 = Denied, 4 = Error',
+  `amount` decimal(10,2) NOT NULL,
+  `payment_processor_fee` decimal(10,2) NOT NULL,
+  `data` text COLLATE utf8_unicode_ci NOT NULL,
+  `response` text COLLATE utf8_unicode_ci NOT NULL,
+  `transaction_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `main` (`expiry_date`,`cart_order_id`,`date_attempted`,`date_completed`),
+  KEY `status_type` (`cart_order_id`,`type`,`status`,`expiry_date`,`date_completed`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart_order_transaction_log`
+--
+
+CREATE TABLE `cart_order_transaction_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `cart_order_transaction_id` int(10) unsigned NOT NULL,
+  `timestamp` datetime NOT NULL,
+  `status` tinyint(2) unsigned NOT NULL COMMENT '1 = In Progress, 2 = Successful, 3 = Denied, 4 = Error',
+  `status_string` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
+  `details` text COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `cart_order_transaction_id` (`cart_order_transaction_id`,`timestamp`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

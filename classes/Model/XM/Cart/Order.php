@@ -38,8 +38,8 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'model' => 'Cart_Order_Log',
 			'foreign_key' => 'cart_order_id',
 		),
-		'cart_order_payment' => array(
-			'model' => 'Cart_Order_Payment',
+		'cart_order_transaction' => array(
+			'model' => 'Cart_Order_Transaction',
 			'foreign_key' => 'cart_order_id',
 		),
 		'cart_order_product' => array(
@@ -179,7 +179,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 				'size' => 9,
 			),
 		),
-		'amount_paid' => array(
+		'refund_total' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -189,18 +189,6 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'field_attributes' => array(
 				'maxlength' => 9,
 				'size' => 9,
-			),
-		),
-		'payment_processor_fee' => array(
-			'field_type' => 'Text',
-			'list_flag' => TRUE,
-			'edit_flag' => TRUE,
-			'search_flag' => TRUE,
-			'view_flag' => TRUE,
-			'is_nullable' => FALSE,
-			'field_attributes' => array(
-				'maxlength' => 7,
-				'size' => 7,
 			),
 		),
 		'exchange_rate' => array(
@@ -735,8 +723,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			'user_id' => 'User',
 			'sub_total' => 'Sub Total',
 			'grand_total' => 'Grand Total',
-			'amount_paid' => 'Amount Paid',
-			'payment_processor_fee' => 'Payment Processor Fee',
+			'refund_total' => 'Refund Total',
 			'exchange_rate' => 'Exchange Rate',
 			'country_id' => 'Country',
 			'order_num' => 'Order Num',
@@ -1437,5 +1424,27 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			));
 
 		return $order_product;
+	}
+
+	/**
+	 * Retrieves the payment order.
+	 * Useful when refunding an order to retrieve the Stripe charge ID.
+	 *
+	 * @return  Model_Order_Transaction
+	 */
+	public function payment() {
+		return $this->cart_order_transaction
+			->where('cart_order_transaction.type', '=', CART_TRANSACTION_TYPE_CHARGE)
+			->where('cart_order_transaction.status', '=', CART_TRANSACTION_STATUS_SUCCESSFUL)
+			->find();
+	}
+
+	/**
+	 * Returns the final order total: grand total minus refund total.
+	 *
+	 * @return  float
+	 */
+	public function final_total() {
+		return $this->grand_total - $this->refund_total;
 	}
 } // class

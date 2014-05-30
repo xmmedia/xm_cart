@@ -10,7 +10,9 @@ return array(
 		'incorrect_zip' => 'The Postal/Zip Code you supplied failed validation. Please verify before trying again.',
 		'card_declined' => 'Your card was declined. Please check that you\'ve entered it correctly before trying again.',
 		'error' => 'There was a problem processing your payment. Please try again or contact us to complete your payment.',
+		'error_refund' => 'There was a problem processing the refund. Please try again or contact the system administrator.',
 		'fail' => 'There was a problem processing your payment. Please contact us to complete your payment.',
+		'fail_refund' => 'There was a problem processing the refund. Please try again or contact the system administrator.',
 	),
 
 	'page_titles' => array(

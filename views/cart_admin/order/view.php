@@ -36,6 +36,14 @@
 		<div class="col cart">
 			<?php echo $cart_html; ?>
 
+			<?php if ( ! empty($actions)) : ?>
+				<div class="cart_order_actions js_cart_order_actions">
+					<?php foreach ($actions as $action_title => $action_attr) : ?>
+						<?php echo HTML::anchor('', $action_title, $action_attr); ?>
+					<?php endforeach ?>
+				</div>
+			<?php endif ?>
+
 			<?php if ( ! empty($order->order_note)) { ?>
 			<p><strong>Notes</strong>
 				<br><?php echo nl2br(HTML::chars($order->order_note)); ?></p>
@@ -43,3 +51,17 @@
 		</div>
 	</div>
 </div>
+
+<script>
+var cart_order_view_data = {
+	order : {
+		id : <?php echo json_encode((int) $order->pk()); ?>,
+		grand_total : <?php echo json_encode(floatval($order->grand_total)); ?>,
+		grand_total_formatted : <?php echo json_encode(Cart::cf($order->grand_total)); ?>,
+		refund_total : <?php echo json_encode(floatval($order->refund_total)); ?>,
+		refund_total_formatted : <?php echo json_encode(Cart::cf($order->refund_total)); ?>,
+		final_total : <?php echo json_encode(floatval($order->final_total())); ?>,
+		final_total_formatted : <?php echo json_encode(Cart::cf($order->final_total())); ?>,
+	}
+}
+</script>

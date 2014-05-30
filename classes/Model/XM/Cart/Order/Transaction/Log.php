@@ -1,32 +1,32 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
 
 /**
- * Model for `cart_order_payment_log`.
+ * Model for `cart_order_transaction_log`.
  *
  * @package    XM Cart
  * @category   Models
  * @author     XM Media Inc.
  * @copyright  (c) 2014 XM Media Inc.
  */
-class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
+class Model_XM_Cart_Order_Transaction_Log extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
-	protected $_table_name = 'cart_order_payment_log';
+	protected $_table_name = 'cart_order_transaction_log';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Order - Payment - Log'; // xm specific
+	public $_table_name_display = 'Cart - Order - Transaction - Log'; // xm specific
 
 	// disable logging of the log table
 	protected $_log = FALSE;
 
 	// default sorting
-	// protected $_sorting = array();
+	protected $_sorting = array(
+		'timestamp' => 'ASC',
+	);
 
 	// relationships
-	// protected $_has_one = array();
-	// protected $_has_many = array();
 	protected $_belongs_to = array(
-		'cart_order_payment' => array(
-			'model' => 'Cart_Order_Payment',
-			'foreign_key' => 'cart_order_payment_id',
+		'cart_order_transaction' => array(
+			'model' => 'Cart_Order_Transaction',
+			'foreign_key' => 'cart_order_transaction_id',
 		),
 	);
 
@@ -37,7 +37,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 			'edit_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
-		'cart_order_payment_id' => array(
+		'cart_order_transaction_id' => array(
 			'field_type' => 'Select',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -47,7 +47,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 			'field_options' => array(
 				'source' => array(
 					'source' => 'model',
-					'data' => 'Cart_Order_Payment',
+					'data' => 'Cart_Order_Transaction',
 					'label' => 'id',
 				),
 			),
@@ -99,7 +99,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 	protected function _initialize() {
 		parent::_initialize();
 
-		$this->_table_columns['status']['field_options']['source']['data'] = (array) Cart_Config::load('payment_status_labels');
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Cart_Config::load('transaction_status_labels');
 	}
 
 	/**
@@ -110,7 +110,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 	public function labels() {
 		return array(
 			'id' => 'ID',
-			'cart_order_payment_id' => 'Cart Order Payment',
+			'cart_order_transaction_id' => 'Cart Order Transaction',
 			'timestamp' => 'Timestamp',
 			'status' => 'Status',
 			'status_string' => 'Status String',
@@ -125,7 +125,7 @@ class Model_XM_Cart_Order_Payment_Log extends Cart_ORM {
 	 */
 	public function rules() {
 		return array(
-			'cart_order_payment_id' => array(
+			'cart_order_transaction_id' => array(
 				array('selected'),
 			),
 		);
