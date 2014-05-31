@@ -10,5 +10,5 @@
 			<?php echo HTML::chars($order->shipping_first_name, ' ', $order->shipping_last_name), '<br>', HTML::mailto($order->shipping_email); ?>
 		<?php endif ?>
 	</div>
-	<div class="total"><?php echo Cart::cf($order->grand_total); ?></div>
+	<div class="total"><?php echo Cart::cf($order->final_total()); ?></div>
 </li>
