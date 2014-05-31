@@ -33,9 +33,14 @@ class XM_Cart {
 		return (strlen($num) - strrpos($num, '.') - 1);
 	}
 
+	/**
+	 * Returns an array of the countries for use in JS.
+	 *
+	 * @return  array
+	 */
 	public static function countries() {
 		$countries = array();
-		foreach (ORM::factory('country')->find_all() as $country) {
+		foreach (ORM::factory('Country')->find_all() as $country) {
 			$countries[] = array('id' => $country->pk(), 'name' => $country->name);
 		}
 

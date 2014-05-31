@@ -67,7 +67,7 @@ class Controller_XM_Cart_Admin_Shipping extends Controller_Cart_Admin {
 							$html .= '<br>Shipping Address in ';
 							// both country & state(s)
 							if (isset($reason['state_id'])) {
-								$_country = ORM::factory('country', $reason['country_id']);
+								$_country = ORM::factory('Country', $reason['country_id']);
 								if ($_country->loaded()) {
 									$html .= HTML::chars($_country->name) . ': ';
 
