@@ -647,7 +647,7 @@ class XM_Cart {
 			}
 
 			if ($order) {
-				$error_data = (array) $e->getJsonBody();
+				$error_data = array('error' => Kohana_Exception::text($e));
 				Cart::stripe_error_order_log($order, $order_payment, $error_data, FALSE);
 			}
 
