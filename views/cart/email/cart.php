@@ -44,7 +44,7 @@
 			<tr>
 				<td></td>
 				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars($total_row['name']); ?></span></td>
-				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></span></td>
+				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars($total_row['value_formatted']); ?></span></td>
 			</tr>
 			<?php
 			} else {
@@ -52,7 +52,7 @@
 			<tr>
 				<td></td>
 				<td align="right" valign="top"><?php echo HTML::chars($total_row['name']); ?></td>
-				<td align="right" valign="top"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></td>
+				<td align="right" valign="top"><?php echo HTML::chars($total_row['value_formatted']); ?></td>
 			</tr>
 			<?php
 			} // if

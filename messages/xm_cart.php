@@ -56,6 +56,9 @@ return array(
 			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. You will receive a tax deductible donation receipt at the end of the year.',
 			'email_title' => 'Your order from :company',
 			'email_title_donation' => 'Your donation to :company',
+			'full_refund' => 'The following order has been fully refunded. Please contact us if you have any questions.',
+			'partial_refund' => 'A refund of :amount has been applied to this order. Please contact us if you have any questions.',
+			'cancelled' => 'The following order has been cancelled and refunded. Please contact us if you have any questions.',
 		),
 		'admin_order' => array(
 			'subject' => 'Order Received - :order_num',

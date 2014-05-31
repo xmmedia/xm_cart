@@ -327,9 +327,36 @@ class XM_Cart {
 		return;
 	}
 
-	public static function send_customer_order_email($order, $order_payment) {
+	/**
+	 * Creates and sends the customer email.
+	 * `$order_message` can be a variety of things:
+	 *
+	 * Value    | Action
+	 * ---------|--------
+	 * `NULL`   | Will use the default thank you message.
+	 * Path to Message | Will load the message from the `xm_cart` message file, wrapping it with a `<p>`.
+	 * `string` | If it's a string and not a path to a message, the string will be used as the message.
+	 *
+	 * @param   Model_Cart_Order  $order          The order model
+	 * @param   Model_Cart_Order_Transaction  $order_payment  The order's payment transaction model.
+	 * @param   string  $order_message  The message to display at the top of the order.
+	 *
+	 * @return  void
+	 */
+	public static function send_customer_order_email($order, $order_payment, $order_message = NULL) {
 		$is_donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
 		$email_cart_view = ($is_donation_cart ? 'cart/email/cart_donation' : 'cart/email/cart');
+		if (empty($order_message)) {
+			$order_message_html = '<p>' . HTML::chars(Cart::message('email.customer_order.thank_you' . ($is_donation_cart ? '_donation' : ''))) . '</p>';
+		} else {
+			$order_message_html = Cart::message($order_message);
+			// message not found, probably because it's the string that should be displayed
+			if ($order_message_html === NULL) {
+				$order_message_html = $order_message;
+			} else {
+				$order_message_html = '<p>' . HTML::chars($order_message_html) . '</p>';
+			}
+		}
 
 		$order_products = $order->cart_order_product->find_all()->as_array();
 		$total_rows = Cart::total_rows($order);
@@ -357,6 +384,7 @@ class XM_Cart {
 				->bind('total_rows', $total_rows)
 				->bind('paid_with', $paid_with)
 				->bind('cart_view', $email_cart_view)
+				->bind('order_message_html', $order_message_html)
 				->set('enable_shipping', Cart_Config::enable_shipping())
 				->set('enable_tax', Cart_Config::enable_tax())
 				->set('donation_cart', $is_donation_cart);

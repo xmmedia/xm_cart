@@ -133,7 +133,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 				'class' => 'js_cart_order_refund',
 				'title' => 'Refund the entire order or a partial amount',
 			);
-			$actions['Cancel'] = array(
+			$actions['Cancel Order'] = array(
 				'class' => 'js_cart_order_cancel',
 				'title' => 'Cancel and refund the balance of the order',
 			);
@@ -168,6 +168,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		$refund_type = strtolower($this->request->post('refund_type'));
 		$refund_amount = floatval($this->request->post('refund_amount'));
 		$cancel_order = (bool) $this->request->post('cancel_order');
+		$send_email = (bool) $this->request->post('send_email');
 
 		if ( ! $cancel_order && ! in_array($refund_type, array('full', 'partial'))) {
 			Message::add('Select the type of refund before continuing.', Message::$error);
@@ -259,6 +260,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 						'stripe_data' => $stripe_data,
 					));
 				Message::add('The order has been refunded &amp; cancelled.', Message::$notice);
+				$email_msg = 'email.customer_order.cancelled';
 			} else {
 				if ($this->order->refund_total >= $this->order->grand_total) {
 					$this->order->set('status', CART_ORDER_STATUS_REFUNDED)
@@ -267,9 +269,15 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 							'stripe_data' => $stripe_data,
 						));
 					Message::add('The order has been fully refunded.', Message::$notice);
+					$email_msg = 'email.customer_order.full_refund';
 				} else {
 					Message::add('The partial refund of ' . Cart::cf($refund_amount) . ' has been completed.', Message::$notice);
+					$email_msg = '<p>' . HTML::chars(Cart::message('email.customer_order.partial_refund', array(':amount' => Cart::cf($refund_amount)))) . '</p>';
 				}
+			}
+
+			if ($send_email) {
+				Cart::send_customer_order_email($this->order, $payment_transaction, $email_msg);
 			}
 		} catch (Stripe_InvalidRequestError $e) {
 			// Invalid parameters were supplied to Stripe's API
