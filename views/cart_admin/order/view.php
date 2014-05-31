@@ -2,6 +2,7 @@
 	<div class="grid cart_order_view_header">
 		<div class="col-1-2 cart">
 			<h1>Order<?php if ( ! empty($order->order_num)) { echo ' – ', HTML::chars($order->order_num); } ?></h1>
+			<?php echo HTML::anchor(Route::get('cart_admin_order')->uri(), HTML::icon('chevron-left') . 'Order List'); ?>
 		</div>
 		<div class="col-1-2 cart">
 			<h2 class="text_right" title="Order Status"><?php echo $order->get_radio_value_string('status'); ?></h2>
