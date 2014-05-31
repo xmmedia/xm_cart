@@ -719,18 +719,20 @@ class Controller_XM_Cart extends Controller_Public {
 				'stripe_data' => $stripe_data,
 			));
 
-		$order_payment = ORM::factory('Cart_Order_Payment')
+		$order_payment = ORM::factory('Cart_Order_Transaction')
 			->values(array(
 				'cart_order_id' => $order->id,
 				'date_attempted' => Date::formatted_time(),
-				'ip_address' => (isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : ''),
+				'user_id' => (Auth::instance()->logged_in() ? Auth::instance()->get_user()->pk() : 0),
+				'ip_address' => Arr::get($_SERVER, 'REMOTE_ADDR'),
 				'payment_processor' => (int) Cart_Config::load('payment_processor_ids.stripe'),
-				'status' => CART_PAYMENT_STATUS_IN_PROGRESS,
+				'type' => CART_TRANSACTION_TYPE_CHARGE,
+				'status' => CART_TRANSACTION_STATUS_IN_PROGRESS,
 				'amount' => $order->grand_total,
 				'data' => $stripe_data,
 			))
 			->save()
-			->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $stripe_data);
+			->add_log(CART_TRANSACTION_STATUS_IN_PROGRESS, $stripe_data);
 
 		try {
 			// first we want to do an uncaptured charge to verify the credit and address information
@@ -739,13 +741,13 @@ class Controller_XM_Cart extends Controller_Public {
 
 			$order_payment->set('transaction_id', $charge_id)
 				->save()
-				->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge_test->__toArray(TRUE));
+				->add_log(CART_TRANSACTION_STATUS_IN_PROGRESS, $charge_test->__toArray(TRUE));
 
 			// if the above didn't fail (throw exception), we want to complete the actual payment
 			$charge = Stripe_Charge::retrieve($charge_id);
 			$charge->capture();
 
-			$order_payment->add_log(CART_PAYMENT_STATUS_IN_PROGRESS, $charge->__toArray(TRUE));
+			$order_payment->add_log(CART_TRANSACTION_STATUS_IN_PROGRESS, $charge->__toArray(TRUE));
 
 			if ( ! $charge->paid) {
 				throw new Kohana_Exception('The credit card was not charged/paid');
@@ -769,11 +771,11 @@ class Controller_XM_Cart extends Controller_Public {
 
 			$order_payment->values(array(
 					'date_completed' => Date::formatted_time(),
-					'status' => CART_PAYMENT_STATUS_SUCCESSFUL,
+					'status' => CART_TRANSACTION_STATUS_SUCCESSFUL,
 					'response' => $charge->__toArray(TRUE),
 				))
 				->save()
-				->add_log(CART_PAYMENT_STATUS_SUCCESSFUL, $charge->__toArray(TRUE));
+				->add_log(CART_TRANSACTION_STATUS_SUCCESSFUL, $charge->__toArray(TRUE));
 
 			$payment_status = 'success';
 			$order->set_status(CART_ORDER_STATUS_PAID)

@@ -85,33 +85,32 @@ return array(
 		'cancelled' => 8,
 	),
 
-	'payment_status_labels' => array(
-		// the payment is in progress and has not been completed
-		1 => 'In Progress',
-		// the payment was completed succesfully, without errors
-		2 => 'Successful',
-		// the payment was denied, for any number of reasons: wrong info, invalid card, not enough room, etc
-		3 => 'Denied',
-		// there was a problem processing the payment
-		4 => 'Error',
-		// the payment was not completed
-		5 => 'Incomplete',
-		// the payment was cancelled, likely on the payment processor
-		6 => 'Cancelled',
-		// the payment was reversed, probably a chargeback
-		7 => 'Reversed',
-		// the payment was refunded
-		8 => 'Refunded',
+	// transaction types
+	'transaction_type_labels' => array(
+		1 => 'Charge',
+		2 => 'Refund',
 	),
-	'payment_status_ids' => array(
+	'transaction_type_ids' => array(
+		'charge' => 1,
+		'refund' => 2,
+	),
+
+	// transaction statuses
+	'transaction_status_labels' => array(
+		// the transaction is in progress and has not been completed
+		1 => 'In Progress',
+		// the transaction was completed succesfully, without errors
+		2 => 'Successful',
+		// the transaction was denied, for any number of reasons: wrong info, invalid card, not enough room, etc
+		3 => 'Denied',
+		// there was a problem processing the transaction
+		4 => 'Error',
+	),
+	'transaction_status_ids' => array(
 		'in_progress' => 1,
 		'successful'  => 2,
 		'denied'      => 3,
 		'error'       => 4,
-		'incomplete'  => 5,
-		'cancelled'   => 6,
-		'reversed'    => 7,
-		'refunded'    => 8,
 	),
 
 	// payment processor ids
@@ -174,5 +173,11 @@ return array(
 		'remove_additional_charge' => 'Remove Additional Charge',
 		'update_additional_charge' => 'Update Additional Charge',
 		'donation_unit_price_change' => 'Donation Amount Changed',
+		'processing_refund' => 'Processing Refund',
+		'processed_refund' => 'Processed Refund',
+		'refunded' => 'Refunded',
+		'refund_error' => 'Refund Error',
+		'refund_failed' => 'Refund Failed',
+		'cancelled' => 'Cancelled',
 	),
 );

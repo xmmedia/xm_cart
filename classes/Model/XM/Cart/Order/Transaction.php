@@ -1,28 +1,29 @@
 <?php defined('SYSPATH') OR die('No direct script access.');
 
 /**
- * Model for `cart_order_payment`.
+ * Model for `cart_order_transaction`.
  *
  * @package    XM Cart
  * @category   Models
  * @author     XM Media Inc.
  * @copyright  (c) 2014 XM Media Inc.
  */
-class Model_XM_Cart_Order_Payment extends Cart_ORM {
+class Model_XM_Cart_Order_Transaction extends Cart_ORM {
 	protected $_table_names_plural = FALSE;
-	protected $_table_name = 'cart_order_payment';
+	protected $_table_name = 'cart_order_transaction';
 	// protected $_primary_val = 'name'; // default: name (column used as primary value)
-	public $_table_name_display = 'Cart - Order - Payment'; // xm specific
+	public $_table_name_display = 'Cart - Order - Transaction'; // xm specific
 
 	// default sorting
-	// protected $_sorting = array();
+	protected $_sorting = array(
+		'date_completed' => 'DESC',
+	);
 
 	// relationships
-	// protected $_has_one = array();
 	protected $_has_many = array(
-		'cart_order_payment_log' => array(
-			'model' => 'Cart_Order_Payment_Log',
-			'foreign_key' => 'cart_order_payment_id',
+		'cart_order_transaction_log' => array(
+			'model' => 'Cart_Order_Transaction_Log',
+			'foreign_key' => 'cart_order_transaction_id',
 		),
 	);
 	protected $_belongs_to = array(
@@ -74,13 +75,20 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 		),
-		'date_refunded' => array(
-			'field_type' => 'DateTime',
+		'user_id' => array(
+			'field_type' => 'Select',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
+			'field_options' => array(
+				'source' => array(
+					'source' => 'model',
+					'data' => 'User',
+					'label' => 'username',
+				),
+			),
 		),
 		'ip_address' => array(
 			'field_type' => 'Text',
@@ -95,6 +103,20 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 			),
 		),
 		'payment_processor' => array(
+			'field_type' => 'Select',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_options' => array(
+				'source' => array(
+					'source' => 'array',
+					'data' => array(),
+				),
+			),
+		),
+		'type' => array(
 			'field_type' => 'Select',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
@@ -132,6 +154,18 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 			'field_attributes' => array(
 				'maxlength' => 9,
 				'size' => 9,
+			),
+		),
+		'payment_processor_fee' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 7,
+				'size' => 7,
 			),
 		),
 		'data' => array(
@@ -176,7 +210,8 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 		parent::_initialize();
 
 		$this->_table_columns['payment_processor']['field_options']['source']['data'] = (array) Cart_Config::load('payment_processors.' . PAYMENT_PROCESSOR_LIST);
-		$this->_table_columns['status']['field_options']['source']['data'] = (array) Cart_Config::load('payment_status_labels');
+		$this->_table_columns['type']['field_options']['source']['data'] = (array) Cart_Config::load('transaction_type_labels');
+		$this->_table_columns['status']['field_options']['source']['data'] = (array) Cart_Config::load('transaction_status_labels');
 	}
 
 	/**
@@ -191,11 +226,13 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 			'cart_order_id' => 'Cart Order',
 			'date_attempted' => 'Date Attempted',
 			'date_completed' => 'Date Completed',
-			'date_refunded' => 'Date Refunded',
+			'user_id' => 'User',
 			'ip_address' => 'IP Address',
 			'payment_processor' => 'Payment Processor',
+			'type' => 'Type',
 			'status' => 'Status',
 			'amount' => 'Amount',
+			'payment_processor_fee' => 'Payment Processor Fee',
 			'data' => 'Data',
 			'response' => 'Response',
 			'transaction_id' => 'Transaction',
@@ -219,9 +256,9 @@ class Model_XM_Cart_Order_Payment extends Cart_ORM {
 	}
 
 	public function add_log($status, $details) {
-		ORM::factory('Cart_Order_Payment_Log')
+		ORM::factory('Cart_Order_Transaction_Log')
 			->values(array(
-				'cart_order_payment_id' => $this->id,
+				'cart_order_transaction_id' => $this->id,
 				'timestamp' => Date::formatted_time(),
 				'status' => (is_int($status) ? $status : 0),
 				'status_string' => (is_string($status) ? $status : ''),
