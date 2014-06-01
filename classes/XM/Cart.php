@@ -297,6 +297,7 @@ class XM_Cart {
 						'cart_product_id' => $cart_product->pk(),
 						'quantity' => $order_product->quantity,
 						'unit_price' => $order_product->unit_price,
+						'part_number' => $cart_product->part_number,
 						'name' => $cart_product->name,
 					));
 			}

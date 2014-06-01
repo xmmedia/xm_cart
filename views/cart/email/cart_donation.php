@@ -16,7 +16,7 @@
 			?>
 			<tr<?php echo ($i % 2 ? '' : ' style="background-color: #e6e6e6;"'); ?>>
 				<td align="left" valign="top">
-					<?php echo HTML::chars($order_product->cart_product->name); ?>
+					<?php echo HTML::chars($order_product->cart_product->name()); ?>
 					<?php if ( ! empty($order_product->cart_product->description)) { ?>
 					<div style="font-size: 0.8em; color: #4d4d4d;"><?php echo HTML::chars($order_product->cart_product->description); ?></div>
 					<?php } ?>

@@ -62,6 +62,11 @@ if ( ! defined('CART_TRANSACTION_STATUS_ERROR')) {
 	define('CART_TRANSACTION_STATUS_ERROR', $transaction_status_ids['error']);
 }
 
+// define the constant for the image file path
+if ( ! defined('CART_PRODUCT_PHOTO_PATH')) {
+	define('CART_PRODUCT_PHOTO_PATH', Cart_Config::load('product_photo_path'));
+}
+
 
 // now setup the routes
 if ($routes['product_list']) {
@@ -110,5 +115,11 @@ if ($routes['public']) {
 	Route::set('cart_public', $route_prefix . '(/<action>(/<id>))')
 		->defaults(array(
 			'controller' => 'Cart',
+	));
+
+	Route::set('cart_public_photo', $route_prefix . '/product_photo/<id>(.<timestamp>).jpg')
+		->defaults(array(
+			'controller' => 'Cart',
+			'action' => 'product_photo',
 	));
 }

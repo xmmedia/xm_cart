@@ -65,6 +65,16 @@ return array(
 	// to disable, empty the value or set to false
 	'register_uri' => '/register',
 
+	// enable the product part number display on cart products/items
+	'show_product_part_number' => TRUE,
+	// enable the product photo display on cart products/items
+	'show_product_photo' => TRUE,
+
+	// the paths to the product photos
+	'product_photo_path' => UPLOAD_ROOT_PUBLIC,
+	// default is: [public upload dir]/scaled/cart/
+	'product_photo_scaled_path' => UPLOAD_ROOT_PUBLIC . DIRECTORY_SEPARATOR . 'scaled' . DIRECTORY_SEPARATOR . 'cart' . DIRECTORY_SEPARATOR,
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(

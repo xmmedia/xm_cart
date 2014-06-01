@@ -347,9 +347,11 @@ CREATE TABLE `cart_order_transaction_log` (
 CREATE TABLE `cart_product` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `expiry_date` datetime NOT NULL,
+  `part_number` varchar(20) COLLATE utf8_unicode_ci NOT NULL,
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `cost` decimal(10,2) NOT NULL,
+  `photo_filename` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `expiry_date` (`expiry_date`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

@@ -53,6 +53,18 @@ class Model_XM_Cart_Product extends Cart_ORM {
 			'field_type' => 'DateTime',
 			'is_nullable' => FALSE,
 		),
+		'part_number' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 20,
+				'size' => 20,
+			),
+		),
 		'name' => array(
 			'field_type' => 'Text',
 			'list_flag' => TRUE,
@@ -85,6 +97,22 @@ class Model_XM_Cart_Product extends Cart_ORM {
 				'class' => 'numeric',
 			),
 		),
+		'photo_filename' => array(
+			'field_type' => 'File',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_options' => array(
+				'file_options' => array(
+					'destination_folder' => CART_PRODUCT_PHOTO_PATH,
+					'name_change_method' => 'id',
+					'ext_check_only' => TRUE,
+					'allowed_extensions' => array('jpg', 'png', 'gif'),
+					'model_name' => 'Cart_Product',
+				),
+			),
+		),
 	);
 
 	/**
@@ -105,9 +133,11 @@ class Model_XM_Cart_Product extends Cart_ORM {
 		return array(
 			'id' => 'ID',
 			'expiry_date' => 'Expiry Date',
+			'part_number' => 'Part Number',
 			'name' => 'Name',
 			'description' => 'Description',
 			'cost' => 'Cost',
+			'photo_filename' => 'Photo',
 		);
 	}
 
@@ -131,6 +161,9 @@ class Model_XM_Cart_Product extends Cart_ORM {
 	 */
 	public function filters() {
 		return array(
+			'part_number' => array(
+				array('trim'),
+			),
 			'name' => array(
 				array('trim'),
 			),
@@ -139,4 +172,43 @@ class Model_XM_Cart_Product extends Cart_ORM {
 			),
 		);
 	}
+
+	/**
+	 * Returns the name of the product, possibly including the part number.
+	 *
+	 * @return  string
+	 */
+	public function name() {
+		if (Cart_Config::show_product_part_number()) {
+			return $this->part_number . ' – ' . $this->name;
+		} else {
+			return $this->name;
+		}
+	}
+
+	/**
+     * Generates the URI for the photo.
+     *
+     * @return  string
+     */
+    public function photo_uri() {
+        return Route::get('cart_public_photo')->uri(array(
+            'id' => $this->pk(),
+            'timestamp' => $this->timestamp(),
+        ));
+    }
+
+    /**
+     * Returns the timestamp of the photo or NULL if the file doesn't exist.
+     *
+     * @return  int
+     */
+    public function timestamp() {
+        $file_path = $this->get_filename_with_path('photo_filename');
+        if (file_exists($file_path)) {
+            return filemtime($file_path);
+        } else {
+            return NULL;
+        }
+    }
 } // class

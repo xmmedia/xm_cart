@@ -10,7 +10,7 @@
 		foreach ($order_product_array as $order_product) {
 			?>
 			<tr>
-				<td class="col_name"><?php echo HTML::chars($order_product->cart_product->name); ?></td>
+				<td class="col_name"><?php echo HTML::chars($order_product->cart_product->name()); ?></td>
 				<td class="col_amount"><?php echo HTML::chars(Cart::cf($order_product->amount())); ?></td>
 			</tr>
 			<?php
