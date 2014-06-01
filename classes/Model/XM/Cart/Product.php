@@ -211,4 +211,14 @@ class Model_XM_Cart_Product extends Cart_ORM {
             return NULL;
         }
     }
+
+    /**
+     * Returns the public URI to the product.
+     * By default it just returns the continue shopping URL/URI.
+     *
+     * @return  string
+     */
+    public function view_uri() {
+    	return Cart_Config::continue_shopping_url();
+    }
 } // class
