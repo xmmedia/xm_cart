@@ -26,6 +26,10 @@ return array(
 	// the default country to use on orders which don't have their country set to something else
 	// default is Canada, ID 40
 	'default_country_id' => 40,
+	// the available country IDs for the shipping options
+	// must be a string as the config files are merged
+	// default is Canada & USA
+	'available_shipping_country_ids' => '40,235',
 	'default_currency' => 'CAD',
 
 	'enable_shipping' => TRUE,
