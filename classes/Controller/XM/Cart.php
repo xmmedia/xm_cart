@@ -14,6 +14,8 @@ class Controller_XM_Cart extends Controller_Public {
 		'load_summary', 'load_cart', 'add_product', 'remove_product', 'change_quantity', 'cart_empty', 'set_shipping_country', 'set_shipping_state',
 		// checkout actions
 		'save_shipping', 'save_billing', 'validate_payment', 'save_final', 'complete_order',
+		// product photo
+		'product_photo',
 	);
 
 	public function before() {
@@ -83,8 +85,10 @@ class Controller_XM_Cart extends Controller_Public {
 				$order_product_array[] = array(
 					'id' => $order_product->id,
 					'cart_product_id' => $order_product->cart_product_id,
-					'name' => $order_product->cart_product->name,
+					'part_number' => $order_product->cart_product->part_number,
+					'name' => $order_product->cart_product->name(),
 					'description' => $order_product->cart_product->description,
+					'photo_uri' => URL::site($order_product->cart_product->photo_uri()),
 					'quantity' => $order_product->quantity,
 					'unit_price' => $order_product->unit_price,
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
@@ -287,6 +291,7 @@ class Controller_XM_Cart extends Controller_Public {
 				'cart_product_id' => $order_product->cart_product_id,
 				'quantity' => $order_product->quantity,
 				'unit_price' => $product->cost,
+				'part_number' => $product->part_number,
 				'name' => $product->name,
 			));
 
@@ -858,6 +863,49 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		$this->template->body_html = View::factory('cart/payment_failed');
+	}
+
+	/**
+	 * Sends a resized photo (thumbnail) of the product.
+	 *
+	 * @return  void
+	 */
+	public function action_product_photo() {
+		$product = ORM::factory('Cart_Product', $this->request->param('id'));
+		if ( ! $product->loaded()) {
+			throw new HTTP_Exception_404('The product photo could not be found');
+		}
+
+		$dir_path = Cart_Config::load('product_photo_scaled_path');
+		$resize_image_path = $dir_path . pathinfo($product->photo_filename, PATHINFO_FILENAME) . '.jpg';
+
+		if ( ! file_exists($resize_image_path)) {
+			if ( ! is_dir($dir_path)) {
+				mkdir($dir_path, 02777, TRUE);
+
+				// Set permissions (must be manually set to fix umask issues)
+				chmod($dir_path, 02777);
+			}
+
+			if ( ! file_exists($product->get_filename_with_path('photo_filename'))) {
+				throw new Kohana_Exception('The original gallery photo is missing: :image', array(':image' => $product->get_filename_with_path('photo_filename')));
+			} else {
+				$image = Image::factory($product->get_filename_with_path('photo_filename'))
+					->background('#fff');
+
+				$resize = array(40, 35, Image::AUTO);
+
+				// if both the width and the height are less than the resized one, don't resize it and just use the original
+				if ($image->width <= $resize[0] && $image->height <= $resize[1]) {
+					copy($image->file, $resize_image_path);
+				} else {
+					$image->resize($resize[0], $resize[1], $resize[2])
+						->save($resize_image_path);
+				}
+			}
+		} // if
+
+		$this->response->send_file($resize_image_path, 'product_photo-' . $product->pk() . '.jpg', array('inline' => TRUE));
 	}
 
 	protected function check_valid_order() {

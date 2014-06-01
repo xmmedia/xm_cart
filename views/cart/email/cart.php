@@ -20,7 +20,10 @@
 			?>
 			<tr<?php echo ($i % 2 ? '' : ' style="background-color: #e6e6e6;"'); ?>>
 				<td align="left" valign="top">
-					<?php echo HTML::chars($order_product->cart_product->name); ?>
+					<?php if (Cart_Config::show_product_photo()) : ?>
+						<img src="<?php echo HTML::chars(URL::site($order_product->cart_product->photo_uri())); ?>" style="float: left; margin: 0 0.5em 0.5em 0;">
+					<?php endif ?>
+					<?php echo HTML::chars($order_product->cart_product->name()); ?>
 					<?php if ( ! empty($order_product->cart_product->description)) { ?>
 					<div style="font-size: 11px; color: #4d4d4d;"><?php echo HTML::chars($order_product->cart_product->description); ?></div>
 					<?php } ?>

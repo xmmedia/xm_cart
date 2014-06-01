@@ -13,7 +13,10 @@
 			?>
 			<tr>
 				<td class="col_name">
-					<?php echo HTML::chars($order_product->cart_product->name); ?>
+					<?php if (Cart_Config::show_product_photo()) : ?>
+						<div class="photo"><img src="<?php echo HTML::chars(URL::site($order_product->cart_product->photo_uri())); ?>"></div>
+					<?php endif ?>
+					<?php echo HTML::chars($order_product->cart_product->name()); ?>
 					<?php if ( ! empty($order_product->cart_product->description)) { ?>
 					<div class="product_description"><?php echo HTML::chars($order_product->cart_product->description); ?></div>
 					<?php } ?>

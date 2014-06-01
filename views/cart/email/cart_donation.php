@@ -16,7 +16,7 @@
 			?>
 			<tr<?php echo ($i % 2 ? '' : ' style="background-color: #e6e6e6;"'); ?>>
 				<td align="left" valign="top">
-					<?php echo HTML::chars($order_product->cart_product->name); ?>
+					<?php echo HTML::chars($order_product->cart_product->name()); ?>
 					<?php if ( ! empty($order_product->cart_product->description)) { ?>
 					<div style="font-size: 0.8em; color: #4d4d4d;"><?php echo HTML::chars($order_product->cart_product->description); ?></div>
 					<?php } ?>
@@ -38,7 +38,7 @@
 			<tr>
 				<td></td>
 				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars($total_row['name']); ?></span></td>
-				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></span></td>
+				<td align="right" valign="top"><span style="font-weight: bold;"><?php echo HTML::chars($total_row['value_formatted']); ?></span></td>
 			</tr>
 			<?php
 			} else {
@@ -46,7 +46,7 @@
 			<tr>
 				<td></td>
 				<td align="right" valign="top"><?php echo HTML::chars($total_row['name']); ?></td>
-				<td align="right" valign="top"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></td>
+				<td align="right" valign="top"><?php echo HTML::chars($total_row['value_formatted']); ?></td>
 			</tr>
 			<?php
 			} // if

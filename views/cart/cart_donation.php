@@ -10,7 +10,7 @@
 		foreach ($order_product_array as $order_product) {
 			?>
 			<tr>
-				<td class="col_name"><?php echo HTML::chars($order_product->cart_product->name); ?></td>
+				<td class="col_name"><?php echo HTML::chars($order_product->cart_product->name()); ?></td>
 				<td class="col_amount"><?php echo HTML::chars(Cart::cf($order_product->amount())); ?></td>
 			</tr>
 			<?php
@@ -21,7 +21,7 @@
 			<tr class="total_row<?php echo (isset($total_row['is_grand_total']) ? ' grand_total' : '') ; ?>">
 				<td class="col_name"></td>
 				<td class="col_unit_price" colspan="2"><?php echo HTML::chars($total_row['name']); ?></td>
-				<td class="col_amount"><?php echo HTML::chars(Cart::cf($total_row['value'])); ?></td>
+				<td class="col_amount"><?php echo HTML::chars($total_row['value_formatted']); ?></td>
 			</tr>
 			<?php
 		}
