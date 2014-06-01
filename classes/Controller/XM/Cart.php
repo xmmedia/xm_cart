@@ -89,6 +89,7 @@ class Controller_XM_Cart extends Controller_Public {
 					'name' => $order_product->cart_product->name(),
 					'description' => $order_product->cart_product->description,
 					'photo_uri' => URL::site($order_product->cart_product->photo_uri()),
+					'view_url' => URL::site($order_product->cart_product->view_uri()),
 					'quantity' => $order_product->quantity,
 					'unit_price' => $order_product->unit_price,
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
