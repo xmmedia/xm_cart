@@ -35,12 +35,18 @@ class XM_Cart {
 
 	/**
 	 * Returns an array of the countries for use in JS.
+	 * Uses the config option `available_shipping_country_ids` to limit the list.
 	 *
 	 * @return  array
 	 */
 	public static function countries() {
 		$countries = array();
-		foreach (ORM::factory('Country')->find_all() as $country) {
+
+		$_countries = ORM::factory('Country')
+			->where('country.id', 'IN', explode(',', Cart_Config::load('available_shipping_country_ids')))
+			->find_all();
+
+		foreach ($_countries as $country) {
 			$countries[] = array('id' => $country->pk(), 'name' => $country->name);
 		}
 
