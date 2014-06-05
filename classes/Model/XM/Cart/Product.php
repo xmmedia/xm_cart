@@ -113,6 +113,18 @@ class Model_XM_Cart_Product extends Cart_ORM {
 				),
 			),
 		),
+		'inventory_available' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_attributes' => array(
+				'maxlength' => 11,
+				'size' => 11,
+			),
+		),
 	);
 
 	/**
@@ -138,6 +150,7 @@ class Model_XM_Cart_Product extends Cart_ORM {
 			'description' => 'Description',
 			'cost' => 'Cost',
 			'photo_filename' => 'Photo',
+			'inventory_available' => 'Inventory Available',
 		);
 	}
 
