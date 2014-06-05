@@ -47,9 +47,9 @@ class Controller_XM_Cart extends Controller_Public {
 		AJAX_Status::echo_json(AJAX_Status::ajax(array(
 			'product_count' => $product_count,
 			'order' => array(
-				'donation_cart' => $donation_cart,
+				'donation_cart' => (bool) $donation_cart,
 			),
-			'total' => $total,
+			'total' => floatval($total),
 			'total_formatted' => $total_formatted,
 		)));
 	}
@@ -83,15 +83,15 @@ class Controller_XM_Cart extends Controller_Public {
 				$amount = $order_product->unit_price * $order_product->quantity;
 
 				$order_product_array[] = array(
-					'id' => $order_product->id,
-					'cart_product_id' => $order_product->cart_product_id,
+					'id' => (int) $order_product->id,
+					'cart_product_id' => (int) $order_product->cart_product_id,
 					'part_number' => $order_product->cart_product->part_number,
 					'name' => $order_product->cart_product->name(),
 					'description' => $order_product->cart_product->description,
 					'photo_uri' => URL::site($order_product->cart_product->photo_uri()),
 					'view_url' => URL::site($order_product->cart_product->view_uri()),
-					'quantity' => $order_product->quantity,
-					'unit_price' => $order_product->unit_price,
+					'quantity' => (int) $order_product->quantity,
+					'unit_price' => floatval($order_product->unit_price),
 					'unit_price_formatted' => Cart::cf($order_product->unit_price),
 					'amount' => $amount,
 					'amount_formatted' => Cart::cf($amount),
