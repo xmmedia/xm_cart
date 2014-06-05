@@ -75,6 +75,11 @@ return array(
 	// default is: [public upload dir]/scaled/cart/
 	'product_photo_scaled_path' => UPLOAD_ROOT_PUBLIC . DIRECTORY_SEPARATOR . 'scaled' . DIRECTORY_SEPARATOR . 'cart' . DIRECTORY_SEPARATOR,
 
+	// if enabled, the available inventory will be displayed below each item in the cart
+	// on the summary and cart view (but not on the checkout page)
+	// the inventory is pulled from the cart_product table
+	'show_inventory' => FALSE,
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(

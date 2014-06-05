@@ -10,6 +10,7 @@ var cart_config = {
 	show_shipping_country : <?php echo json_encode((bool) Cart_Config::load('show_shipping_country')); ?>,
 	default_country_id : <?php echo json_encode((int) Cart_Config::load('default_country_id')); ?>,
 	checkout_https : <?php echo json_encode((bool) Cart_Config::load('checkout_https')); ?>,
-	show_product_photo : <?php echo json_encode((bool) Cart_Config::load('show_product_photo')); ?>
+	show_product_photo : <?php echo json_encode((bool) Cart_Config::load('show_product_photo')); ?>,
+	show_inventory : <?php echo json_encode((bool) Cart_Config::load('show_inventory')); ?>
 };
 </script>

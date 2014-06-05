@@ -352,6 +352,7 @@ CREATE TABLE `cart_product` (
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `cost` decimal(10,2) NOT NULL,
   `photo_filename` varchar(250) COLLATE utf8_unicode_ci NOT NULL,
+  `inventory_available` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `expiry_date` (`expiry_date`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
