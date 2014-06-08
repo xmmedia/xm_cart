@@ -139,17 +139,55 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			);
 		}
 
-		$this->add_style('cart_public', 'xm_cart/css/public.css')
-			/*->add_script('stripe_v2', 'https://js.stripe.com/v2/')
-			->add_script('cart_base', 'xm_cart/js/base.min.js')
-			->add_script('cart_public', 'xm_cart/js/public.min.js')*/;
+		$status_options = array('' => 'Change Status To...');
+		$status_options = Arr::merge($status_options, $this->allowed_order_statuses());
+
+		if (count($status_options) > 1) {
+			$status_form_open = Form::open(Route::get('cart_admin_order')->uri(array('action' => 'status_change', 'id' => $this->order->pk())), array('class' => 'js_order_status_change_form'));
+			$status_select = Form::select('order_status', $status_options, NULL, array('class' => 'js_order_status_change'));
+		}
+
+		$this->add_style('cart_public', 'xm_cart/css/public.css');
 
 		$this->template->page_title = ( ! empty($this->order->order_num) ? $this->order->order_num . ' - ' : '') . 'Order View - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/view')
 			->bind('order', $this->order)
 			->bind('cart_html', $cart_html)
 			->bind('paid_with', $paid_with)
+			->bind('status_form_open', $status_form_open)
+			->bind('status_select', $status_select)
 			->bind('actions', $actions);
+	}
+
+	/**
+	 * Changes the order status to the user selected one.
+	 *
+	 * @return  void
+	 */
+	public function action_status_change() {
+		if ( ! $this->order->loaded()) {
+			Message::add('The order could not be found.', Message::$error);
+			$this->redirect($this->order_uri());
+		}
+
+		$order_uri = Route::get('cart_admin_order')->uri(array('action' => 'view', 'id' => $this->order->pk()));
+
+		$order_status = $this->request->post('order_status');
+
+		$allowed_statuses = $this->allowed_order_statuses();
+		if (empty($order_status) || ! isset($allowed_statuses[$order_status])) {
+			Message::add('The order status selected is not valid.', Message::$error);
+			$this->redirect($order_uri);
+		}
+
+		$this->order
+			->set('status', $order_status)
+			->save();
+
+		$order_status_labels = (array) Cart_Config::load('order_status_labels');
+		Message::add('Order status changed to ' . HTML::chars($order_status_labels[$order_status]) . '.', Message::$notice);
+
+		$this->redirect($order_uri);
 	}
 
 	/**
@@ -331,5 +369,42 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		$this->redirect($order_uri);
+	}
+
+	/**
+	 * Return a list of statuses that the order can be changed to.
+	 *
+	 * @return  array
+	 */
+	protected function allowed_order_statuses() {
+		$status_options = array();
+
+		// don't allow status changes for any orders that have not been completed yet
+		$completed_statuses = array(
+			CART_ORDER_STATUS_PAID,
+			CART_ORDER_STATUS_RECEIVED,
+			CART_ORDER_STATUS_SHIPPED,
+			CART_ORDER_STATUS_REFUNDED,
+			CART_ORDER_STATUS_CANCELLED,
+		);
+		if (in_array($this->order->status, $completed_statuses)) {
+			$order_status_labels = (array) Cart_Config::load('order_status_labels');
+
+			if ($this->order->final_total() > 0) {
+				$status_options[CART_ORDER_STATUS_PAID] = $order_status_labels[CART_ORDER_STATUS_PAID];
+				$status_options[CART_ORDER_STATUS_RECEIVED] = $order_status_labels[CART_ORDER_STATUS_RECEIVED];
+				if (Cart_Config::enable_shipping()) {
+					$status_options[CART_ORDER_STATUS_SHIPPED] = $order_status_labels[CART_ORDER_STATUS_SHIPPED];
+				}
+				$status_options[CART_ORDER_STATUS_REFUNDED] = $order_status_labels[CART_ORDER_STATUS_REFUNDED];
+			}
+			$status_options[CART_ORDER_STATUS_CANCELLED] = $order_status_labels[CART_ORDER_STATUS_CANCELLED];
+
+			if (isset($status_options[$this->order->status])) {
+				unset($status_options[$this->order->status]);
+			}
+		}
+
+		return $status_options;
 	}
 }
