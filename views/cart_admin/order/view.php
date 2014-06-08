@@ -4,8 +4,13 @@
 			<h1>Order<?php if ( ! empty($order->order_num)) { echo ' – ', HTML::chars($order->order_num); } ?></h1>
 			<?php echo HTML::anchor(Route::get('cart_admin_order')->uri(), HTML::icon('chevron-left') . 'Order List'); ?>
 		</div>
-		<div class="col-1-2 cart">
-			<h2 class="text_right" title="Order Status"><?php echo $order->get_radio_value_string('status'); ?></h2>
+		<div class="col-1-2 cart text_right">
+			<h2 title="Order Status"><?php echo $order->get_radio_value_string('status'); ?></h2>
+			<?php if ( ! empty($status_select)) : ?>
+				<div>
+					<?php echo $status_form_open, $status_select; ?></form>
+				</div>
+			<?php endif ?>
 		</div>
 	</div>
 
@@ -57,6 +62,7 @@
 var cart_order_view_data = {
 	order : {
 		id : <?php echo json_encode((int) $order->pk()); ?>,
+		status : <?php echo json_encode((int) $order->status); ?>,
 		grand_total : <?php echo json_encode(floatval($order->grand_total)); ?>,
 		grand_total_formatted : <?php echo json_encode(Cart::cf($order->grand_total)); ?>,
 		refund_total : <?php echo json_encode(floatval($order->refund_total)); ?>,
