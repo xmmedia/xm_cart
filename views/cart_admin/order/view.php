@@ -1,5 +1,5 @@
 <div class="cart_admin">
-	<div class="grid cart_order_view_header">
+	<div class="grid">
 		<div class="col-1-2 cart">
 			<h1>Order<?php if ( ! empty($order->order_num)) { echo ' – ', HTML::chars($order->order_num); } ?></h1>
 			<?php echo HTML::anchor(Route::get('cart_admin_order')->uri(), HTML::icon('chevron-left') . 'Order List'); ?>
