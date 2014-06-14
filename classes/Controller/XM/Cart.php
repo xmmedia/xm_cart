@@ -19,6 +19,9 @@ class Controller_XM_Cart extends Controller_Public {
 	);
 
 	public function before() {
+		// loading the necessary cart functionality & checks to make sure it's setup correctly
+		Cart::load();
+
 		parent::before();
 
 		if ($this->auto_render) {
@@ -865,6 +868,77 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		$this->template->body_html = View::factory('cart/payment_failed');
+	}
+
+	/**
+	 * Displays the order using the unique link in the query.
+	 * The order must be paid, received or shipped to be displayed.
+	 * If the order is refunded or cancelled, the message `view_order.refunded` or `view_order.cancelled` will be displayed.
+	 * If the order cannot be found, the message `view_order.not_found` will be displayed.
+	 * If the order is any other status, the message `view_order.cant_view` will be displayed.
+	 * If the user is not logged in (doesn't matter if their user ID matches the one on the order),
+	 * they will only see the order status and order number.
+	 * If logged in, they will see all the shipping and billing details.
+	 *
+	 * @return  void
+	 */
+	public function action_view_order() {
+		$order_key = $this->request->query('order');
+		if (empty($order_key)) {
+			$this->redirect(Cart_Config::continue_shopping_url());
+		}
+
+		// default page title
+		$this->template->page_title = Cart::message('page_titles.view_order_none') . $this->page_title_append;
+
+		$order = Cart::order_key_decrypt($order_key);
+		if ( ! $order->loaded()) {
+			$this->template->body_html = View::factory('cart/view_order_error')
+				->set('msg', Cart::message('view_order.not_found'));
+			return;
+		}
+
+		if ( ! Cart::allow_order_view($order)) {
+			switch ($order->status) {
+				case CART_ORDER_STATUS_REFUNDED :
+					$msg = Cart::message('view_order.refunded');
+					break;
+				case CART_ORDER_STATUS_CANCELLED :
+					$msg = Cart::message('view_order.cancelled');
+					break;
+				default :
+					$msg = Cart::message('view_order.cant_view');
+					break;
+			}
+
+			$this->template->body_html = View::factory('cart/view_order_error')
+				->bind('msg', $msg);
+			return;
+		}
+
+		$order->set_mode('view');
+		$order_products = $order->cart_order_product->find_all();
+
+		$show_private_info = Auth::instance()->logged_in();
+
+		if ($show_private_info) {
+			$payment_transaction = $order->payment();
+			$paid_with = array(
+				'type' => $payment_transaction->response['card']['type'],
+				'last_4' => $payment_transaction->response['card']['last4'],
+			);
+		}
+
+		$cart_html = View::factory('cart/cart')
+			->bind('order_product_array', $order_products)
+			->set('total_rows', Cart::total_rows($order));
+
+		$this->template->page_title = Cart::message('page_titles.view_order', array(':order_num' => $order->order_num)) . $this->page_title_append;
+		$this->template->body_html = View::factory('cart/view_order')
+			->bind('order', $order)
+			->bind('show_private_info', $show_private_info)
+			->bind('cart_html', $cart_html)
+			->bind('paid_with', $paid_with);
 	}
 
 	/**

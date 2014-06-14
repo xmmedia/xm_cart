@@ -20,6 +20,8 @@ return array(
 		'login' => 'Login - ',
 		'checkout' => 'Checkout - ',
 		'completed' => 'Order Complete - ',
+		'view_order' => 'Order - :order_num - ',
+		'view_order_none' => 'Order - ',
 	),
 
 	'checkout' => array(
@@ -42,6 +44,13 @@ return array(
 		'complete_donation_button' => 'Complete My Donation',
 		'review_order' => 'Please review your order before continuing.',
 		'review_donation' => 'Please review your donation before continuing.',
+	),
+
+	'view_order' => array(
+		'not_found' => 'There was a problem loading your order. Please contact us directly regarding your order.',
+		'refunded' => 'The order you selected has been refunded. Please contact us if you have any questions.',
+		'cancelled' => 'The order you selected has been cancelled. Please contact us if you have any questions.',
+		'cant_view' => 'The order you selected cannot be viewed at this time. Please contact us if you have any questions.',
 	),
 
 	'email' => array(
