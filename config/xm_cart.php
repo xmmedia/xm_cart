@@ -1,7 +1,8 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 return array(
-	'salt' => 'MH[i_9>4w<LuP8{J.Y#:N!Nim@-aSQJwzOrV#GI50{BY]&8tz/,|6=d"7&\'_4hz',
+	// the salt used for the cart_order unique ID & email link
+	'salt' => NULL,
 	'user_cookie_expiration' => Date::MONTH * 6,
 
 	'administrator_email' => array(
