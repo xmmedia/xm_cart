@@ -114,6 +114,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		$this->order->set_mode('view');
+		$donation_cart = (Cart_Config::donation_cart() && $this->order->donation_cart_flag);
 
 		$order_products = $this->order->cart_order_product->find_all();
 
@@ -123,7 +124,8 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			'last_4' => $payment_transaction->response['card']['last4'],
 		);
 
-		$cart_html = View::factory('cart/cart')
+		$cart_view = ($donation_cart ? 'cart/cart_donation' : 'cart/cart');
+		$cart_html = View::factory($cart_view)
 			->bind('order_product_array', $order_products)
 			->set('total_rows', Cart::total_rows($this->order));
 

@@ -26,11 +26,11 @@
 			</div>
 		<?php endif ?>
 		<div class="col-1-3 cart">
-			<strong>Order Status: <?php echo $order->get_radio_value_string('status'); ?></strong><br><br>
+			<strong><?php echo HTML::chars(Cart::message('view_order.order_info.order_status' . ($donation_cart ? '_donation' : ''))), ' ',$order->get_radio_value_string('status'); ?></strong><br><br>
 			<?php if ($show_private_info) : ?>
 				Paid with <?php echo HTML::chars($paid_with['type'] . ' ending in ' . $paid_with['last_4']); ?><br><br>
 			<?php endif ?>
-			Order Number: <?php echo HTML::chars($order->order_num); ?>
+			<?php echo HTML::chars(Cart::message('view_order.order_info.order_num' . ($donation_cart ? '_donation' : ''))), ' ', HTML::chars($order->order_num); ?>
 		</div>
 	</div>
 

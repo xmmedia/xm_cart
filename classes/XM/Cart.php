@@ -313,6 +313,8 @@ class XM_Cart {
 	 * @return  Model_Cart_Order
 	 */
 	public static function pre_checkout($order) {
+		$donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+
 		$order_products = $order->cart_order_product->find_all();
 		foreach ($order_products as $order_product) {
 			if ( ! $order_product->cart_product->loaded()) {
@@ -325,7 +327,8 @@ class XM_Cart {
 				continue;
 			}
 
-			if ($order_product->unit_price != $order_product->cart_product->cost) {
+			// make sure the price is current, except when it's a donation cart (since the price doesn't match the product price/cost)
+			if ( ! $donation_cart && $order_product->unit_price != $order_product->cart_product->cost) {
 				$order_product->set('unit_price', $order_product->cart_product->cost)
 					->save();
 
