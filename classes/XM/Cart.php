@@ -334,11 +334,11 @@ class XM_Cart {
 
 				$order->add_log('change_unit_price', array(
 						'cart_order_product_id' => $order_product->pk(),
-						'cart_product_id' => $cart_product->pk(),
+						'cart_product_id' => $order_product->cart_product->pk(),
 						'quantity' => $order_product->quantity,
 						'unit_price' => $order_product->unit_price,
-						'part_number' => $cart_product->part_number,
-						'name' => $cart_product->name,
+						'part_number' => $order_product->cart_product->part_number,
+						'name' => $order_product->cart_product->name,
 					));
 			}
 		}
