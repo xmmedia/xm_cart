@@ -81,6 +81,9 @@ return array(
 	// the inventory is pulled from the cart_product table
 	'show_inventory' => FALSE,
 
+	// if enabled, a link to go back to the cart view will show be shown on the checkout cart view
+	'show_checkout_back_to_cart' => TRUE,
+
 	// order status labels and values
 	// used in the xm_cart init.php and can also be customized per site
 	'order_status_labels' => array(

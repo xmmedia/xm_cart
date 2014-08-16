@@ -527,6 +527,7 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('expiry_date_years', $expiry_date_years)
 			->set('cart_view_url', Cart_Config::cart_view_url())
 			->set('continue_shopping_url', Cart_Config::continue_shopping_url())
+			->set('show_checkout_back_to_cart', Cart_Config::load('show_checkout_back_to_cart'))
 			->set('enable_shipping', Cart_Config::enable_shipping())
 			->set('show_shipping_country', $show_shipping_country)
 			->bind('shipping_country_name', $shipping_country_name)
@@ -898,6 +899,8 @@ class Controller_XM_Cart extends Controller_Public {
 			return;
 		}
 
+		$donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+
 		if ( ! Cart::allow_order_view($order)) {
 			switch ($order->status) {
 				case CART_ORDER_STATUS_REFUNDED :
@@ -929,7 +932,8 @@ class Controller_XM_Cart extends Controller_Public {
 			);
 		}
 
-		$cart_html = View::factory('cart/cart')
+		$cart_view = ($donation_cart ? 'cart/cart_donation' : 'cart/cart');
+		$cart_html = View::factory($cart_view)
 			->bind('order_product_array', $order_products)
 			->set('total_rows', Cart::total_rows($order));
 
@@ -938,7 +942,8 @@ class Controller_XM_Cart extends Controller_Public {
 			->bind('order', $order)
 			->bind('show_private_info', $show_private_info)
 			->bind('cart_html', $cart_html)
-			->bind('paid_with', $paid_with);
+			->bind('paid_with', $paid_with)
+			->bind('donation_cart', $donation_cart);
 	}
 
 	/**

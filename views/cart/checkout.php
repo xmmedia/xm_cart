@@ -17,7 +17,11 @@
 				<div class="cart_checkout_box_actions">
 					<div class="cart_checkout_box_actions_left">
 						<?php echo HTML::anchor($continue_shopping_url, HTML::chars(Cart::message('checkout.continue_shopping'))); ?>
-						<?php echo HTML::anchor($cart_view_url, HTML::chars(Cart::message('checkout.back_to_cart'))); ?>
+						<?php
+							if ($show_checkout_back_to_cart) :
+								echo HTML::anchor($cart_view_url, HTML::chars(Cart::message('checkout.back_to_cart')));
+							endif;
+						?>
 					</div>
 					<div class="cart_checkout_box_actions_right">
 						<?php echo Form::button(NULL, 'Continue', array('class' => 'js_cart_checkout_continue')); ?>

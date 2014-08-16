@@ -51,6 +51,12 @@ return array(
 		'refunded' => 'The order you selected has been refunded. Please contact us if you have any questions.',
 		'cancelled' => 'The order you selected has been cancelled. Please contact us if you have any questions.',
 		'cant_view' => 'The order you selected cannot be viewed at this time. Please contact us if you have any questions.',
+		'order_info' => array(
+			'order_status' => 'Order Status:',
+			'order_status_donation' => 'Status:',
+			'order_num' => 'Order Number:',
+			'order_num_donation' => 'Transaction Number:',
+		),
 	),
 
 	'email' => array(

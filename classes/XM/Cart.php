@@ -313,6 +313,8 @@ class XM_Cart {
 	 * @return  Model_Cart_Order
 	 */
 	public static function pre_checkout($order) {
+		$donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+
 		$order_products = $order->cart_order_product->find_all();
 		foreach ($order_products as $order_product) {
 			if ( ! $order_product->cart_product->loaded()) {
@@ -325,17 +327,18 @@ class XM_Cart {
 				continue;
 			}
 
-			if ($order_product->unit_price != $order_product->cart_product->cost) {
+			// make sure the price is current, except when it's a donation cart (since the price doesn't match the product price/cost)
+			if ( ! $donation_cart && $order_product->unit_price != $order_product->cart_product->cost) {
 				$order_product->set('unit_price', $order_product->cart_product->cost)
 					->save();
 
 				$order->add_log('change_unit_price', array(
 						'cart_order_product_id' => $order_product->pk(),
-						'cart_product_id' => $cart_product->pk(),
+						'cart_product_id' => $order_product->cart_product->pk(),
 						'quantity' => $order_product->quantity,
 						'unit_price' => $order_product->unit_price,
-						'part_number' => $cart_product->part_number,
-						'name' => $cart_product->name,
+						'part_number' => $order_product->cart_product->part_number,
+						'name' => $order_product->cart_product->name,
 					));
 			}
 		}
