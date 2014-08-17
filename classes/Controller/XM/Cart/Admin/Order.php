@@ -15,7 +15,11 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		'index' => 'cart/admin/order',
 		'view' => 'cart/admin/order',
 		'refund' => 'cart/admin/order',
+		'export_filter' => 'cart/admin/order',
+		'export' => 'cart/admin/order',
 	);
+
+	protected $no_auto_render_actions = array('export');
 
 	/**
 	 * Stores the order model.
@@ -374,6 +378,55 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 	}
 
 	/**
+	 * Displays the filters for the order export.
+	 *
+	 * @return  void
+	 */
+	public function action_export_filter() {
+		$time_frame_select = Form::select('time_frame', $this->time_frame_options(), NULL, array('class' => 'js_cart_order_time_frame'));
+		$time_frame_start = Form::date('time_frame_start', NULL, array('class' => 'js_cart_order_time_frame_start'));
+		$time_frame_end = Form::date('time_frame_end', NULL, array('class' => 'js_cart_order_time_frame_end'));
+
+		$uri = Route::get('cart_admin_order')->uri(array('action' => 'export'));
+
+		$this->template->page_title = 'Order Export - ' . $this->page_title_append;
+		$this->template->body_html = View::factory('cart_admin/order/export_filter')
+			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_export_filter_form')))
+			->set('cancel_uri', URL::site($this->order_uri()))
+			->bind('time_frame_select', $time_frame_select)
+			->bind('time_frame_start', $time_frame_start)
+			->bind('time_frame_end', $time_frame_end);
+	}
+
+	/**
+	 * Generates the order export as a XLSX download.
+	 *
+	 * @return  void
+	 */
+	public function action_export() {
+		$time_frame_start = $this->request->query('time_frame_start');
+		$time_frame_end = $this->request->query('time_frame_end');
+
+		Kohana::load(Kohana::find_file('vendor', 'phpexcel/PHPExcel'));
+
+		$xls = new PHPExcel();
+		$xls->setActiveSheetIndex(0);
+		$xls->getActiveSheet()
+			->setTitle('Orders');
+
+		$sheet = $xls->getActiveSheet();
+
+		$output = PHPExcel_IOFactory::createWriter($xls, 'Excel2007');
+		$tmp_file = tempnam(NULL, 'order_export');
+		$output->save($tmp_file);
+
+		$user_filename = 'Orders - ' . XMFile::clean_filename($time_frame_start) . ' to ' . XMFile::clean_filename($time_frame_end) . '.xlsx';
+		$this->response
+			->headers('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+			->send_file($tmp_file, $user_filename, array('delete' => TRUE));
+	}
+
+	/**
 	 * Return a list of statuses that the order can be changed to.
 	 *
 	 * @return  array
@@ -408,5 +461,84 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		return $status_options;
+	}
+
+	/**
+	 * Creates the array of time frame options.
+	 *
+	 * @return  array
+	 */
+	protected function time_frame_options() {
+		$time_frame_options = array();
+		$time_frame_date_format = 'Ymd';
+		$time_frame_date_separator = '-';
+		$months_long = Date::months(Date::MONTHS_LONG);
+
+		$sunday_str = date('w') == 0 ? 'now' : 'last Sunday';
+		$saturday_str = date('w') == 6 ? 'now' : 'next Saturday';
+		$time_frame_str = Date::formatted_time($sunday_str, $time_frame_date_format)
+			. $time_frame_date_separator . Date::formatted_time($saturday_str, $time_frame_date_format);
+		$time_frame_options[$time_frame_str] = 'This Week';
+
+		$time_frame_str = Date::formatted_time('-2 Sunday', $time_frame_date_format)
+			. $time_frame_date_separator . Date::formatted_time('last Saturday', $time_frame_date_format);
+		$time_frame_options[$time_frame_str] = 'Last Week';
+
+		$semimonthly_start_day = date('j') < 15 ? '01' : '15';
+		$semimonthly_end_day = date('j') < 15 ? '15' : 't';
+		$time_frame_str = Date::formatted_time('now', 'Ym' . $semimonthly_start_day)
+			. $time_frame_date_separator . Date::formatted_time('now', 'Ym' . $semimonthly_end_day);
+		$time_frame_options[$time_frame_str] = 'This Semimonthly Period';
+
+		if (date('j') < 15) {
+			$semimonthly_str = 'previous month';
+			$semimonthly_start_day = '15';
+			$semimonthly_end_day = 't';
+		} else {
+			$semimonthly_str = 'now';
+			$semimonthly_start_day = '01';
+			$semimonthly_end_day = '15';
+		}
+		$time_frame_str = Date::formatted_time($semimonthly_str, 'Ym' . $semimonthly_start_day)
+			. $time_frame_date_separator . Date::formatted_time($semimonthly_str, 'Ym' . $semimonthly_end_day);
+		$time_frame_options[$time_frame_str] = 'Last Semimonthly Period';
+
+		$time_frame_str = Date::formatted_time('now', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('now', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'This Month (' . Date::formatted_time('now', 'F') . ')';
+
+		$time_frame_str = Date::formatted_time('last month', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('last month', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'Last Month (' . Date::formatted_time('last month', 'F') . ')';
+
+		$current_quarter = ceil(date('m') / 3);
+		$quarter_start_month = ($current_quarter - 1) * 3 + 1;
+		$quarter_end_month = $current_quarter * 3;
+		$time_frame_str = Date::formatted_time($months_long[$quarter_start_month], 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time($months_long[$quarter_end_month], 'Ymt');
+		$time_frame_options[$time_frame_str] = 'This Quarter';
+
+		$last_quarter = $current_quarter - 1;
+		if ($last_quarter < 1) {
+			$last_quarter = 4;
+		}
+		$quarter_start_month = ($last_quarter - 1) * 3 + 1;
+		$quarter_end_month = $last_quarter * 3;
+		$quarter_year = $last_quarter == 4 ? Date::formatted_time('last year', 'Y') : 'Y';
+		$time_frame_str = Date::formatted_time($months_long[$quarter_start_month], $quarter_year . 'm01')
+			. $time_frame_date_separator . Date::formatted_time($months_long[$quarter_end_month], $quarter_year . 'mt');
+		$time_frame_options[$time_frame_str] = 'Last Quarter';
+
+		$time_frame_str = Date::formatted_time('January', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('December', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'This Year';
+
+		$time_frame_str = Date::formatted_time('last year January', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('last year December', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'Last Year';
+
+		$time_frame_options['custom'] = 'Custom';
+
+		return $time_frame_options;
 	}
 }
