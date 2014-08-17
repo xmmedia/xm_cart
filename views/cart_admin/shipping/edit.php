@@ -40,7 +40,7 @@
 				</div>
 
 				<div class="buttons"><?php
-					echo Form::submit(NULL, 'Save'),
+					echo Form::button(NULL, 'Save'),
 						HTML::anchor($cancel_uri, 'Cancel');
 				?></div>
 			</form>
