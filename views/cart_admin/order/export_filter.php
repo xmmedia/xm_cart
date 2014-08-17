@@ -10,7 +10,7 @@
 				</div>
 				<div class="buttons"><?php
 					echo Form::button(NULL, 'Generate Export'),
-						HTML::anchor($cancel_uri, 'Cancel');
+						HTML::anchor($cancel_uri, 'Back to Order List');
 				?></div>
 			</form>
 		</div>
