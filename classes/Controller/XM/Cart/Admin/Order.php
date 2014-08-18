@@ -13,13 +13,20 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 	public $secure_actions = array(
 		'index' => 'cart/admin/order',
+		'reset_order_filters' => 'cart/admin/order',
 		'view' => 'cart/admin/order',
 		'refund' => 'cart/admin/order',
-		'export_filter' => 'cart/admin/order',
 		'export' => 'cart/admin/order',
 	);
 
 	protected $no_auto_render_actions = array('export');
+
+	/**
+	 * The default order filters. Set in before().
+	 *
+	 * @var  array
+	 */
+	protected $default_order_filters = array();
 
 	/**
 	 * Stores the order model.
@@ -37,11 +44,16 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			$this->add_script('cart_admin_order', 'xm_cart/js/admin/order.min.js');
 		}
 
+		$this->default_order_filters = array(
+			'status' => implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)),
+			'time_frame' => NULL,
+			'time_frame_start' => NULL,
+			'time_frame_end' => NULL,
+		);
+
 		$cart_admin_session = (array) Session::instance()->path('xm_cart.cart_admin');
 		$cart_admin_session += array(
-			'order_filters' => array(
-				'status' => implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)),
-			),
+			'order_filters' => $this->default_order_filters,
 		);
 		Session::instance()->set_path('xm_cart.cart_admin', $cart_admin_session);
 
@@ -75,12 +87,18 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		);
 		$order_filters_html['status'] = Form::select('order_filters[status]', $order_statuses, $order_filters['status']);
 
-		$order_query = ORM::factory('Cart_Order');
-		if ( ! empty($order_filters['status'])) {
-			$order_filter_statuses = explode(',', $order_filters['status']);
-			$order_query->where('status', 'IN', $order_filter_statuses);
+		$time_frame_options = $this->time_frame_options();
+		if (empty($order_filters['time_frame'])) {
+			$order_filters['time_frame'] = key($time_frame_options);
+			$time_frame_parts = explode('-', $order_filters['time_frame']);
+			$order_filters['time_frame_start'] = substr($time_frame_parts[0], 0, 4) . '-' . substr($time_frame_parts[0], 4, 2) . '-' . substr($time_frame_parts[0], 6, 2);
+			$order_filters['time_frame_end'] = substr($time_frame_parts[1], 0, 4) . '-' . substr($time_frame_parts[1], 4, 2) . '-' . substr($time_frame_parts[1], 6, 2);
 		}
-		$orders = $order_query->find_all();
+		$order_filters_html['time_frame_select'] = Form::select('order_filters[time_frame]', $time_frame_options, $order_filters['time_frame'], array('class' => 'js_cart_order_time_frame'));
+		$order_filters_html['time_frame_start'] = Form::date('order_filters[time_frame_start]', $order_filters['time_frame_start'], array('class' => 'js_cart_order_time_frame_start'));
+		$order_filters_html['time_frame_end'] = Form::date('order_filters[time_frame_end]', $order_filters['time_frame_end'], array('class' => 'js_cart_order_time_frame_end'));
+
+		$orders = $this->get_orders($order_filters);
 
 		$order_list = array(
 			(string) View::factory('cart_admin/order/list_headers'),
@@ -91,24 +109,37 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 			$last_log = $order->cart_order_log->find();
 
-			$billing_shipping_diff = ($order->shipping_first_name != $order->billing_first_name || $order->shipping_last_name != $order->billing_last_name || $order->shipping_email != $order->billing_email);
-
 			$view_uri = Route::get('cart_admin_order')->uri(array('action' => 'view', 'id' => $order->pk()));
 
 			$order_list[] = (string) View::factory('cart_admin/order/item')
 				->bind('order', $order)
 				->bind('last_log', $last_log)
 				->bind('view_uri', $view_uri)
-				->bind('billing_shipping_diff', $billing_shipping_diff);
+				->set('billing_shipping_diff', $order->billing_shipping_diff());
 		}
 
-		$uri = Route::get('cart_admin_order')->uri();
+		$form_open = Form::open($this->order_uri(), array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form'));
+		$export_uri = Route::get('cart_admin_order')->uri(array('action' => 'export')) . '?' . http_build_query(array('order_filters' => $order_filters));
+		$reset_order_filters_uri = Route::get('cart_admin_order')->uri(array('action' => 'reset_order_filters')) . '?' . http_build_query(array('order_filters' => $this->default_order_filters));
 
-		$this->template->page_title = 'Orders - ' . $this->page_title_append;
+		$this->template->page_title = $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/index')
-			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form')))
+			->set('form_open', $form_open)
 			->bind('order_filters_html', $order_filters_html)
+			->bind('reset_order_filters_uri', $reset_order_filters_uri)
+			->bind('export_uri', $export_uri)
 			->set('order_html', implode(PHP_EOL, $order_list));
+	}
+
+	/**
+	 * Resets the order filters in the session and redirects the user back to the index action.
+	 *
+	 * @return  void
+	 */
+	public function action_reset_order_filters() {
+		$order_filters = $this->default_order_filters + (array) $this->request->query('order_filters');
+		Session::instance()->set_path('xm_cart.cart_admin.order_filters', $order_filters);
+		$this->redirect($this->order_uri());
 	}
 
 	public function action_view() {
@@ -155,7 +186,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 		$this->add_style('cart_public', 'xm_cart/css/public.css');
 
-		$this->template->page_title = ( ! empty($this->order->order_num) ? $this->order->order_num . ' - ' : '') . 'Order View - ' . $this->page_title_append;
+		$this->template->page_title = ( ! empty($this->order->order_num) ? $this->order->order_num : 'Order View') . ' - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/view')
 			->bind('order', $this->order)
 			->bind('cart_html', $cart_html)
@@ -378,52 +409,108 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 	}
 
 	/**
-	 * Displays the filters for the order export.
-	 *
-	 * @return  void
-	 */
-	public function action_export_filter() {
-		$time_frame_select = Form::select('time_frame', $this->time_frame_options(), NULL, array('class' => 'js_cart_order_time_frame'));
-		$time_frame_start = Form::date('time_frame_start', NULL, array('class' => 'js_cart_order_time_frame_start'));
-		$time_frame_end = Form::date('time_frame_end', NULL, array('class' => 'js_cart_order_time_frame_end'));
-
-		$uri = Route::get('cart_admin_order')->uri(array('action' => 'export'));
-
-		$this->template->page_title = 'Order Export - ' . $this->page_title_append;
-		$this->template->body_html = View::factory('cart_admin/order/export_filter')
-			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_export_filter_form')))
-			->set('cancel_uri', URL::site($this->order_uri()))
-			->bind('time_frame_select', $time_frame_select)
-			->bind('time_frame_start', $time_frame_start)
-			->bind('time_frame_end', $time_frame_end);
-	}
-
-	/**
 	 * Generates the order export as a XLSX download.
 	 *
 	 * @return  void
 	 */
 	public function action_export() {
-		$time_frame_start = $this->request->query('time_frame_start');
-		$time_frame_end = $this->request->query('time_frame_end');
+		$order_filters = (array) $this->request->query('order_filters');
+
+		$orders = $this->get_orders($order_filters);
 
 		Kohana::load(Kohana::find_file('vendor', 'phpexcel/PHPExcel'));
 
 		$xls = new PHPExcel();
 		$xls->setActiveSheetIndex(0);
-		$xls->getActiveSheet()
-			->setTitle('Orders');
+		$order_sheet = $xls->getActiveSheet();
 
-		$sheet = $xls->getActiveSheet();
+		$order_sheet->setTitle('Orders');
+
+		$headings = array(
+			array(
+				'name' => 'Order Number',
+				'width' => 14,
+			),
+			array(
+				'name' => 'Status',
+				'width' => 17,
+			),
+			array(
+				'name' => 'Total',
+				'width' => 12,
+			),
+		);
+		XLS::add_headings($order_sheet, $headings);
+		$order_sheet->getStyle('C1')
+            ->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+		$order_statuses = (array) Cart_Config::load('order_status_labels');
+
+		$row_num = 2;
+		foreach ($orders as $order) {
+			$order->set_mode('view');
+
+			$last_log = $order->cart_order_log->find();
+
+			$row_data = array(
+				$order->order_num,
+				$order_statuses[$order->status],
+				$order->final_total(),
+			);
+
+			XLS::add_row($order_sheet, $row_num, $row_data);
+
+			$order_sheet->getStyle('C' . $row_num)
+				->getNumberFormat()
+				->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+
+			++ $row_num;
+		}
+
+		$xls->setActiveSheetIndex(0);
 
 		$output = PHPExcel_IOFactory::createWriter($xls, 'Excel2007');
 		$tmp_file = tempnam(NULL, 'order_export');
 		$output->save($tmp_file);
 
-		$user_filename = 'Orders - ' . XMFile::clean_filename($time_frame_start) . ' to ' . XMFile::clean_filename($time_frame_end) . '.xlsx';
+		$user_filename = 'Orders - ' . XMFile::clean_filename($order_filters['time_frame_start']) . ' to ' . XMFile::clean_filename($order_filters['time_frame_end']) . '.xlsx';
 		$this->response
 			->headers('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 			->send_file($tmp_file, $user_filename, array('delete' => TRUE));
+	}
+
+	/**
+	 * Returns the list of orders filter by the order filters passed in.
+	 *
+	 * @param   array  $order_filters  Array of order filters.
+	 *
+	 * @return  Database_Result
+	 */
+	protected function get_orders($order_filters) {
+		$order_query = ORM::factory('Cart_Order');
+
+		if ( ! empty($order_filters['status'])) {
+			$order_filter_statuses = explode(',', $order_filters['status']);
+			$order_query->where('cart_order.status', 'IN', $order_filter_statuses);
+		}
+
+		if ( ! empty($order_filters['time_frame_start']) && ! empty($order_filters['time_frame_end'])) {
+			$last_log_select = DB::select(array(DB::expr('MAX(id)'), 'max_id'), 'cart_order_id')
+				->from('cart_order_log')
+				->group_by('cart_order_id');
+
+			$order_query->join(array($last_log_select, 'last_log'))
+					->on('last_log.cart_order_id', '=', 'cart_order.id')
+				->join(array('cart_order_log', 'log'))
+					->on('log.id', '=', 'last_log.max_id')
+				->where_open()
+					->where('log.timestamp', '>=', $order_filters['time_frame_start'] . ' 00:00:00')
+					->where('log.timestamp', '<=', $order_filters['time_frame_end'] . ' 23:59:59')
+				->where_close();
+		}
+
+		return $order_query->find_all();
 	}
 
 	/**

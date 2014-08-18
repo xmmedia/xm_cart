@@ -985,6 +985,16 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		return $str;
 	}
 
+	/**
+	 * Returns `TRUE` if the billing and shipping are different,
+	 * based on the first, last and email address fields.
+	 *
+	 * @return  boolean
+	 */
+	public function billing_shipping_diff() {
+		return ($this->shipping_first_name != $this->billing_first_name || $this->shipping_last_name != $this->billing_last_name || $this->shipping_email != $this->billing_email);
+	}
+
 	public function set_status($status) {
 		return $this->set('status', $status)
 			->is_valid()
