@@ -414,17 +414,70 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 	 * @return  void
 	 */
 	public function action_export() {
-		$order_filters = (array) $this->request->query('order_filters');
+		Kohana::load(Kohana::find_file('vendor', 'phpexcel/PHPExcel'));
 
+		$order_filters = (array) $this->request->query('order_filters');
 		$orders = $this->get_orders($order_filters);
 
-		Kohana::load(Kohana::find_file('vendor', 'phpexcel/PHPExcel'));
+		$show_shipping_country = Cart_Config::load('show_shipping_country');
+		$show_billing_company = Cart_Config::load('show_billing_company');
+		$show_billing_country = Cart_Config::load('show_billing_country');
+		$show_additional_charges = ORM::factory('Cart_Additional_Charge')
+			->where_active_dates()
+			->find_all()
+			->count() > 0;
+
+		if (Cart_Config::enable_tax()) {
+			$taxes = ORM::factory('Cart_Tax')
+				->where_active_dates()
+				->find_all();
+			$tax_count = $taxes->count();
+		} else {
+			$tax_count = 0;
+		}
+
+		// to store cols for later use (instead of separate vars)
+		$cols = array();
+		$left_right_border = array(
+			'borders' => array(
+				'left' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN,
+				),
+				'right' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN,
+				),
+			),
+		);
 
 		$xls = new PHPExcel();
 		$xls->setActiveSheetIndex(0);
 		$order_sheet = $xls->getActiveSheet();
 
 		$order_sheet->setTitle('Orders');
+
+		if (Cart_Config::enable_shipping()) {
+			$cols['shipping_start'] = 7 + $tax_count;
+			$cols['shipping_end'] = 17 + $tax_count;
+			$order_sheet->setCellValueByColumnAndRow($cols['shipping_start'], 1, 'Shipping');
+			$order_sheet->getStyle(XLS::number_to_excel_col($cols['shipping_start']) . 1)
+				->getFont()
+					->setBold(TRUE)
+					->setSize(13);
+			$order_sheet->mergeCells(XLS::number_to_excel_col($cols['shipping_start']) . '1:' . XLS::number_to_excel_col($cols['shipping_end']) . '1');
+			$order_sheet->getStyle(XLS::number_to_excel_col($cols['shipping_start']) . '1:' . XLS::number_to_excel_col($cols['shipping_end']) . '1')
+				->applyFromArray($left_right_border);
+		}
+
+		$cols['billing_start'] = (Cart_Config::enable_shipping() ? 18 : 6) + $tax_count;
+		$cols['billing_end'] = $cols['billing_start'] + ($show_billing_company ? 10 : 9); // 1 less than what you'd expect;
+		$order_sheet->setCellValueByColumnAndRow($cols['billing_start'], 1, 'Billing');
+		$order_sheet->getStyle(XLS::number_to_excel_col($cols['billing_start']) . 1)
+			->getFont()
+				->setBold(TRUE)
+				->setSize(13);
+		$order_sheet->mergeCells(XLS::number_to_excel_col($cols['billing_start']) . '1:' . XLS::number_to_excel_col($cols['billing_end']) . '1');
+		$order_sheet->getStyle(XLS::number_to_excel_col($cols['billing_start']) . '1:' . XLS::number_to_excel_col($cols['billing_end']) . '1')
+			->applyFromArray($left_right_border);
 
 		$headings = array(
 			array(
@@ -439,15 +492,155 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 				'name' => 'Total',
 				'width' => 12,
 			),
+			array(
+				'name' => 'Sub Total',
+				'width' => 12,
+			),
 		);
-		XLS::add_headings($order_sheet, $headings);
+		if (Cart_Config::enable_shipping()) {
+			$headings[] = array(
+				'name' => 'Shipping',
+				'width' => 12,
+			);
+		}
+		// only show the col if there additional charges
+		if ($show_additional_charges) {
+			$headings[] = array(
+				'name' => 'Additional Charges',
+				'width' => 12,
+			);
+		}
+		if (Cart_Config::enable_tax() && $tax_count > 0) {
+			// stores the tax id (key) in the order they are added to the headers
+			// so the array can be used later on each row
+			$tax_cols = array();
+			foreach ($taxes as $tax) {
+				$tax_cols[$tax->pk()] = 0;
+				$headings[] = array(
+					'name' => $tax->name . ' (' . Cart::calc_method_display($tax->calculation_method, $tax->amount) . ')',
+					'width' => 12,
+				);
+			}
+		}
+		$headings[] = array(
+			'name' => 'Grand Total',
+			'width' => 12,
+		);
+		$headings[] = array(
+			'name' => 'Refund Total',
+			'width' => 12,
+		);
+		if (Cart_Config::enable_shipping()) {
+			$headings[] = array(
+				'name' => 'First Name',
+				'width' => 13,
+			);
+			$headings[] = array(
+				'name' => 'Last Name',
+				'width' => 13,
+			);
+			$headings[] = array(
+				'name' => 'Company',
+				'width' => 15,
+			);
+			$headings[] = array(
+				'name' => 'Address Line 1',
+				'width' => 20,
+			);
+			$headings[] = array(
+				'name' => 'Address Line 2',
+				'width' => 20,
+			);
+			$headings[] = array(
+				'name' => 'City',
+				'width' => 14,
+			);
+			$headings[] = array(
+				'name' => 'Province/State',
+				'width' => 15,
+			);
+			$headings[] = array(
+				'name' => 'Postal/Zip Code',
+				'width' => 13,
+			);
+			// always include the country even if it's disabled as we'll include the default value
+			$headings[] = array(
+				'name' => 'Country',
+				'width' => 13,
+			);
+			$headings[] = array(
+				'name' => 'Phone',
+				'width' => 14,
+			);
+			$headings[] = array(
+				'name' => 'Email',
+				'width' => 25,
+			);
+		}
+		$headings[] = array(
+			'name' => 'First Name',
+			'width' => 13,
+		);
+		$headings[] = array(
+			'name' => 'Last Name',
+			'width' => 13,
+		);
+		if ($show_billing_company) {
+			$headings[] = array(
+				'name' => 'Company',
+				'width' => 15,
+			);
+		}
+		$headings[] = array(
+			'name' => 'Address Line 1',
+			'width' => 20,
+		);
+		$headings[] = array(
+			'name' => 'Address Line 2',
+			'width' => 20,
+		);
+		$headings[] = array(
+			'name' => 'City',
+			'width' => 14,
+		);
+		$headings[] = array(
+			'name' => 'Province/State',
+			'width' => 15,
+		);
+		$headings[] = array(
+			'name' => 'Postal/Zip Code',
+			'width' => 13,
+		);
+		// always include the country even if it's disabled as we'll include the default value
+		$headings[] = array(
+			'name' => 'Country',
+			'width' => 13,
+		);
+		$headings[] = array(
+			'name' => 'Phone',
+			'width' => 14,
+		);
+		$headings[] = array(
+			'name' => 'Email',
+			'width' => 25,
+		);
+
+		XLS::add_headings($order_sheet, $headings, 2);
 		$order_sheet->getStyle('C1')
-            ->getAlignment()
-            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+			->getAlignment()
+			->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+		$order_sheet->freezePane('A3');
 
 		$order_statuses = (array) Cart_Config::load('order_status_labels');
 
-		$row_num = 2;
+		ORM::factory('Country', Cart_Config::load('default_country_id'))
+				->name;
+		if ( ! $show_billing_country) {
+			$billing_country_name = ORM::factory('Country', Cart_Config::load('default_country_id'))
+				->name;
+		}
+
+		$row_num = 3;
 		foreach ($orders as $order) {
 			$order->set_mode('view');
 
@@ -457,16 +650,89 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 				$order->order_num,
 				$order_statuses[$order->status],
 				$order->final_total(),
+				$order->sub_total,
+				$order->grand_total,
+				$order->refund_total,
 			);
+
+			if (Cart_Config::enable_shipping()) {
+				$shipping = $order->cart_order_shipping->find();
+				if ($shipping->loaded()) {
+					$row_data[] = $shipping->amount;
+				} else {
+					$row_data[] = 0;
+				}
+			}
+			if ($show_additional_charges) {
+				$_additional_charges_total = 0;
+				foreach ($order->cart_order_additional_charge->find_all() as $additional_charge) {
+					$_additional_charges_total += ($additional_charge->quantity * $additional_charge->amount);
+				}
+				$row_data[] = $_additional_charges_total;
+			}
+			if (Cart_Config::enable_tax() && $tax_count > 0) {
+				// populate an array with the amounts and then add it to the row data
+				$order_taxes = $tax_cols;
+				foreach ($order->cart_order_tax->find_all() as $_tax) {
+					$order_taxes[$_tax->cart_tax_id] = $tax->amount;
+				}
+				foreach ($order_taxes as $_amount) {
+					$row_data[] = $_amount;
+				}
+			}
+
+			if (Cart_Config::enable_shipping()) {
+				$row_data[] = $order->shipping_first_name;
+				$row_data[] = $order->shipping_last_name;
+				$row_data[] = $order->shipping_company;
+				$row_data[] = $order->shipping_address_1;
+				$row_data[] = $order->shipping_address_2;
+				$row_data[] = $order->shipping_municipality;
+				$row_data[] = $order->shipping_state();
+				$row_data[] = $order->shipping_postal_code;
+				if ($show_shipping_country) {
+					$row_data[] = $order->shipping_country->name;
+				} else {
+					$row_data[] = $shipping_country_name;
+				}
+				$row_data[] = XM::format_phone($order->shipping_phone);
+				$row_data[] = $order->shipping_email;
+			}
+			$row_data[] = $order->billing_first_name;
+			$row_data[] = $order->billing_last_name;
+			if ($show_billing_company) {
+				$row_data[] = $order->billing_company;
+			}
+			$row_data[] = $order->billing_address_1;
+			$row_data[] = $order->billing_address_2;
+			$row_data[] = $order->billing_municipality;
+			$row_data[] = $order->billing_state();
+			$row_data[] = $order->billing_postal_code;
+			if ($show_billing_country) {
+				$row_data[] = $order->billing_country->name;
+			} else {
+				$row_data[] = $billing_country_name;
+			}
+			$row_data[] = XM::format_phone($order->billing_phone);
+			$row_data[] = $order->billing_email;
 
 			XLS::add_row($order_sheet, $row_num, $row_data);
 
-			$order_sheet->getStyle('C' . $row_num)
-				->getNumberFormat()
-				->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-
 			++ $row_num;
 		}
+
+		// set the number format on all the number cols (currently beside each other)
+		$order_sheet->getStyle('C2:F' . $row_num)
+			->getNumberFormat()
+			->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+
+		// add a left and right border along the shipping and billing sections
+		if (Cart_Config::enable_shipping()) {
+			$order_sheet->getStyle(XLS::number_to_excel_col($cols['shipping_start']) . '2:' . XLS::number_to_excel_col($cols['shipping_end']) . $row_num)
+				->applyFromArray($left_right_border);
+		}
+		$order_sheet->getStyle(XLS::number_to_excel_col($cols['billing_start']) . '2:' . XLS::number_to_excel_col($cols['billing_end']) . $row_num)
+			->applyFromArray($left_right_border);
 
 		$xls->setActiveSheetIndex(0);
 

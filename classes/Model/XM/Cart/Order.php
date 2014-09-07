@@ -946,7 +946,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$str .= $this->shipping_address_2 . PHP_EOL;
 		}
 
-		$str .= $this->shipping_municipality . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
+		$str .= $this->shipping_municipality . ', ' . $this->shipping_state() . '  ' . $this->shipping_postal_code . PHP_EOL
 			. $this->shipping_country->name;
 
 		return $str;
@@ -979,10 +979,38 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$str .= $this->billing_address_2 . PHP_EOL;
 		}
 
-		$str .= $this->billing_municipality . ', ' . $this->billing_state_select->name . '  ' . $this->billing_postal_code . PHP_EOL
+		$str .= $this->billing_municipality . ', ' . $this->billing_state() . '  ' . $this->billing_postal_code . PHP_EOL
 			. $this->billing_country->name;
 
 		return $str;
+	}
+
+	/**
+	 * Returns the shipping state name.
+	 * Pulls from the state table or shipping_state.
+	 *
+	 * @return  string
+	 */
+	public function shipping_state() {
+		if ( ! empty($this->shipping_state_id)) {
+			return $this->shipping_state_select->name;
+		} else {
+			return $this->shipping_state;
+		}
+	}
+
+	/**
+	 * Returns the billing state name.
+	 * Pulls from the state table or billing_state.
+	 *
+	 * @return  string
+	 */
+	public function billing_state() {
+		if ( ! empty($this->billing_state_id)) {
+			return $this->billing_state_select->name;
+		} else {
+			return $this->billing_state;
+		}
 	}
 
 	/**
