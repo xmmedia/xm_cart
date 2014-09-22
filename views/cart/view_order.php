@@ -1,7 +1,7 @@
 <div class="js_view_order">
 	<div class="grid">
 		<div class="col">
-			<?php echo Cart::page_header('Your Order'); ?>
+			<?php echo Cart::page_header(HTML::chars(Cart::message('view_order.order_info.title' . ($donation_cart ? '_donation' : '')))); ?>
 		</div>
 	</div>
 
