@@ -717,7 +717,7 @@ class Controller_XM_Cart extends Controller_Public {
 		}
 
 		$stripe_data = array(
-			'amount' => round($order->grand_total * 100), // charged in cents, can't have decimals
+			'amount' => Cart::total_cents($order->grand_total), // charged in cents, can't have decimals
 			'currency' => $currency,
 			'card' => $stripe_token, // obtained with Stripe.js
 			'description' => $order->stripe_charge_description(),
@@ -772,7 +772,7 @@ class Controller_XM_Cart extends Controller_Public {
 				throw new Kohana_Exception('The charge was not captured (completed immediately)');
 			}
 
-			if (($order->grand_total * 100) != $charge->amount) {
+			if (Cart::total_cents($order->grand_total) != $charge->amount) {
 				throw new Kohana_Exception('The amount charged does not match the grand total');
 			}
 

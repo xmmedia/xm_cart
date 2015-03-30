@@ -265,7 +265,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 			$charge = Stripe_Charge::retrieve($payment_transaction->transaction_id);
 			$charge->refund(array(
-				'amount' => round($refund_amount * 100),
+				'amount' => Cart::total_cents($refund_amount),
 			));
 
 			$refund_transaction->values(array(
