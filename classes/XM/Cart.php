@@ -51,6 +51,18 @@ class XM_Cart {
 	}
 
 	/**
+	 * Returns the rounded (no decimals) amount in cents (vs dollars & cents).
+	 * This is mainly useful with Stripe.
+	 *
+	 * @param   float  $total  The amount to convert to cents.
+	 *
+	 * @return  int
+	 */
+	public static function total_cents($total) {
+		return round($total * 100);
+	}
+
+	/**
 	 * Returns an array of the countries for use in JS.
 	 * Uses the config option `available_shipping_country_ids` to limit the list.
 	 *
