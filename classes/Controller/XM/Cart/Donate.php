@@ -41,11 +41,14 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 	}
 
 	public function action_submit_donation() {
-		$donation = $this->request->post('donation') * 1;
+		$donation = $this->request->post('donation');
 		if (empty($donation)) {
 			Message::add('Please enter a donation amount before continuing.', Message::$error);
 			$this->redirect(Route::get('cart_donate')->uri());
 		}
+
+		// remove the dollar sign and commas so we can get a propery float
+		$donation = str_replace(array('$', ','), '', $donation) * 1;
 
 		$donation_minimum = Cart_Config::load('donation_minimum');
 		$donation_maximum = Cart_Config::load('donation_maximum');
