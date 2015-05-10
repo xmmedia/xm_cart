@@ -1,12 +1,12 @@
 <?php defined('SYSPATH') or die ('No direct script access.');
 
 /**
- *
+ * Displays and processes the donation form.
  *
  * @package    XM Cart
  * @category   Controllers
  * @author     XM Media Inc.
- * @copyright  (c) 2014 XM Media Inc.
+ * @copyright  (c) 2015 XM Media Inc.
  */
 class Controller_XM_Cart_Donate extends Controller_Public {
 	public function before() {
@@ -25,6 +25,11 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 		}
 	}
 
+	/**
+	 * Displays the donation form.
+	 *
+	 * @return  void
+	 */
 	public function action_index() {
 		$default_donation_amount = $this->default_donation_amount();
 
@@ -44,6 +49,11 @@ class Controller_XM_Cart_Donate extends Controller_Public {
 			->bind('default_donation_amount', $default_donation_amount);
 	}
 
+	/**
+	 * Processes the donation form, sending the user to the checkout.
+	 *
+	 * @return  void
+	 */
 	public function action_submit_donation() {
 		$donation = $this->request->post('donation');
 		if (empty($donation)) {
