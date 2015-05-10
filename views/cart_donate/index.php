@@ -7,8 +7,8 @@
 			<div class="cart_field"><?php
 				echo Form::label('donation', 'Donation Amount'),
 					'$',
-					Form::input('donation', Cart_Config::load('donation_minimum'), array('size' => 8, 'maxlength' => 8, 'class' => 'text_right', 'id' => 'donation')); ?></div>
-			<div class="cart_field"><?php echo Form::submit(NULL, 'Submit'); ?></div>
+					Form::input('donation', $default_donation_amount, array('size' => 8, 'maxlength' => 8, 'class' => 'text_right', 'id' => 'donation')); ?></div>
+			<div class="cart_field"><?php echo Form::button(NULL, 'Submit'); ?></div>
 			<?php echo Form::close(); ?>
 
 			<?php if (isset($order) && $order_has_other_products) { ?>
