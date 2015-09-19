@@ -161,10 +161,12 @@ class Controller_XM_Cart extends Controller_Public {
 		$order = Cart::retrieve_user_order(TRUE);
 
 		// if the order is a donation and the product being added is not
-		// then delete the order and create a new one
+		// then change the order to a regular order & add the product
 		if ($order->donation_cart_flag && Cart_Config::load('donation_product_id') != $cart_product_id) {
-			Cart::empty_cart($order);
-			$order = Cart::retrieve_user_order(TRUE);
+			$order->set('donation_cart_flag', 0)
+				->is_valid()
+				->save()
+				->reload();
 		}
 
 		// attempt to retrieve the existing product in the cart or create an empty object
@@ -237,13 +239,6 @@ class Controller_XM_Cart extends Controller_Public {
 
 		// attempt to retrieve or create a new order
 		$order = Cart::retrieve_user_order(TRUE);
-
-		// if donation carts have been enabled and this cart is a donation cart
-		// don't allow them to change the quantity (there is no quantity)
-		if (Cart_Config::donation_cart() && $order->donation_cart_flag) {
-			AJAX_Status::echo_json(AJAX_Status::success());
-			return;
-		}
 
 		// attempt to retrieve the existing product in the cart or create an empty object
 		$order_product = ORM::factory('Cart_Order_Product', $cart_order_product_id);

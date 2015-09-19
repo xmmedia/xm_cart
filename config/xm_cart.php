@@ -42,6 +42,8 @@ return array(
 	'donation_minimum' => 25,
 	'donation_maximum' => 10000,
 
+	'non_fixed_price_product_ids' => array(),
+
 	// controls the display of the country fields
 	// if disable, they will be set to the value of 'default_country_id'
 	'show_shipping_country' => TRUE,
