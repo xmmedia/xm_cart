@@ -325,7 +325,7 @@ class XM_Cart {
 	 * @return  Model_Cart_Order
 	 */
 	public static function pre_checkout($order) {
-		$donation_cart = (Cart_Config::donation_cart() && $order->donation_cart_flag);
+		$non_fixed_price_product_ids = Cart_Config::non_fixed_price_product_ids();
 
 		$order_products = $order->cart_order_product->find_all();
 		foreach ($order_products as $order_product) {
@@ -339,8 +339,10 @@ class XM_Cart {
 				continue;
 			}
 
-			// make sure the price is current, except when it's a donation cart (since the price doesn't match the product price/cost)
-			if ( ! $donation_cart && $order_product->unit_price != $order_product->cart_product->cost) {
+			$is_non_fixed_price_product = in_array($order_product->cart_product_id, $non_fixed_price_product_ids);
+
+			// make sure the price is current, except when it's a non-fixed priced item (donation, etc)
+			if ( ! $is_non_fixed_price_product && $order_product->unit_price != $order_product->cart_product->cost) {
 				$order_product->set('unit_price', $order_product->cart_product->cost)
 					->save();
 

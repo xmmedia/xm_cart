@@ -67,6 +67,22 @@ class XM_Cart_Config {
 		return Cart_Config::$donation_cart;
 	}
 
+	/**
+	 * Returns an array of the products that are not fixed price (such as donations or other custom products).
+	 *
+	 * @return array
+	 */
+	public static function non_fixed_price_product_ids() {
+		$non_fixed_price_product_ids = (array) Cart_Config::load('non_fixed_price_product_ids');
+
+		$donation_product_id = Cart_Config::load('donation_product_id');
+		if ($donation_product_id > 0) {
+			$non_fixed_price_product_ids[] = $donation_product_id;
+		}
+
+		return $non_fixed_price_product_ids;
+	}
+
 	public static function show_product_part_number() {
 		if (Cart_Config::$show_product_part_number === NULL) {
 			Cart_Config::$show_product_part_number = (bool) Cart_Config::load('show_product_part_number');
