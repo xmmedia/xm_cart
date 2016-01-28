@@ -114,12 +114,14 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		$uri = Route::get('cart_admin_order')->uri();
+		$export_uri = Route::get('cart_admin_order_export')->uri() . '?' . http_build_query(array('order_filters' => $order_filters));
 
 		$this->template->page_title = 'Orders - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/index')
 			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form')))
 			->bind('order_filters_html', $order_filters_html)
-			->set('order_html', implode(PHP_EOL, $order_list));
+			->set('order_html', implode(PHP_EOL, $order_list))
+			->set('export_uri', $export_uri);
 	}
 
 	public function action_view() {
