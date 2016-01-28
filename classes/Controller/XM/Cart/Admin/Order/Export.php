@@ -20,18 +20,45 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		$xlsx = new PHPExcel();
 
 		$stripe_config = Cart::load_stripe();
-		$transfers = Stripe_Transfer::all();
 
+		// @todo this section is really bad, inefficient, slow, and hard to Stripe
+		// should store the data in the db and use webhooks to get the data
 		$transfer_data = array();
-		foreach ($transfers->data as $transfer) {
-			foreach ($transfer->transactions->data as $transaction) {
-				$transfer_data[$transaction->id] = array(
-					'transfer_id' => $transfer->id,
-					'fee' => $transaction->fee,
-					'transfer_date' => $transfer->created,
-				);
+		$charge_data = array();
+		$last_transfer_id = null;
+		$i = 0;
+		do {
+			++ $i;
+
+			$transfers = Stripe_Transfer::all(array(
+				'limit' => 100,
+				'starting_after' => $last_transfer_id,
+			));
+			$transfer_count = count($transfers->data);
+
+			foreach ($transfers->data as $transfer) {
+				if ($transfer->transactions->has_more) {
+					$requestor = new Stripe_ApiRequestor();
+
+					list($response, $apiKey) = $requestor->request('get', $transfer->transactions->url, array('limit' => 100));
+					$transaction_data_response = Stripe_Util::convertToStripeObject($response, $apiKey);
+					$transaction_data = $transaction_data_response->data;
+				} else {
+					$transaction_data = $transfer->transactions->data;
+				}
+
+				foreach ($transaction_data as $transaction) {
+					$charge_data[$transaction->id] = array(
+						'transfer_id' => $transfer->id,
+						'fee' => $transaction->fee,
+						'transfer_date' => $transfer->created,
+					);
+				}
+
+				$transfer_data[] = $transfer;
+				$last_transfer_id = $transfer->id;
 			}
-		}
+		} while ($transfer_count == 100 && $i < 25);
 
 		// ******************* Orders *********************
 		$order_query = ORM::factory('Cart_Order');
@@ -138,11 +165,11 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 			$row_data[] = $charge_id;
 			$row_data[] = $order->final_total();
 
-			if (isset($transfer_data[$charge_id])) {
-				$row_data[] = $transfer_data[$charge_id]['fee'] / 100;
+			if (isset($charge_data[$charge_id])) {
+				$row_data[] = $charge_data[$charge_id]['fee'] / 100;
 				$row_data[] = '=N'.$row_num.'-O'.$row_num;
-				$row_data[] = $transfer_data[$charge_id]['transfer_id'];
-				$transfer_datetime = (new DateTime('@'.$transfer_data[$charge_id]['transfer_date']));
+				$row_data[] = $charge_data[$charge_id]['transfer_id'];
+				$transfer_datetime = (new DateTime('@'.$charge_data[$charge_id]['transfer_date']));
 				$row_data[] = $transfer_datetime->format('Y-m-d');
 			} else {
 				$row_data[] = '';
@@ -179,7 +206,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		XLS::add_headings($transferSheet, $headings, $row_num);
 		$transferSheet->freezePane('A' . ($row_num + 1));
 
-		foreach ($transfers->data as $transfer) {
+		foreach ($transfer_data as $transfer) {
 			++ $row_num;
 
 			$datetime = (new DateTime('@'.$transfer->created));
@@ -265,9 +292,9 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 				$row_data[] = $order->billing_state_select->name;
 				$row_data[] = $order->billing_postal_code;
 
-				if (isset($transfer_data[$charge_id])) {
-					$row_data[] = $transfer_data[$charge_id]['transfer_id'];
-					$transfer_datetime = (new DateTime('@'.$transfer_data[$charge_id]['transfer_date']));
+				if (isset($charge_data[$charge_id])) {
+					$row_data[] = $charge_data[$charge_id]['transfer_id'];
+					$transfer_datetime = (new DateTime('@'.$charge_data[$charge_id]['transfer_date']));
 					$row_data[] = $transfer_datetime->format('Y-m-d');
 				} else {
 					$row_data[] = '';
