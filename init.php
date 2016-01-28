@@ -92,6 +92,11 @@ if ($routes['admin']) {
 			'action' => 'index',
 	));
 
+	Route::set('cart_admin_order_export', $route_prefix . '/admin/order/export')
+		->defaults(array(
+			'controller' => 'Cart_Admin_Order_Export',
+			'action' => 'export',
+	));
 	Route::set('cart_admin_order', $route_prefix . '/admin/order(/<action>(/<id>))')
 		->defaults(array(
 			'controller' => 'Cart_Admin_Order',

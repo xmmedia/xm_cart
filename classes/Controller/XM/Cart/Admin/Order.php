@@ -34,11 +34,13 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		$cart_admin_session = (array) Session::instance()->path('xm_cart.cart_admin');
-		$cart_admin_session += array(
+		$cart_admin_session = array_replace_recursive(array(
 			'order_filters' => array(
 				'status' => implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)),
+				'start_date' => FALSE,
+				'end_date' => FALSE,
 			),
-		);
+		), $cart_admin_session);
 		Session::instance()->set_path('xm_cart.cart_admin', $cart_admin_session);
 
 		$this->order = ORM::factory('Cart_Order', (int) $this->request->param('id'));
@@ -70,11 +72,24 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			CART_ORDER_STATUS_EMPTIED   => 'Emptied',
 		);
 		$order_filters_html['status'] = Form::select('order_filters[status]', $order_statuses, $order_filters['status']);
+		$order_filters_html['start_date'] = Form::date('order_filters[start_date]', $order_filters['start_date'], array('id' => 'order_filters_start_date'));
+		$order_filters_html['end_date'] = Form::date('order_filters[end_date]', $order_filters['end_date'], array('id' => 'order_filters_end_date'));
 
 		$order_query = ORM::factory('Cart_Order');
 		if ( ! empty($order_filters['status'])) {
 			$order_filter_statuses = explode(',', $order_filters['status']);
 			$order_query->where('status', 'IN', $order_filter_statuses);
+		}
+		if ( ! empty($order_filters['start_date']) ||  ! empty($order_filters['end_date'])) {
+			$order_query->join(array('cart_order_log', 'log'), 'INNER')
+				->on('log.cart_order_id', '=', 'cart_order.id')
+				->where('log.action', '=', 'paid');
+		}
+		if ( ! empty($order_filters['start_date'])) {
+			$order_query->where('log.timestamp', '>=', $order_filters['start_date']);
+		}
+		if ( ! empty($order_filters['end_date'])) {
+			$order_query->where('log.timestamp', '<=', $order_filters['end_date'] . '23:59:59');
 		}
 		$orders = $order_query->find_all();
 
@@ -99,12 +114,14 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		$uri = Route::get('cart_admin_order')->uri();
+		$export_uri = Route::get('cart_admin_order_export')->uri() . '?' . http_build_query(array('order_filters' => $order_filters));
 
 		$this->template->page_title = 'Orders - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/index')
 			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form')))
 			->bind('order_filters_html', $order_filters_html)
-			->set('order_html', implode(PHP_EOL, $order_list));
+			->set('order_html', implode(PHP_EOL, $order_list))
+			->set('export_uri', $export_uri);
 	}
 
 	public function action_view() {
