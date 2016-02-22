@@ -6,7 +6,7 @@
  * @package    XM Cart
  * @category   Controllers
  * @author     XM Media Inc.
- * @copyright  (c) 2015 XM Media Inc.
+ * @copyright  (c) 2016 XM Media Inc.
  */
 class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 	public $page = 'cart_admin';
@@ -19,46 +19,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		Kohana::load(Kohana::find_file('vendor', 'phpexcel/PHPExcel'));
 		$xlsx = new PHPExcel();
 
-		$stripe_config = Cart::load_stripe();
-
-		// @todo this section is really bad, inefficient, slow, and hard on Stripe
-		// should store the data in the db and use webhooks to get the data
-		$transfer_data = array();
-		$charge_data = array();
-		$last_transfer_id = null;
-		$i = 0;
-		do {
-			++ $i;
-
-			$transfers = Stripe_Transfer::all(array(
-				'limit' => 100,
-				'starting_after' => $last_transfer_id,
-			));
-			$transfer_count = count($transfers->data);
-
-			foreach ($transfers->data as $transfer) {
-				if ($transfer->transactions->has_more) {
-					$requestor = new Stripe_ApiRequestor();
-
-					list($response, $apiKey) = $requestor->request('get', $transfer->transactions->url, array('limit' => 100));
-					$transaction_data_response = Stripe_Util::convertToStripeObject($response, $apiKey);
-					$transaction_data = $transaction_data_response->data;
-				} else {
-					$transaction_data = $transfer->transactions->data;
-				}
-
-				foreach ($transaction_data as $transaction) {
-					$charge_data[$transaction->id] = array(
-						'transfer_id' => $transfer->id,
-						'fee' => $transaction->fee,
-						'transfer_date' => $transfer->created,
-					);
-				}
-
-				$transfer_data[] = $transfer;
-				$last_transfer_id = $transfer->id;
-			}
-		} while ($transfer_count == 100 && $i < 25);
+		Cart_Transfer::update_transfers_transactions();
 
 		// ******************* Orders *********************
 		$order_filters = (array) $this->request->query('order_filters');
@@ -152,11 +113,13 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 			$row_data[] = $order->refund_total;
 			$row_data[] = $order->final_total();
 
-			if (isset($charge_data[$charge_id])) {
-				$row_data[] = '='.($charge_data[$charge_id]['fee'] / 100).'-(O'.$row_num.'*0.029)';
+			$charge_data = Cart_Transfer::get_transaction($charge_id);
+
+			if ( ! empty($charge_data)) {
+				$row_data[] = '='.($charge_data['fee'] / 100).'-(O'.$row_num.'*0.029)';
 				$row_data[] = '=P'.$row_num.'-Q'.$row_num;
-				$row_data[] = $charge_data[$charge_id]['transfer_id'];
-				$transfer_datetime = (new DateTime('@'.$charge_data[$charge_id]['transfer_date']));
+				$row_data[] = $charge_data['transfer_id'];
+				$transfer_datetime = (new DateTime('@'.$charge_data['transfer_date']));
 				$row_data[] = $transfer_datetime->format('Y-m-d');
 			} else {
 				$row_data[] = '';
@@ -173,7 +136,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		// formatting for the total col
 		$orderSheet->getStyle('N4:R' . $row_num)
 			->getNumberFormat()
-			->setFormatCode('#,##0.00');
+			->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 		// wrap the notes col
 		$orderSheet->getStyle('S4:S' . $row_num)
 			->getAlignment()->setWrapText(true);
@@ -193,16 +156,20 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		XLS::add_headings($transferSheet, $headings, $row_num);
 		$transferSheet->freezePane('A' . ($row_num + 1));
 
-		foreach ($transfer_data as $transfer) {
+		$all_transfers = Cart_Transfer::get_all_transfers();
+
+		foreach ($all_transfers as $transfer) {
 			++ $row_num;
 
-			$datetime = (new DateTime('@'.$transfer->created));
+			$transfer_data = $transfer->data;
+
+			$datetime = (new DateTime('@'.$transfer_data['created']));
 
 			$row_data = array(
-				$transfer->id,
+				$transfer->transfer_id,
 				$datetime->format('Y-m-d'),
-				$transfer->amount / 100,
-				ucwords(str_replace('_', ' ', $transfer->status)),
+				$transfer_data['amount'] / 100,
+				ucwords(str_replace('_', ' ', $transfer_data['status'])),
 			);
 
 			XLS::add_row($transferSheet, $row_num, $row_data);
@@ -211,7 +178,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		// formatting for the amount col
 		$transferSheet->getStyle('C4:C' . $row_num)
 			->getNumberFormat()
-			->setFormatCode('#,##0.00');
+			->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 
 		// ******************* Donations *********************
 		if (Cart_Config::donation_cart()) {
@@ -279,9 +246,11 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 				$row_data[] = $order->billing_state_select->name;
 				$row_data[] = $order->billing_postal_code;
 
-				if (isset($charge_data[$charge_id])) {
-					$row_data[] = $charge_data[$charge_id]['transfer_id'];
-					$transfer_datetime = (new DateTime('@'.$charge_data[$charge_id]['transfer_date']));
+				$charge_data = Cart_Transfer::get_transaction($charge_id);
+
+				if ( ! empty($charge_data)) {
+					$row_data[] = $charge_data['transfer_id'];
+					$transfer_datetime = (new DateTime('@'.$charge_data['transfer_date']));
 					$row_data[] = $transfer_datetime->format('Y-m-d');
 				} else {
 					$row_data[] = '';
@@ -297,7 +266,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		// formatting for the amount col
 		$donationSheet->getStyle('D4:D' . $row_num)
 			->getNumberFormat()
-			->setFormatCode('#,##0.00');
+			->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 		// wrap the notes col
 		$donationSheet->getStyle('P4:P' . $row_num)
 			->getAlignment()->setWrapText(true);
