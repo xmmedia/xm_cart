@@ -70,7 +70,7 @@ return array(
 			'subject' => 'Your order from :company',
 			'subject_donation' => 'Your donation to :company',
 			'thank_you' => 'Thank you for your order. We have received your order and are currently processing it. Below are the details of your order.',
-			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. You will receive a tax deductible donation receipt at the end of the year.',
+			'thank_you_donation' => 'Thank you for your donation. Below are the details of your donation. We will send you a tax deductible donation receipt at the beginning of next year.',
 			'email_title' => 'Your order from :company',
 			'email_title_donation' => 'Your donation to :company',
 			'full_refund' => 'The following order has been fully refunded. Please contact us if you have any questions.',
