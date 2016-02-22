@@ -66,6 +66,33 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		XLS::add_headings($orderSheet, $headings, $row_num);
 		$orderSheet->freezePane('A' . ($row_num + 1));
 
+		$col = Cart_Config::enable_shipping() ? 'Y' : 'Q';
+		$orderSheet->setCellValueExplicit($col . '2', 'Italic values are approximate calculations because the transfer has not been initiated in Stripe.');
+		$orderSheet->getStyle($col . '2')->getFont()->setItalic(TRUE);
+
+		if (Cart_Config::enable_shipping()) {
+			$orderSheetCols = array(
+				'total' => 'V',
+				'refund' => 'W',
+				'after_refunds' => 'X',
+				'stripe_fee' => 'Y',
+				'after_fee' => 'Z',
+				'notes' => 'AC',
+			);
+		} else {
+			$orderSheetCols = array(
+				'total' => 'N',
+				'refund' => 'O',
+				'after_refunds' => 'P',
+				'stripe_fee' => 'Q',
+				'after_fee' => 'R',
+				'notes' => 'U',
+			);
+		}
+
+		$stripe_fee = '0.029';
+		$stripe_flat_fee = '0.30';
+
 		// order ids are used later
 		$orderIds = array();
 		foreach ($orders as $order) {
@@ -116,16 +143,22 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 			$charge_data = Cart_Transfer::get_transaction($charge_id);
 
 			if ( ! empty($charge_data)) {
-				$row_data[] = '='.($charge_data['fee'] / 100).'-(O'.$row_num.'*0.029)';
-				$row_data[] = '=P'.$row_num.'-Q'.$row_num;
+				$row_data[] = '='.($charge_data['fee'] / 100).'-('.$orderSheetCols['refund'].$row_num.'*'.$stripe_fee.')';
+				// same formula below
+				$row_data[] = '='.$orderSheetCols['after_refunds'].$row_num.'-'.$orderSheetCols['stripe_fee'].$row_num;
 				$row_data[] = $charge_data['transfer_id'];
 				$transfer_datetime = (new DateTime('@'.$charge_data['transfer_date']));
 				$row_data[] = $transfer_datetime->format('Y-m-d');
 			} else {
+				// put in approximate calculations
+				// similar formula above
+				$row_data[] = '=('.$orderSheetCols['total'].$row_num.'*'.$stripe_fee.')+'.$stripe_flat_fee.'-('.$orderSheetCols['refund'].$row_num.'*'.$stripe_fee.')';
+				// same formula above
+				$row_data[] = '='.$orderSheetCols['after_refunds'].$row_num.'-'.$orderSheetCols['stripe_fee'].$row_num;
 				$row_data[] = '';
 				$row_data[] = '';
-				$row_data[] = '';
-				$row_data[] = '';
+
+				$orderSheet->getStyle($orderSheetCols['stripe_fee'] . $row_num . ':' . $orderSheetCols['after_fee'] . $row_num)->getFont()->setItalic(TRUE);
 			}
 
 			$row_data[] = $order->order_note;
@@ -134,11 +167,11 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		}
 
 		// formatting for the total col
-		$orderSheet->getStyle('N4:R' . $row_num)
+		$orderSheet->getStyle($orderSheetCols['total'] . '4:' . $orderSheetCols['after_fee'] . $row_num)
 			->getNumberFormat()
 			->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
 		// wrap the notes col
-		$orderSheet->getStyle('S4:S' . $row_num)
+		$orderSheet->getStyle($orderSheetCols['notes'] . '4:' . $orderSheetCols['notes'] . $row_num)
 			->getAlignment()->setWrapText(true);
 
 		// ******************* Transfers *********************
