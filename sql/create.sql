@@ -437,3 +437,34 @@ CREATE TABLE `cart_tax` (
   PRIMARY KEY (`id`),
   KEY `date_expired` (`expiry_date`,`start`,`end`,`country_id`,`state_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart_transfer`
+--
+
+CREATE TABLE `cart_transfer` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `transfer_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `date` date NOT NULL,
+  `data` longtext COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `transfer_id` (`transfer_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart_transfer_transaction`
+--
+
+CREATE TABLE `cart_transfer_transaction` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `transfer_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `stripe_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `data` text COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `transfer_id` (`transfer_id`),
+  KEY `stripe_id` (`stripe_id`)
+) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
