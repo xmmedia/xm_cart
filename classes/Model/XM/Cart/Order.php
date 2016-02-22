@@ -991,7 +991,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			->save();
 	}
 
-	public function calculate_shipping() {
+	public function apply_shipping() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
@@ -1113,7 +1113,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		return $this;
 	}
 
-	public function calculate_additional_charges() {
+	public function apply_additional_charges() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
@@ -1184,7 +1184,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		return $this;
 	}
 
-	public function calculate_taxes() {
+	public function apply_taxes() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
@@ -1308,9 +1308,9 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$this->_sub_total += $order_product->unit_price * $order_product->quantity;
 		}
 
-		$this->calculate_shipping();
-		$this->calculate_additional_charges();
-		$this->calculate_taxes();
+		$this->apply_shipping();
+		$this->apply_additional_charges();
+		$this->apply_taxes();
 
 		$grand_total = $this->_sub_total + $this->_tax_total;
 
