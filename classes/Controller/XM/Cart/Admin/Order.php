@@ -13,9 +13,17 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 	public $secure_actions = array(
 		'index' => 'cart/admin/order',
+		'reset_order_filters' => 'cart/admin/order',
 		'view' => 'cart/admin/order',
 		'refund' => 'cart/admin/order',
 	);
+
+	/**
+	 * The default order filters. Set in before().
+	 *
+	 * @var  array
+	 */
+	protected $default_order_filters = array();
 
 	/**
 	 * Stores the order model.
@@ -33,13 +41,16 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			$this->add_script('cart_admin_order', 'xm_cart/js/admin/order.min.js');
 		}
 
+		$this->default_order_filters = array(
+			'status' => implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)),
+			'time_frame' => NULL,
+			'time_frame_start' => NULL,
+			'time_frame_end' => NULL,
+		);
+
 		$cart_admin_session = (array) Session::instance()->path('xm_cart.cart_admin');
 		$cart_admin_session = array_replace_recursive(array(
-			'order_filters' => array(
-				'status' => implode(',', array(CART_ORDER_STATUS_PAID, CART_ORDER_STATUS_RECEIVED)),
-				'start_date' => FALSE,
-				'end_date' => FALSE,
-			),
+			'order_filters' => $this->default_order_filters,
 		), $cart_admin_session);
 		Session::instance()->set_path('xm_cart.cart_admin', $cart_admin_session);
 
@@ -72,26 +83,19 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 			CART_ORDER_STATUS_EMPTIED   => 'Emptied',
 		);
 		$order_filters_html['status'] = Form::select('order_filters[status]', $order_statuses, $order_filters['status']);
-		$order_filters_html['start_date'] = Form::date('order_filters[start_date]', $order_filters['start_date'], array('id' => 'order_filters_start_date'));
-		$order_filters_html['end_date'] = Form::date('order_filters[end_date]', $order_filters['end_date'], array('id' => 'order_filters_end_date'));
 
-		$order_query = ORM::factory('Cart_Order');
-		if ( ! empty($order_filters['status'])) {
-			$order_filter_statuses = explode(',', $order_filters['status']);
-			$order_query->where('status', 'IN', $order_filter_statuses);
+		$time_frame_options = $this->time_frame_options();
+		if (empty($order_filters['time_frame'])) {
+			$order_filters['time_frame'] = key($time_frame_options);
+			$time_frame_parts = explode('-', $order_filters['time_frame']);
+			$order_filters['time_frame_start'] = substr($time_frame_parts[0], 0, 4) . '-' . substr($time_frame_parts[0], 4, 2) . '-' . substr($time_frame_parts[0], 6, 2);
+			$order_filters['time_frame_end'] = substr($time_frame_parts[1], 0, 4) . '-' . substr($time_frame_parts[1], 4, 2) . '-' . substr($time_frame_parts[1], 6, 2);
 		}
-		if ( ! empty($order_filters['start_date']) ||  ! empty($order_filters['end_date'])) {
-			$order_query->join(array('cart_order_log', 'log'), 'INNER')
-				->on('log.cart_order_id', '=', 'cart_order.id')
-				->where('log.action', '=', 'paid');
-		}
-		if ( ! empty($order_filters['start_date'])) {
-			$order_query->where('log.timestamp', '>=', $order_filters['start_date']);
-		}
-		if ( ! empty($order_filters['end_date'])) {
-			$order_query->where('log.timestamp', '<=', $order_filters['end_date'] . '23:59:59');
-		}
-		$orders = $order_query->find_all();
+		$order_filters_html['time_frame_select'] = Form::select('order_filters[time_frame]', $time_frame_options, $order_filters['time_frame'], array('class' => 'js_cart_order_time_frame'));
+		$order_filters_html['time_frame_start'] = Form::date('order_filters[time_frame_start]', $order_filters['time_frame_start'], array('class' => 'js_cart_order_time_frame_start'));
+		$order_filters_html['time_frame_end'] = Form::date('order_filters[time_frame_end]', $order_filters['time_frame_end'], array('class' => 'js_cart_order_time_frame_end'));
+
+		$orders = $this->get_orders($order_filters);
 
 		$order_list = array(
 			(string) View::factory('cart_admin/order/list_headers'),
@@ -102,26 +106,38 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 			$last_log = $order->cart_order_log->find();
 
-			$billing_shipping_diff = ($order->shipping_first_name != $order->billing_first_name || $order->shipping_last_name != $order->billing_last_name || $order->shipping_email != $order->billing_email);
-
 			$view_uri = Route::get('cart_admin_order')->uri(array('action' => 'view', 'id' => $order->pk()));
 
 			$order_list[] = (string) View::factory('cart_admin/order/item')
 				->bind('order', $order)
 				->bind('last_log', $last_log)
 				->bind('view_uri', $view_uri)
-				->bind('billing_shipping_diff', $billing_shipping_diff);
+				->set('billing_shipping_diff', $order->billing_shipping_diff());
 		}
 
 		$uri = Route::get('cart_admin_order')->uri();
+		$form_open = Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form'));
 		$export_uri = Route::get('cart_admin_order_export')->uri() . '?' . http_build_query(array('order_filters' => $order_filters));
+		$reset_order_filters_uri = Route::get('cart_admin_order')->uri(array('action' => 'reset_order_filters')) . '?' . http_build_query(array('order_filters' => $this->default_order_filters));
 
 		$this->template->page_title = 'Orders - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/index')
-			->set('form_open', Form::open($uri, array('method' => 'GET', 'class' => 'cart_form js_cart_order_filter_form')))
+			->set('form_open', $form_open)
 			->bind('order_filters_html', $order_filters_html)
-			->set('order_html', implode(PHP_EOL, $order_list))
-			->set('export_uri', $export_uri);
+			->bind('reset_order_filters_uri', $reset_order_filters_uri)
+			->set('export_uri', $export_uri)
+			->set('order_html', implode(PHP_EOL, $order_list));
+	}
+
+	/**
+	 * Resets the order filters in the session and redirects the user back to the index action.
+	 *
+	 * @return  void
+	 */
+	public function action_reset_order_filters() {
+		$order_filters = $this->default_order_filters + (array) $this->request->query('order_filters');
+		Session::instance()->set_path('xm_cart.cart_admin.order_filters', $order_filters);
+		$this->redirect($this->order_uri());
 	}
 
 	public function action_view() {
@@ -168,7 +184,7 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 
 		$this->add_style('cart_public', 'xm_cart/css/public.css');
 
-		$this->template->page_title = ( ! empty($this->order->order_num) ? $this->order->order_num . ' - ' : '') . 'Order View - ' . $this->page_title_append;
+		$this->template->page_title = ( ! empty($this->order->order_num) ? $this->order->order_num : 'Order View') . ' - ' . $this->page_title_append;
 		$this->template->body_html = View::factory('cart_admin/order/view')
 			->bind('order', $this->order)
 			->bind('cart_html', $cart_html)
@@ -391,6 +407,39 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 	}
 
 	/**
+	 * Returns the list of orders filter by the order filters passed in.
+	 *
+	 * @param   array  $order_filters  Array of order filters.
+	 *
+	 * @return  Database_Result
+	 */
+	protected function get_orders($order_filters) {
+		$order_query = ORM::factory('Cart_Order');
+
+		if ( ! empty($order_filters['status'])) {
+			$order_filter_statuses = explode(',', $order_filters['status']);
+			$order_query->where('cart_order.status', 'IN', $order_filter_statuses);
+		}
+
+		if ( ! empty($order_filters['time_frame_start']) && ! empty($order_filters['time_frame_end'])) {
+			$last_log_select = DB::select(array(DB::expr('MAX(id)'), 'max_id'), 'cart_order_id')
+				->from('cart_order_log')
+				->group_by('cart_order_id');
+
+			$order_query->join(array($last_log_select, 'last_log'))
+					->on('last_log.cart_order_id', '=', 'cart_order.id')
+				->join(array('cart_order_log', 'log'))
+					->on('log.id', '=', 'last_log.max_id')
+				->where_open()
+					->where('log.timestamp', '>=', $order_filters['time_frame_start'] . ' 00:00:00')
+					->where('log.timestamp', '<=', $order_filters['time_frame_end'] . ' 23:59:59')
+				->where_close();
+		}
+
+		return $order_query->find_all();
+	}
+
+	/**
 	 * Return a list of statuses that the order can be changed to.
 	 *
 	 * @return  array
@@ -425,5 +474,84 @@ class Controller_XM_Cart_Admin_Order extends Controller_Cart_Admin {
 		}
 
 		return $status_options;
+	}
+
+	/**
+	 * Creates the array of time frame options.
+	 *
+	 * @return  array
+	 */
+	protected function time_frame_options() {
+		$time_frame_options = array();
+		$time_frame_date_format = 'Ymd';
+		$time_frame_date_separator = '-';
+		$months_long = Date::months(Date::MONTHS_LONG);
+
+		$sunday_str = date('w') == 0 ? 'now' : 'last Sunday';
+		$saturday_str = date('w') == 6 ? 'now' : 'next Saturday';
+		$time_frame_str = Date::formatted_time($sunday_str, $time_frame_date_format)
+			. $time_frame_date_separator . Date::formatted_time($saturday_str, $time_frame_date_format);
+		$time_frame_options[$time_frame_str] = 'This Week';
+
+		$time_frame_str = Date::formatted_time('-2 Sunday', $time_frame_date_format)
+			. $time_frame_date_separator . Date::formatted_time('last Saturday', $time_frame_date_format);
+		$time_frame_options[$time_frame_str] = 'Last Week';
+
+		$semimonthly_start_day = date('j') < 15 ? '01' : '15';
+		$semimonthly_end_day = date('j') < 15 ? '15' : 't';
+		$time_frame_str = Date::formatted_time('now', 'Ym' . $semimonthly_start_day)
+			. $time_frame_date_separator . Date::formatted_time('now', 'Ym' . $semimonthly_end_day);
+		$time_frame_options[$time_frame_str] = 'This Semimonthly Period';
+
+		if (date('j') < 15) {
+			$semimonthly_str = 'previous month';
+			$semimonthly_start_day = '15';
+			$semimonthly_end_day = 't';
+		} else {
+			$semimonthly_str = 'now';
+			$semimonthly_start_day = '01';
+			$semimonthly_end_day = '15';
+		}
+		$time_frame_str = Date::formatted_time($semimonthly_str, 'Ym' . $semimonthly_start_day)
+			. $time_frame_date_separator . Date::formatted_time($semimonthly_str, 'Ym' . $semimonthly_end_day);
+		$time_frame_options[$time_frame_str] = 'Last Semimonthly Period';
+
+		$time_frame_str = Date::formatted_time('now', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('now', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'This Month (' . Date::formatted_time('now', 'F') . ')';
+
+		$time_frame_str = Date::formatted_time('last month', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('last month', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'Last Month (' . Date::formatted_time('last month', 'F') . ')';
+
+		$current_quarter = ceil(date('m') / 3);
+		$quarter_start_month = ($current_quarter - 1) * 3 + 1;
+		$quarter_end_month = $current_quarter * 3;
+		$time_frame_str = Date::formatted_time($months_long[$quarter_start_month], 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time($months_long[$quarter_end_month], 'Ymt');
+		$time_frame_options[$time_frame_str] = 'This Quarter';
+
+		$last_quarter = $current_quarter - 1;
+		if ($last_quarter < 1) {
+			$last_quarter = 4;
+		}
+		$quarter_start_month = ($last_quarter - 1) * 3 + 1;
+		$quarter_end_month = $last_quarter * 3;
+		$quarter_year = $last_quarter == 4 ? Date::formatted_time('last year', 'Y') : 'Y';
+		$time_frame_str = Date::formatted_time($months_long[$quarter_start_month], $quarter_year . 'm01')
+			. $time_frame_date_separator . Date::formatted_time($months_long[$quarter_end_month], $quarter_year . 'mt');
+		$time_frame_options[$time_frame_str] = 'Last Quarter';
+
+		$time_frame_str = Date::formatted_time('January', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('December', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'This Year';
+
+		$time_frame_str = Date::formatted_time('last year January', 'Ym01')
+			. $time_frame_date_separator . Date::formatted_time('last year December', 'Ymt');
+		$time_frame_options[$time_frame_str] = 'Last Year';
+
+		$time_frame_options['custom'] = 'Custom';
+
+		return $time_frame_options;
 	}
 }
