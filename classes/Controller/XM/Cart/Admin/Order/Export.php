@@ -91,11 +91,11 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		$headings[] = array('name' => 'Billing Province/State', 'width' => 18);
 		$headings[] = array('name' => 'Billing Postal/Zip Code', 'width' => 18);
 		$headings[] = array('name' => 'Paid With', 'width' => 15);
-		$headings[] = array('name' => 'Stripe Charge ID', 'width' => 18);
+		$headings[] = array('name' => 'Stripe Charge ID', 'width' => 27);
 		$headings[] = array('name' => 'Total', 'width' => 9);
 		$headings[] = array('name' => 'Stripe Fee', 'width' => 9);
 		$headings[] = array('name' => 'After Fee', 'width' => 9);
-		$headings[] = array('name' => 'Transfer', 'width' => 18);
+		$headings[] = array('name' => 'Transfer', 'width' => 27);
 		$headings[] = array('name' => 'Transfer Date', 'width' => 12);
 		$headings[] = array('name' => 'Notes', 'width' => 100);
 
