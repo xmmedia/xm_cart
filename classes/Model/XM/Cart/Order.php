@@ -946,7 +946,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$str .= $this->shipping_address_2 . PHP_EOL;
 		}
 
-		$str .= $this->shipping_municipality . ', ' . $this->shipping_state_select->name . '  ' . $this->shipping_postal_code . PHP_EOL
+		$str .= $this->shipping_municipality . ', ' . $this->shipping_state() . '  ' . $this->shipping_postal_code . PHP_EOL
 			. $this->shipping_country->name;
 
 		return $str;
@@ -979,10 +979,38 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$str .= $this->billing_address_2 . PHP_EOL;
 		}
 
-		$str .= $this->billing_municipality . ', ' . $this->billing_state_select->name . '  ' . $this->billing_postal_code . PHP_EOL
+		$str .= $this->billing_municipality . ', ' . $this->billing_state() . '  ' . $this->billing_postal_code . PHP_EOL
 			. $this->billing_country->name;
 
 		return $str;
+	}
+
+	/**
+	 * Returns the shipping state name.
+	 * Pulls from the state table or shipping_state.
+	 *
+	 * @return  string
+	 */
+	public function shipping_state() {
+		if ( ! empty($this->shipping_state_id)) {
+			return $this->shipping_state_select->name;
+		} else {
+			return $this->shipping_state;
+		}
+	}
+
+	/**
+	 * Returns the billing state name.
+	 * Pulls from the state table or billing_state.
+	 *
+	 * @return  string
+	 */
+	public function billing_state() {
+		if ( ! empty($this->billing_state_id)) {
+			return $this->billing_state_select->name;
+		} else {
+			return $this->billing_state;
+		}
 	}
 
 	public function set_status($status) {
@@ -991,7 +1019,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			->save();
 	}
 
-	public function calculate_shipping() {
+	public function apply_shipping() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
@@ -1113,7 +1141,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		return $this;
 	}
 
-	public function calculate_additional_charges() {
+	public function apply_additional_charges() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
@@ -1184,7 +1212,7 @@ class Model_XM_Cart_Order extends Cart_ORM {
 		return $this;
 	}
 
-	public function calculate_taxes() {
+	public function apply_taxes() {
 		if ( ! $this->loaded()) {
 			return $this;
 		}
@@ -1308,9 +1336,9 @@ class Model_XM_Cart_Order extends Cart_ORM {
 			$this->_sub_total += $order_product->unit_price * $order_product->quantity;
 		}
 
-		$this->calculate_shipping();
-		$this->calculate_additional_charges();
-		$this->calculate_taxes();
+		$this->apply_shipping();
+		$this->apply_additional_charges();
+		$this->apply_taxes();
 
 		$grand_total = $this->_sub_total + $this->_tax_total;
 
@@ -1447,5 +1475,15 @@ class Model_XM_Cart_Order extends Cart_ORM {
 	 */
 	public function final_total() {
 		return $this->grand_total - $this->refund_total;
+	}
+
+	/**
+	 * Returns `TRUE` if the billing and shipping are different,
+	 * based on the first, last and email address fields.
+	 *
+	 * @return  boolean
+	 */
+	public function billing_shipping_diff() {
+		return ($this->shipping_first_name != $this->billing_first_name || $this->shipping_last_name != $this->billing_last_name || $this->shipping_email != $this->billing_email);
 	}
 } // class

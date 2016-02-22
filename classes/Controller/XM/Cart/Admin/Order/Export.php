@@ -61,25 +61,8 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		} while ($transfer_count == 100 && $i < 25);
 
 		// ******************* Orders *********************
-		$order_query = ORM::factory('Cart_Order');
 		$order_filters = (array) $this->request->query('order_filters');
-
-		if ( ! empty($order_filters['status'])) {
-			$order_filter_statuses = explode(',', $order_filters['status']);
-			$order_query->where('status', 'IN', $order_filter_statuses);
-		}
-		if ( ! empty($order_filters['start_date']) ||  ! empty($order_filters['end_date'])) {
-			$order_query->join(array('cart_order_log', 'log'), 'INNER')
-				->on('log.cart_order_id', '=', 'cart_order.id')
-				->where('log.action', '=', 'paid');
-		}
-		if ( ! empty($order_filters['start_date'])) {
-			$order_query->where('log.timestamp', '>=', $order_filters['start_date']);
-		}
-		if ( ! empty($order_filters['end_date'])) {
-			$order_query->where('log.timestamp', '<=', $order_filters['end_date'] . '23:59:59');
-		}
-		$orders = $order_query->find_all();
+		$orders = $this->get_orders($order_filters);
 
 		$orderSheet = $xlsx->getActiveSheet();
 		$this->setSheetTitle($orderSheet, 'Orders', 'B');

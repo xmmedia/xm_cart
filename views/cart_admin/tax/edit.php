@@ -16,8 +16,8 @@
 				<div class="field"><?php echo $tax->get_field_layout('display_order'); ?></div>
 
 				<div class="buttons"><?php
-					echo Form::submit(NULL, 'Save'),
-						Form::input_button(NULL, 'Cancel', array('class' => 'js_xm_button_link', 'data-xm_link' => $cancel_uri));
+					echo Form::button(NULL, 'Save'),
+						Form::anchor($cancel_uri, 'Cancel');
 				?></div>
 			</form>
 		</div>
