@@ -21,7 +21,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 
 		$stripe_config = Cart::load_stripe();
 
-		// @todo this section is really bad, inefficient, slow, and hard to Stripe
+		// @todo this section is really bad, inefficient, slow, and hard on Stripe
 		// should store the data in the db and use webhooks to get the data
 		$transfer_data = array();
 		$charge_data = array();
@@ -93,6 +93,8 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		$headings[] = array('name' => 'Paid With', 'width' => 15);
 		$headings[] = array('name' => 'Stripe Charge ID', 'width' => 27);
 		$headings[] = array('name' => 'Total', 'width' => 9);
+		$headings[] = array('name' => 'Refund Total', 'width' => 11);
+		$headings[] = array('name' => 'After Refunds', 'width' => 12);
 		$headings[] = array('name' => 'Stripe Fee', 'width' => 9);
 		$headings[] = array('name' => 'After Fee', 'width' => 9);
 		$headings[] = array('name' => 'Transfer', 'width' => 27);
@@ -146,11 +148,13 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 
 			$row_data[] = $payment_transaction->response['card']['type'] . ' ' . $payment_transaction->response['card']['last4'];
 			$row_data[] = $charge_id;
+			$row_data[] = $order->grand_total;
+			$row_data[] = $order->refund_total;
 			$row_data[] = $order->final_total();
 
 			if (isset($charge_data[$charge_id])) {
-				$row_data[] = $charge_data[$charge_id]['fee'] / 100;
-				$row_data[] = '=N'.$row_num.'-O'.$row_num;
+				$row_data[] = '='.($charge_data[$charge_id]['fee'] / 100).'-(O'.$row_num.'*0.029)';
+				$row_data[] = '=P'.$row_num.'-Q'.$row_num;
 				$row_data[] = $charge_data[$charge_id]['transfer_id'];
 				$transfer_datetime = (new DateTime('@'.$charge_data[$charge_id]['transfer_date']));
 				$row_data[] = $transfer_datetime->format('Y-m-d');
@@ -167,7 +171,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		}
 
 		// formatting for the total col
-		$orderSheet->getStyle('N4:O' . $row_num)
+		$orderSheet->getStyle('N4:R' . $row_num)
 			->getNumberFormat()
 			->setFormatCode('#,##0.00');
 		// wrap the notes col
@@ -180,7 +184,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 		$row_num = 1;
 
 		$headings = array();
-		$headings[] = array('name' => 'Transfer ID', 'width' => 19);
+		$headings[] = array('name' => 'Transfer ID', 'width' => 27);
 		$headings[] = array('name' => 'Date', 'width' => 10);
 		$headings[] = array('name' => 'Amount', 'width' => 10);
 		$headings[] = array('name' => 'Status', 'width' => 8);
@@ -231,7 +235,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 			$headings[] = array('name' => 'Billing City', 'width' => 16);
 			$headings[] = array('name' => 'Billing Province/State', 'width' => 18);
 			$headings[] = array('name' => 'Billing Postal/Zip Code', 'width' => 18);
-			$headings[] = array('name' => 'Transfer', 'width' => 18);
+			$headings[] = array('name' => 'Transfer', 'width' => 27);
 			$headings[] = array('name' => 'Transfer Date', 'width' => 12);
 			$headings[] = array('name' => 'Notes', 'width' => 100);
 
