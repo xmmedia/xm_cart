@@ -28,6 +28,8 @@ class XM_Cart_Transfer {
 		do {
 			++ $i;
 
+			set_time_limit(120);
+
 			$transfers = Stripe_Transfer::all(array(
 				'limit' => 100,
 				'ending_before' => $last_transfer_id,
@@ -47,14 +49,20 @@ class XM_Cart_Transfer {
 
 				// only store status="paid"
 				if ($transfer->status == 'paid') {
-					$transfer_date = new DateTime('@'.$transfer->created);
-					ORM::factory('Cart_Transfer')
-						->values(array(
-							'transfer_id' => $transfer->id,
-							'date' => $transfer_date->format('Y-m-d'),
-							'data' => $transfer->__toArray(),
-						))
-						->save();
+					$existing_transfer = ORM::factory('Cart_Transfer')
+						->where('transfer_id', '=', $transfer->id)
+						->find();
+
+					if ( ! $existing_transfer->loaded()) {
+						$transfer_date = new DateTime('@'.$transfer->created);
+						ORM::factory('Cart_Transfer')
+							->values(array(
+								'transfer_id' => $transfer->id,
+								'date' => $transfer_date->format('Y-m-d'),
+								'data' => $transfer->__toArray(),
+							))
+							->save();
+					}
 				}
 
 				foreach ($transaction_data as $transaction) {
@@ -66,13 +74,20 @@ class XM_Cart_Transfer {
 
 					// see above
 					if ($transfer->status == 'paid') {
-						ORM::factory('Cart_Transfer_Transaction')
-							->values(array(
-								'transfer_id' => $transfer->id,
-								'stripe_id' => $transaction->id,
-								'data' => $transaction->__toArray(),
-							))
-							->save();
+						$existing_transaction = ORM::factory('Cart_Transfer_Transaction')
+							->where('transfer_id', '=', $transfer->id)
+							->where('stripe_id', '=', $transaction->id)
+							->find();
+
+						if ( ! $existing_transaction->loaded()) {
+							ORM::factory('Cart_Transfer_Transaction')
+								->values(array(
+									'transfer_id' => $transfer->id,
+									'stripe_id' => $transaction->id,
+									'data' => $transaction->__toArray(),
+								))
+								->save();
+						}
 					}
 				}
 
