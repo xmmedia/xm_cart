@@ -294,15 +294,15 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 
 				XLS::add_row($donationSheet, $row_num, $row_data);
 			}
-		}
 
-		// formatting for the amount col
-		$donationSheet->getStyle('D4:D' . $row_num)
-			->getNumberFormat()
-			->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
-		// wrap the notes col
-		$donationSheet->getStyle('P4:P' . $row_num)
-			->getAlignment()->setWrapText(true);
+			// formatting for the amount col
+			$donationSheet->getStyle('D4:D' . $row_num)
+				->getNumberFormat()
+				->setFormatCode(PHPExcel_Style_NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1);
+			// wrap the notes col
+			$donationSheet->getStyle('P4:P' . $row_num)
+				->getAlignment()->setWrapText(true);
+		}
 
 		// ************ Finalization ***************
 		$xlsx->setActiveSheetIndex(0);
