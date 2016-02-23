@@ -539,6 +539,10 @@ class XM_Cart {
 	public static function order_key_decrypt($order_key) {
 		$_order_data = Encrypt::instance('xm_cart')
 			->decode($order_key);
+		if ( ! $_order_data) {
+			throw new Kohana_Exception('Unable to decode the order key');
+		}
+
 		$order_data = json_decode($_order_data, TRUE);
 		Error::check_json_error();
 

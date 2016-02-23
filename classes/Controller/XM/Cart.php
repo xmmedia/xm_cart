@@ -879,7 +879,7 @@ class Controller_XM_Cart extends Controller_Public {
 	 * @return  void
 	 */
 	public function action_view_order() {
-		$order_key = $this->request->query('order');
+		$order_key = urldecode($this->request->query('order'));
 		if (empty($order_key)) {
 			$this->redirect(Cart_Config::continue_shopping_url());
 		}
