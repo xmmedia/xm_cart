@@ -21,31 +21,47 @@ class Model_XM_Cart_Transfer_Transaction extends Cart_ORM {
 			'is_nullable' => FALSE,
 		),
 		'transfer_id' => array(
-			'field_type' => 'Select',
+			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_options' => array(
-				'source' => array(
-					'source' => 'model',
-					'data' => 'Transfer',
-				),
+				'maxlength' => 255,
 			),
 		),
 		'stripe_id' => array(
-			'field_type' => 'Select',
+			'field_type' => 'Text',
 			'list_flag' => TRUE,
 			'edit_flag' => TRUE,
 			'search_flag' => TRUE,
 			'view_flag' => TRUE,
 			'is_nullable' => FALSE,
 			'field_options' => array(
-				'source' => array(
-					'source' => 'model',
-					'data' => 'Stripe',
-				),
+				'maxlength' => 255,
+			),
+		),
+		'type' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_options' => array(
+				'maxlength' => 25,
+			),
+		),
+		'created' => array(
+			'field_type' => 'Text',
+			'list_flag' => TRUE,
+			'edit_flag' => TRUE,
+			'search_flag' => TRUE,
+			'view_flag' => TRUE,
+			'is_nullable' => FALSE,
+			'field_options' => array(
+				'maxlength' => 12,
 			),
 		),
 		'data' => array(
@@ -69,6 +85,8 @@ class Model_XM_Cart_Transfer_Transaction extends Cart_ORM {
 			'id' => 'ID',
 			'transfer_id' => 'Transfer ID',
 			'stripe_id' => 'Stripe ID',
+			'type' => 'Type',
+			'created' => 'Created',
 			'data' => 'Data',
 		);
 	}
