@@ -95,6 +95,7 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 
 		// order ids are used later
 		$orderIds = array();
+		/** @var Model_Cart_Order $order */
 		foreach ($orders as $order) {
 			++ $row_num;
 
@@ -140,14 +141,18 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 			$row_data[] = $order->refund_total;
 			$row_data[] = $order->final_total();
 
-			$charge_data = Cart_Transfer::get_transaction($charge_id);
+			$transactions_data = Cart_Transfer::get_transactions($charge_id);
 
-			if ( ! empty($charge_data)) {
-				$row_data[] = '='.($charge_data['fee'] / 100).'-('.$orderSheetCols['refund'].$row_num.'*'.$stripe_fee.')';
+			if ( ! empty($transactions_data)) {
+				$fees = 0;
+				foreach ($transactions_data as $transaction) {
+					$fees += $transaction['fee'];
+				}
+				$row_data[] = $fees / 100;
 				// same formula below
 				$row_data[] = '='.$orderSheetCols['after_refunds'].$row_num.'-'.$orderSheetCols['stripe_fee'].$row_num;
-				$row_data[] = $charge_data['transfer_id'];
-				$transfer_datetime = (new DateTime('@'.$charge_data['transfer_date']));
+				$row_data[] = $transactions_data[0]['transfer_id'];
+				$transfer_datetime = (new DateTime('@'.$transactions_data[0]['transfer_date']));
 				$row_data[] = $transfer_datetime->format('Y-m-d');
 			} else {
 				// put in approximate calculations

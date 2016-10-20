@@ -463,8 +463,11 @@ CREATE TABLE `cart_transfer_transaction` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `transfer_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `stripe_id` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `type` char(25) COLLATE utf8_unicode_ci NOT NULL,
+  `created` int(10) unsigned NOT NULL,
   `data` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
   KEY `transfer_id` (`transfer_id`),
-  KEY `stripe_id` (`stripe_id`)
+  KEY `stripe_id` (`stripe_id`),
+  KEY `type` (`type`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

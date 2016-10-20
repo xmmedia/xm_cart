@@ -17,11 +17,11 @@ class XM_Cart_Transfer {
 
 		$last_transfer_id = null;
 
-		$last_strored_transfer = ORM::factory('Cart_Transfer')
+		$last_stored_transfer = ORM::factory('Cart_Transfer')
 			->order_by('date', 'DESC')
 			->find();
-		if ($last_strored_transfer->loaded()) {
-			$last_transfer_id = $last_strored_transfer->transfer_id;
+		if ($last_stored_transfer->loaded()) {
+			$last_transfer_id = $last_stored_transfer->transfer_id;
 		}
 
 		$i = 0;
@@ -37,14 +37,18 @@ class XM_Cart_Transfer {
 			$transfer_count = count($transfers->data);
 
 			foreach ($transfers->data as $transfer) {
-				if ($transfer->transactions->has_more) {
-					$requestor = new Stripe_ApiRequestor();
+				if (isset($transfer->transactions)) {
+					// if stripe says there are more transactions
+					// retrieve them before continuing
+					if ($transfer->transactions->has_more) {
+						$requestor = new Stripe_ApiRequestor();
 
-					list($response, $apiKey) = $requestor->request('get', $transfer->transactions->url, array('limit' => 100));
-					$transaction_data_response = Stripe_Util::convertToStripeObject($response, $apiKey);
-					$transaction_data = $transaction_data_response->data;
-				} else {
-					$transaction_data = $transfer->transactions->data;
+						list($response, $apiKey) = $requestor->request('get', $transfer->transactions->url, array('limit' => 100));
+						$transaction_data_response = Stripe_Util::convertToStripeObject($response, $apiKey);
+						$transaction_data = $transaction_data_response->data;
+					} else {
+						$transaction_data = $transfer->transactions->data;
+					}
 				}
 
 				// only store status="paid"
@@ -65,28 +69,34 @@ class XM_Cart_Transfer {
 					}
 				}
 
-				foreach ($transaction_data as $transaction) {
-					self::$charge_data[$transaction->id] = array(
-						'transfer_id' => $transfer->id,
-						'fee' => $transaction->fee,
-						'transfer_date' => $transfer->created,
-					);
+				if (isset($transfer->transactions)) {
+					foreach ($transaction_data as $transaction) {
+						self::$charge_data[$transaction->id][] = array(
+							'transfer_id'   => $transfer->id,
+							'fee'           => $transaction->fee,
+							'transfer_date' => $transfer->created,
+						);
 
-					// see above
-					if ($transfer->status == 'paid') {
-						$existing_transaction = ORM::factory('Cart_Transfer_Transaction')
-							->where('transfer_id', '=', $transfer->id)
-							->where('stripe_id', '=', $transaction->id)
-							->find();
+						// see above
+						if ($transfer->status == 'paid') {
+							$existing_transaction = ORM::factory('Cart_Transfer_Transaction')
+								->where('transfer_id', '=', $transfer->id)
+								->where('stripe_id', '=', $transaction->id)
+								->where('type', '=', $transaction->type)
+								->where('created', '=', $transaction->created)
+								->find();
 
-						if ( ! $existing_transaction->loaded()) {
-							ORM::factory('Cart_Transfer_Transaction')
-								->values(array(
-									'transfer_id' => $transfer->id,
-									'stripe_id' => $transaction->id,
-									'data' => $transaction->__toArray(),
-								))
-								->save();
+							if ( ! $existing_transaction->loaded()) {
+								ORM::factory('Cart_Transfer_Transaction')
+									->values(array(
+										'transfer_id' => $transfer->id,
+										'stripe_id' => $transaction->id,
+										'type' => $transaction->type,
+										'created' => $transaction->created,
+										'data' => $transaction->__toArray(),
+									))
+									->save();
+							}
 						}
 					}
 				}
@@ -97,25 +107,34 @@ class XM_Cart_Transfer {
 		} while ($transfer_count == 100 && $i < 25);
 	}
 
-	public static function get_transaction($transaction_id) {
+	/**
+	 * Retrieves transactions for a transaction/stripe ID.
+	 *
+	 * @param $transaction_id
+	 * @return array|null
+	 */
+	public static function get_transactions($transaction_id) {
 		if (isset(self::$charge_data[$transaction_id])) {
 			self::$charge_data[$transaction_id];
 		}
 
-		$transaction = ORM::factory('Cart_Transfer_Transaction')
+		$transactions = ORM::factory('Cart_Transfer_Transaction')
 			->where('stripe_id', '=', $transaction_id)
-			->find();
-		if ( ! $transaction->loaded()) {
+			->find_all();
+		if (count($transactions) == 0) {
 			return null;
 		}
 
-		$transfer = self::get_transfer($transaction->transfer_id);
+		// get the transfer for the last transaction
+		$transfer = self::get_transfer($transactions[count($transactions) - 1]->transfer_id);
 
-		self::$charge_data[$transaction->stripe_id] = array(
-			'transfer_id' => $transaction->transfer_id,
-			'fee' => $transaction->data['fee'],
-			'transfer_date' => $transfer['created'],
-		);
+		foreach ($transactions as $transaction) {
+			self::$charge_data[$transaction->stripe_id][] = array(
+				'transfer_id'   => $transaction->transfer_id,
+				'fee'           => $transaction->data['fee'],
+				'transfer_date' => $transfer['created'],
+			);
+		}
 
 		return self::$charge_data[$transaction_id];
 	}
