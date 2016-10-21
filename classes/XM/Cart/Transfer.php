@@ -128,8 +128,9 @@ class XM_Cart_Transfer {
 		// get the transfer for the last transaction
 		$transfer = self::get_transfer($transactions[count($transactions) - 1]->transfer_id);
 
+		self::$charge_data[$transaction_id] = array();
 		foreach ($transactions as $transaction) {
-			self::$charge_data[$transaction->stripe_id][] = array(
+			self::$charge_data[$transaction_id][] = array(
 				'transfer_id'   => $transaction->transfer_id,
 				'fee'           => $transaction->data['fee'],
 				'transfer_date' => $transfer['created'],
