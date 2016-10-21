@@ -284,11 +284,11 @@ class Controller_XM_Cart_Admin_Order_Export extends Controller_Cart_Admin {
 				$row_data[] = $order->billing_state_select->name;
 				$row_data[] = $order->billing_postal_code;
 
-				$charge_data = Cart_Transfer::get_transaction($charge_id);
+				$transactions_data = Cart_Transfer::get_transactions($charge_id);
 
-				if ( ! empty($charge_data)) {
-					$row_data[] = $charge_data['transfer_id'];
-					$transfer_datetime = (new DateTime('@'.$charge_data['transfer_date']));
+				if ( ! empty($transactions_data)) {
+					$row_data[] = $transactions_data[0]['transfer_id'];
+					$transfer_datetime = (new DateTime('@'.$transactions_data[0]['transfer_date']));
 					$row_data[] = $transfer_datetime->format('Y-m-d');
 				} else {
 					$row_data[] = '';
